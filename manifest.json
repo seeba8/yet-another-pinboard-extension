@@ -1,0 +1,30 @@
+{
+  "manifest_version": 2,
+  "name": "Pinboard Omnibox Suggestions",
+  "description" : "To use, type 'pin' plus a search term into the url bar.",
+  "homepage_url": "https://github.com/seeba8/pinboard-omnibox",
+  "developer": {
+	"name": "seeba8",
+	"url": "https://github.com/seeba8/"
+  },
+  "version": "1.0",
+  "applications": {
+    "gecko": {
+      "strict_min_version": "52.0a1"
+    }
+  },
+  "background": {
+    "scripts": ["background.js"]
+  },
+  "omnibox": { "keyword" : "pin" },
+
+  "permissions": [
+    "https://searchfox.org/",
+	"https://api.pinboard.in/",
+	"storage"
+  ],
+  "options_ui": {
+	"page": "options.html",
+	"browser_style": true
+  }
+}
