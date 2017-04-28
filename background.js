@@ -1,12 +1,16 @@
-let pins = [];
-let options = {};
+var pins = [];
+var options = {};
 
 // Listeners
 browser.runtime.onStartup.addListener(handleStartup);
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
 browser.storage.onChanged.addListener(handleStorageChanged);
+browser.omnibox.onInputStarted.addListener(() => {
+    console.log(pins);
+});
 browser.omnibox.onInputChanged.addListener(handleInputChanged);
 browser.omnibox.onInputEntered.addListener(handleInputEntered);
+browser.tabs.onUpdated.addListener(handleTabUpdated);
 
 // Provide help text to the user.
 browser.omnibox.setDefaultSuggestion({
@@ -14,40 +18,60 @@ browser.omnibox.setDefaultSuggestion({
 });
 
 function handleAddonInstalled(){
-    loadOptions();
+    options = {
+       "urlPrefix": "u",
+       "tagPrefix": "t",
+       "titlePrefix": "n",
+       "toReadPrefix": "r",
+       "showBookmarked": true
+    };
+    browser.storage.local.set({"options": options});
+    browser.storage.local.get(null).then((res) => {
+        if(!!res.apikey && res.pins.length == 0){
+            updatePinData();
+        }
+        else if(!!res.pins && res.pins.length > 0){
+            updatePinVariable();
+        }
+
+    })
+
 }
 // Update the pins on startup of the browser
 function handleStartup(){
     updatePinData();
     loadOptions();
+    updatePinVariable();
 }
 
 function loadOptions(){
-    options.startSearchLength = 3;
-    options.urlPrefix = "u";
-    options.tagPrefix = "t";
-    options.titlePrefix = "n"; // Name...
-    options.toReadPrefix = "r";
+    browser.storage.local.get("options").then((res)=>{
+        options = res.options;
+    });
 }
 
 // Only update pin data when the api key was modified
 function handleStorageChanged(changes, area){
+    console.log(changes);
     if(Object.keys(changes).includes("apikey")){
         updatePinData();
     }
     else if(Object.keys(changes).includes("pins")){
         updatePinVariable();
     }
+    else if(Object.keys(changes).includes("options")){
+        loadOptions();
+    }
 }
 
 function updatePinVariable(){
     browser.storage.local.get("pins").then((res) => {
-        pins = res["pins"]["posts"];
+        pins = res["pins"];
         console.log("Updated pin variable");
     });
 }
 
-function updateAvailable(){
+function isUpdateAvailable(){
     browser.storage.local.get(["apikey", "lastsync"]).then((token) => {
         let headers = new Headers({"Accept": "application/json"});
         let init = {method: 'GET', headers};
@@ -63,23 +87,27 @@ function updateAvailable(){
 // Reloads all bookmarks from pinboard. Should be optimized to get a delta...
 // Should listen to return codes
 function updatePinData(){
-    browser.storage.local.get(["apikey", "lastsync"]).then((token) => {
-        if(!token.apikey || token.apikey == "" ||(!!token.lastsync && token.lastsync > Date.now() - 1000*60*10)){
+    browser.storage.local.get(["apikey", "lastsync", "pins"]).then((token) => {
+        if(!token.apikey || token.apikey == "" || (!!token.lastsync && new Date(token.lastsync) > Date.now() - 1000*60*10)){
             console.log("Not syncing, either no API key or last sync less than 10 minutes ago.");
             return;
         }
-        let headers = new Headers({"Accept": "application/json"});
-        let init = {method: 'GET', headers};
-        if(!updateAvailable()){
+        
+        if(!!token.pins && token.pins.length > 0 && !!token.lastsync && !isUpdateAvailable()){
             console.log("Not syncing, no update available");
+            updatePinVariable();
             return;
         }
-        if(!token.lastsync){
-            let request = new Request("https://api.pinboard.in/v1/posts/all?auth_token="+token.apikey+"&format=json", init);
+        let request = null;
+        let headers = new Headers({"Accept": "application/json"});
+        let init = {method: 'GET', headers};
+        if(!token.lastsync || token.pins.length == 0){
+            request = new Request("https://api.pinboard.in/v1/posts/all?auth_token="+token.apikey+"&format=json", init);
+            console.log("Loading pins from scratch!");
         }
         else {
-            let request = new Request("https://api.pinboard.in/v1/posts/all?auth_token="+token.apikey+"&format=json&fromdt="+
-            token.lastsync.toISOString(), init);
+            request = new Request("https://api.pinboard.in/v1/posts/all?auth_token="+token.apikey+"&format=json&fromdt="+
+            new Date(token.lastsync).toISOString(), init);
         }
         browser.storage.local.set({lastsync:Date.now()});
         fetch(request).then((response) => {
@@ -171,4 +199,19 @@ function createSuggestions(pins){
         });
         return resolve(suggestions);
     })
+}
+
+function handleTabUpdated(tabId, changeInfo, tab){
+    if(!options.showBookmarked){
+        return;
+    }
+    console.log(options);
+    if(changeInfo.status == "complete"){
+        console.log("looking for a fitting bookmark");
+        pins.forEach((pin) => {
+            if(pin.href == tab.url){
+                browser.pageAction.show(tab.id);
+            }
+        });
+    }
 }

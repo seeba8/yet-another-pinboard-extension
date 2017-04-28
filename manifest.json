@@ -20,11 +20,20 @@
 
   "permissions": [
     "https://searchfox.org/",
-	"https://api.pinboard.in/",
-	"storage"
+	  "https://api.pinboard.in/",
+	  "storage",
+    "tabs"
   ],
   "options_ui": {
 	"page": "options.html",
 	"browser_style": true
+  },
+  "page_action": {
+    "browser_style": true,
+    "default_icon": {
+      "19": "img/pinboard-19.png",
+      "38": "img/pinboard-38.png"
+    },
+    "default_title": "Pinboard"
   }
 }

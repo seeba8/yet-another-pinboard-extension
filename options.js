@@ -19,6 +19,7 @@ function saveOptions(e){
                 });
                 console.log("Saved successfully");
                 document.querySelector("#testresult").innerHTML = "Saved!";
+                document.querySelector("#apikey").value="";
             }
             else {
                 console.log("Error while parsing result");
@@ -28,5 +29,16 @@ function saveOptions(e){
         });
     }); 
 }
+function handleShowBookmarkedChanged(event){
+    console.log(event.target.checked);
+    browser.storage.local.set({options: {showBookmarked:event.target.checked}});
+}
 
+document.querySelector("#showBookmarked").addEventListener("change", handleShowBookmarkedChanged);
 document.querySelector("form").addEventListener("submit", saveOptions);
+
+browser.storage.local.get("showBookmarked").then((token) => {
+    if(!!token.showBookmarked && token.showBookmarked) {
+        document.querySelector("#showBookmarked").checked = true;
+    }
+});
