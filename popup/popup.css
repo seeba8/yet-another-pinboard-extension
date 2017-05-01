@@ -1,0 +1,25 @@
+#bookmarks {
+    list-style-type: none;
+}
+#listdiv {
+    min-width: 120px;
+    min-height: 120px;
+    max-width:800px;
+
+    overflow:hidden; 
+    overflow-y:auto;
+    max-height:500px;
+    padding: 0 !important;
+
+}
+
+#editwrapper input[type=text] {
+    width: 100%;
+}
+#editwrapper {
+    display:none;
+}
+input[type=checkbox] {
+    display:inline;
+    
+}

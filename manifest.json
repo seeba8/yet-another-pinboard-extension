@@ -35,5 +35,14 @@
       "38": "img/pinboard-38.png"
     },
     "default_title": "Pinboard"
+  },
+  "browser_action": {
+    "browser_style": true,
+    "default_icon": {
+      "16": "img/pinboard-19.png",
+      "32": "img/pinboard-38.png"
+    },
+    "default_title": "Pinboard",
+    "default_popup": "popup/popup.html"
   }
 }

@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <link rel="stylesheet" type="text/css" href="popup.css">
+</head>
+
+<body>
+    <input type="text" id="filter" placeholder="Search" autofocus="autofocus" />
+    
+    <div id="listdiv">
+        <ul id="bookmarks">
+
+        </ul>
+    </div>
+    <div id="editwrapper">
+        <form id="editform">
+            <div>
+                <div>
+                    <label for="description">Title</label>
+                </div>
+                <div>
+                    <input type="text" id="description" />
+                </div>
+            </div>
+            <div>
+                <div>
+                    <label for="url">URL</label>
+                </div>
+                <div>
+                    <input type="text" id="url" />
+                </div>
+            </div>
+            <div>
+                <div>
+                    <label for="tags">Tags</label>
+                </div>
+                <div>
+                    <input type="text" id="tags" />
+                </div>
+            </div>
+            <div>
+                <label for="toread">To read </label>
+                <input type="checkbox" id="toread" name="toread" checked="checked" value="To read"/>
+                <button id="deleteBookmark">Delete</button>
+                <button type="submit">Update</button>
+            </div>
+        </form>
+    </div>
+    <script src="popup.js"></script>
+</body>
+
+</html>

@@ -112,7 +112,17 @@ function updatePinData(){
         browser.storage.local.set({lastsync:Date.now()});
         fetch(request).then((response) => {
             response.json().then((json) => {
-                browser.storage.local.set({pins: json});
+                let bookmarks = [];
+                json.forEach((pin) => {
+                    bookmarks.push({
+                        description: pin.description,
+                        href: pin.href,
+                        tags: pin.tags,
+                        time: pin.time,
+                        toread: pin.toread
+                    });
+                });
+                browser.storage.local.set({pins: bookmarks});
                 console.log("Sync successful, pins updated");
             });
         });
@@ -205,9 +215,7 @@ function handleTabUpdated(tabId, changeInfo, tab){
     if(!options.showBookmarked){
         return;
     }
-    console.log(options);
     if(changeInfo.status == "complete"){
-        console.log("looking for a fitting bookmark");
         pins.forEach((pin) => {
             if(pin.href == tab.url){
                 browser.pageAction.show(tab.id);
