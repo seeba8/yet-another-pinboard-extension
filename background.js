@@ -161,7 +161,7 @@ function handleInputChanged(text, addSuggestions){
             }
         });
     });
-    createSuggestions(selectedPins).then(addSuggestions);
+    createSuggestions(selectedPins,text).then(addSuggestions);
 }
 
 // Open the page based on how the user clicks on a suggestion.
@@ -181,12 +181,12 @@ function handleInputEntered(text, disposition){
 }
 
 //Create the array with the searchbar suggestions
-function createSuggestions(pins){
+function createSuggestions(pins, searchtext){
     return new Promise(resolve => {
         let suggestions = []
         let suggestionsOnEmptyResults = [{
-            content: "https://pinboard.in",
-            description: "No results found, go to Pinboard"
+            content: "https://pinboard.in/search/?query="+encodeURIComponent(searchtext),
+            description: "No results found, go to Pinboard search"
         }];
         if(!pins || pins.length == 0){
             return resolve(suggestionsOnEmptyResults);

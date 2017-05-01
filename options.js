@@ -1,6 +1,6 @@
-function saveOptions(e){
-    e.preventDefault();
-      
+var options = {};
+
+function saveOptions(){ 
     // Call pinboard to check if the API key is working
     let headers = new Headers({"Accept": "application/json"});
     let apikey = document.querySelector("#apikey").value;
@@ -31,14 +31,31 @@ function saveOptions(e){
 }
 function handleShowBookmarkedChanged(event){
     console.log(event.target.checked);
-    browser.storage.local.set({options: {showBookmarked:event.target.checked}});
+    browser.storage.local.set({options: {showBookmarked: event.target.checked}});
+}
+
+function handleShortcutChange(e){
+    options[e.target.name] = e.target.value;
+    let o = {options};
+    browser.storage.local.set(o);
 }
 
 document.querySelector("#showBookmarked").addEventListener("change", handleShowBookmarkedChanged);
-document.querySelector("form").addEventListener("submit", saveOptions);
+document.querySelector("#saveapi").addEventListener("click", saveOptions);
+document.querySelectorAll(".shortcuts").forEach((element) => {
+    element.addEventListener("change", handleShortcutChange);
+});
 
-browser.storage.local.get("showBookmarked").then((token) => {
-    if(!!token.showBookmarked && token.showBookmarked) {
+browser.storage.local.get("options").then((token) => {
+    options = token.options;
+    if(!!token.options.showBookmarked && token.options.showBookmarked) {
         document.querySelector("#showBookmarked").checked = true;
     }
+    Object.keys(token.options).forEach((k,v) => {
+        console.log(k, token.options[k]);
+        if(k !== "showBookmarked"){
+            document.querySelector('input[name='+k+']').value =token.options[k]; 
+        }
+    });
+
 });
