@@ -25,8 +25,8 @@
     "tabs"
   ],
   "options_ui": {
-	"page": "options.html",
-	"browser_style": true
+    "page": "options/options.html",
+    "browser_style": true
   },
   "page_action": {
     "browser_style": true,
