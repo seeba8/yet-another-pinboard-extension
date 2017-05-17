@@ -29,21 +29,18 @@ function saveOptions(){
         });
     }); 
 }
-function handleShowBookmarkedChanged(event){
-    console.log(event.target.checked);
-    browser.storage.local.set({options: {showBookmarked: event.target.checked}});
-}
 
-function handleShortcutChange(e){
-    options[e.target.name] = e.target.value;
+function handleOptionChange(e){
+    options[e.target.name] = e.target.value || e.target.checked;
     let o = {options};
     browser.storage.local.set(o);
 }
 
-document.querySelector("#showBookmarked").addEventListener("change", handleShowBookmarkedChanged);
+document.querySelector('#changeActionbarIcon').addEventListener("change", handleOptionChange);
+document.querySelector("#showBookmarked").addEventListener("change", handleOptionChange);
 document.querySelector("#saveapi").addEventListener("click", saveOptions);
 document.querySelectorAll(".shortcuts").forEach((element) => {
-    element.addEventListener("change", handleShortcutChange);
+    element.addEventListener("change", handleOptionChange);
 });
 
 browser.storage.local.get("options").then((token) => {
@@ -51,9 +48,12 @@ browser.storage.local.get("options").then((token) => {
     if(!!token.options.showBookmarked && token.options.showBookmarked) {
         document.querySelector("#showBookmarked").checked = true;
     }
+    if(!!token.options.changeActionbarIcon && token.options.changeActionbarIcon) {
+        document.querySelector("#changeActionbarIcon").checked = true;
+    }
     Object.keys(token.options).forEach((k,v) => {
         console.log(k, token.options[k]);
-        if(k !== "showBookmarked"){
+        if(k !== "showBookmarked" && k !== "changeActionbarIcon"){
             document.querySelector('input[name='+k+']').value =token.options[k]; 
         }
     });

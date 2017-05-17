@@ -4,8 +4,6 @@ browser.storage.local.get("pins").then((token) =>{
         addListItem(pin, key);
         //bookmarkList.options[bookmarkList.options.length] = new Option(pin.description, key);
     });
-    console.log("Popup loaded!");
-    console.log(bookmarkList);
 });
 
 document.getElementById("filter").addEventListener("keyup", handleFilterChange);
@@ -25,7 +23,6 @@ function handleDelete(e) {
                     if(json.result_code=="done") {
                         // delete from storage using document.[...].dataset["entryID"].slice(3) for the ID
                         // delete from local list
-                        console.log("Done");
                     }
                 });
             }
@@ -39,7 +36,6 @@ function handleSubmit(e) {
 
 document.getElementById("editform").addEventListener("submit",handleSubmit);
 function handleFilterChange(e) {
-    console.log(e);
     document.querySelectorAll("#bookmarks li a").forEach(element => {
         if(element.innerHTML.toLowerCase().indexOf(document.getElementById("filter").value.toLowerCase()) > -1) {
             element.parentNode.style.display="";
@@ -63,7 +59,6 @@ function handleEditBookmark(e){
 
 function handleLinkClick(e){
     e.preventDefault();
-    console.log(e.button);
     if(e.button == 1 || e.ctrlKey) {
         browser.tabs.create({url: e.target.href});
     }

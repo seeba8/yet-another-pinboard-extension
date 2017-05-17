@@ -23,7 +23,8 @@ function handleAddonInstalled(){
        "tagPrefix": "t",
        "titlePrefix": "n",
        "toReadPrefix": "r",
-       "showBookmarked": true
+       "showBookmarked": true,
+       "changeActionbarIcon": true
     };
     browser.storage.local.set({"options": options});
     browser.storage.local.get(null).then((res) => {
@@ -47,6 +48,14 @@ function handleStartup(){
 function loadOptions(){
     browser.storage.local.get("options").then((res)=>{
         options = res.options;
+        if(options.changeActionbarIcon) {
+            browser.browserAction.setIcon({
+                    path: {
+                        19: "img/pinboard-grey-19.png",
+                        38: "img/pinboard-grey-38.png"
+                    }
+            });
+        }
     });
 }
 
@@ -212,14 +221,42 @@ function createSuggestions(pins, searchtext){
 }
 
 function handleTabUpdated(tabId, changeInfo, tab){
-    if(!options.showBookmarked){
+   
+    if(!options.showBookmarked && !options.changeActionbarIcon){
+        console.log("hm...");
         return;
     }
     if(changeInfo.status == "complete"){
-        pins.forEach((pin) => {
-            if(pin.href == tab.url){
+
+        let isBookmarked = pins.some(pin => {
+            return (pin.href == tab.url);
+        });
+        console.log(isBookmarked);
+        if(isBookmarked){
+            console.log("bookmarked!");
+            if(options.showBookmarked){
                 browser.pageAction.show(tab.id);
             }
-        });
+            if(options.changeActionbarIcon) {
+                browser.browserAction.setIcon({
+                    path: {
+                        19: "img/pinboard-19.png",
+                        38: "img/pinboard-38.png"
+                    },
+                    tabId: tabId
+                });
+            }
+        }
+        else {
+            if(options.changeActionbarIcon){
+                browser.browserAction.setIcon({
+                    path: {
+                        19: "img/pinboard-grey-19.png",
+                        38: "img/pinboard-grey-38.png"
+                    },
+                    tabId: tabId
+                });
+            }
+        }
     }
 }
