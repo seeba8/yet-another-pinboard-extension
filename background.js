@@ -28,10 +28,10 @@ function handleAddonInstalled(){
     };
     browser.storage.local.set({"options": options});
     browser.storage.local.get(null).then((res) => {
-        if(!!res.apikey && res.pins.length == 0){
+        if(!!res.apikey && res.pins.size == 0){
             updatePinData();
         }
-        else if(!!res.pins && res.pins.length > 0){
+        else if(!!res.pins && res.pins.size > 0){
             updatePinVariable();
         }
 
@@ -75,7 +75,7 @@ function handleStorageChanged(changes, area){
 
 function updatePinVariable(){
     browser.storage.local.get("pins").then((res) => {
-        pins = res["pins"];
+        pins = new Map(res["pins"]);
         console.log("Updated pin variable");
     });
 }
@@ -102,7 +102,7 @@ function updatePinData(){
             return;
         }
         
-        if(!!token.pins && token.pins.length > 0 && !!token.lastsync && !isUpdateAvailable()){
+        if(!!token.pins && token.pins.size > 0 && !!token.lastsync && !isUpdateAvailable()){
             console.log("Not syncing, no update available");
             updatePinVariable();
             return;
@@ -110,7 +110,7 @@ function updatePinData(){
         let request = null;
         let headers = new Headers({"Accept": "application/json"});
         let init = {method: 'GET', headers};
-        if(!token.lastsync || token.pins.length == 0){
+        if(!token.lastsync || token.pins.size == 0){
             request = new Request("https://api.pinboard.in/v1/posts/all?auth_token="+token.apikey+"&format=json", init);
             console.log("Loading pins from scratch!");
         }
@@ -121,17 +121,21 @@ function updatePinData(){
         browser.storage.local.set({lastsync:Date.now()});
         fetch(request).then((response) => {
             response.json().then((json) => {
-                let bookmarks = [];
+
+                let pinsMap = new Map();
                 json.forEach((pin) => {
-                    bookmarks.push({
-                        description: pin.description,
+                    pinsMap.set(pin.href, {
                         href: pin.href,
+                        description: pin.description,
                         tags: pin.tags,
                         time: pin.time,
                         toread: pin.toread
                     });
+                   
                 });
-                browser.storage.local.set({pins: bookmarks});
+                console.log(pinsMap.size);
+                console.log(pinsMap);
+                browser.storage.local.set({pins: Array.from(pinsMap.entries())});
                 console.log("Sync successful, pins updated");
             });
         });
@@ -207,7 +211,7 @@ function createSuggestions(pins, searchtext){
             content: "https://pinboard.in/search/?query="+encodeURIComponent(searchtext),
             description: "No results found, go to Pinboard search"
         }];
-        if(!pins || pins.length == 0){
+        if(!pins || pins.size == 0){
             return resolve(suggestionsOnEmptyResults);
         }
         pins.forEach(function(pin){
@@ -227,12 +231,7 @@ function handleTabUpdated(tabId, changeInfo, tab){
         return;
     }
     if(changeInfo.status == "complete"){
-
-        let isBookmarked = pins.some(pin => {
-            return (pin.href == tab.url);
-        });
-        console.log(isBookmarked);
-        if(isBookmarked){
+        if(pins.has(tab.url)){
             console.log("bookmarked!");
             if(options.showBookmarked){
                 browser.pageAction.show(tab.id);

@@ -1,9 +1,10 @@
 var bookmarkList = document.getElementById("bookmarks");
 browser.storage.local.get("pins").then((token) =>{
-    token.pins.forEach((pin, key) => {
+    let pins = new Map(token.pins);
+    for(var [key, pin] of pins) {
         addListItem(pin, key);
         //bookmarkList.options[bookmarkList.options.length] = new Option(pin.description, key);
-    });
+    }
 });
 
 document.getElementById("filter").addEventListener("keyup", handleFilterChange);
