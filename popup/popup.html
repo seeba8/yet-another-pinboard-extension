@@ -25,7 +25,9 @@
 
         </ul>
     </div>
-    <div id="editwrapper">
+    <div id="greyout" class="hidden"></div>
+    <div id="editcontainer">
+    <div id="editwrapper" class="hidden">
         <form id="editform">
             <div>
                 <div>
@@ -40,7 +42,7 @@
                     <label for="url">URL</label>
                 </div>
                 <div>
-                    <input type="text" id="url" />
+                    <input type="text" id="url" readonly="readonly" />
                 </div>
             </div>
             <div>
@@ -54,10 +56,11 @@
             <div>
                 <label for="toread">To read </label>
                 <input type="checkbox" id="toread" name="toread" checked="checked" value="To read" />
-                <button id="deleteBookmark" disabled="disabled">Delete</button>
+                <!--<button id="deleteBookmark" >Delete</button>-->
                 <button type="submit">Update</button>
             </div>
         </form>
+    </div>
     </div>
     <script src="popup.js"></script>
 </body>

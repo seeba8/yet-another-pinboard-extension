@@ -4,8 +4,8 @@
   "description" : "To use, type 'pin' plus a search term into the url bar.",
   "homepage_url": "https://github.com/seeba8/pinboard-omnibox",
   "developer": {
-	"name": "seeba8",
-	"url": "https://github.com/seeba8/"
+    "name": "seeba8",
+    "url": "https://github.com/seeba8/"
   },
   "version": "1.0",
   "applications": {

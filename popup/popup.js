@@ -1,6 +1,19 @@
 var bookmarkList = document.getElementById("bookmarks");
 var offset = 0;
 var pins;
+
+document.getElementById("filter").addEventListener("keyup", handleFilterChange);
+//document.getElementById("deleteBookmark").addEventListener("click", handleDelete);
+document.getElementById("editform").addEventListener("submit", handleSubmit);
+document.getElementById("greyout").addEventListener("click", (e) => {
+    e.target.classList.toggle("hidden");
+    document.getElementById("editwrapper").classList.toggle("hidden");
+});
+
+Array.from(document.getElementById("prevnext").children).forEach(element => {
+    element.addEventListener("click", handlePrevNextClick);
+});
+
 browser.storage.local.get("pins").then((token) => {
     pins = new Map(token.pins);
     displayPins();
@@ -49,10 +62,6 @@ function handlePrevNextClick(e) {
     displayPins();
 }
 
-document.getElementById("filter").addEventListener("keyup", handleFilterChange);
-document.getElementById("deleteBookmark").addEventListener("click", handleDelete);
-document.getElementById("editform").addEventListener("submit", handleSubmit);
-
 function handleDelete(e) {
     console.log("DELETING!!!");
     browser.storage.local.get("apikey").then((token) => {
@@ -76,6 +85,39 @@ function handleDelete(e) {
 
 function handleSubmit(e) {
     e.preventDefault();
+    browser.storage.local.get("apikey").then((token) => {
+        let headers = new Headers({ "Accept": "application/json" });
+        let apikey = token.apikey;
+        let init = { method: 'GET', headers };
+        let pin = pins.get(document.getElementById("url").dataset.entryId);
+        pin.description = document.getElementById("description").value;
+        pin.tags = document.getElementById("tags").value;
+        pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
+        pins.set(pin.href, pin);
+        let request = new Request("https://api.pinboard.in/v1/posts/add/?auth_token=" + apikey +
+            "&url=" + encodeURIComponent(pin.href) +
+            "&description=" + encodeURIComponent(pin.description) +
+            "&tags=" + encodeURIComponent(pin.tags) +
+            "&toread=" + pin.toread +
+            "&format=json", init);
+        fetch(request).then( (response) => {
+            console.log(response);
+            if (response.status == 200 && response.ok) {
+                response.json().then(json => {
+                    if (json.result_code == "done") {
+                        document.getElementById("editwrapper").classList.toggle("hidden");
+                        document.getElementById("greyout").classList.toggle("hidden");
+                    }
+                    else {
+                        console.log("Error. Reply was not 'done'");
+                    }
+                });
+            }
+            else {
+                console.log("Error. Not status code 200 or not response OK");
+            }
+        });
+    });
 }
 
 function displayPins() {
@@ -108,21 +150,18 @@ function handleFilterChange(e) {
     displayPins();
 }
 
-Array.from(document.getElementById("prevnext").children).forEach(element => {
-    element.addEventListener("click", handlePrevNextClick);
-});
-
-
-
 function handleEditBookmark(e) {
     e.preventDefault();
-    let pin = document.getElementById(e.target.dataset.entryId);
-    document.getElementById("description").value = pin.textContent;
+    let pin = pins.get(e.target.dataset.entryId);
+    document.getElementById("description").value = pin.description;
     document.getElementById("url").value = pin.href;
-    document.getElementById("tags").value = pin.title;
-    document.getElementById("editwrapper").style.display = "block";
-    document.getElementById("listdiv").style.maxHeight = "360px";
-    document.getElementById("deleteBookmark").dataset["entryId"] = e.target.dataset.entryId;
+    document.getElementById("tags").value = pin.tags;
+    document.getElementById("toread").checked = (pin.toread == "yes");
+    document.getElementById("editwrapper").classList.toggle("hidden");
+    document.getElementById("greyout").classList.toggle("hidden");
+    document.getElementById("url").dataset.entryId = e.target.dataset.entryId;
+    //document.getElementById("listdiv").style.maxHeight = "360px";
+    //document.getElementById("deleteBookmark").dataset["entryId"] = e.target.dataset.entryId;
 }
 
 function handleLinkClick(e) {
@@ -141,12 +180,12 @@ function addListItem(pin, key) {
     let edit = document.createElement("a");
     edit.appendChild(document.createTextNode("\u{270E}"));
     edit.addEventListener("click", handleEditBookmark);
-    edit.dataset.entryId = "pin" + key;
+    edit.dataset.entryId = key;
     entry.appendChild(edit);
     let link = document.createElement("a");
     link.href = pin.href;
     link.addEventListener("click", handleLinkClick);
-    link.id = "pin" + key;
+    link.id = key;
     link.appendChild(document.createTextNode(pin.description));
     link.title = pin.tags;
     entry.appendChild(link);
