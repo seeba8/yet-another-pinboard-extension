@@ -1,25 +1,36 @@
 #bookmarks {
     list-style-type: none;
+    padding-left: 0;
 }
 #listdiv {
     min-width: 120px;
     min-height: 120px;
-    max-width:800px;
+    max-width: 800px;
+    width: 640px;
 
-    overflow:hidden; 
-    overflow-y:auto;
-    max-height:500px;
-    padding: 0 !important;
-
+    overflow: hidden; 
+    overflow-y: auto;
+    max-height: 500px;
 }
 
 #editwrapper input[type=text] {
     width: 100%;
 }
 #editwrapper {
-    display:none;
+    display: none;
 }
-input[type=checkbox] {
-    display:inline;
-    
+#editwrapper input[type=checkbox] {
+    display: inline;    
+}
+a.linkdisabled {
+    pointer-events: none;
+    color: grey;
+}
+a.currentpage {
+    pointer-events: none;
+    color: grey;
+    font-weight: bold;
+}
+#prevnext{
+    text-align: center;
 }

@@ -1,5 +1,5 @@
 var options = {};
-
+// TODO browser.storage.sync
 function saveOptions(){ 
     // Call pinboard to check if the API key is working
     let headers = new Headers({"Accept": "application/json"});

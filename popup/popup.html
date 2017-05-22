@@ -7,9 +7,20 @@
 </head>
 
 <body>
-    <input type="text" id="filter" placeholder="Search" autofocus="autofocus" />
-    
+    <input type="text" id="filter" placeholder="Search" />
+
     <div id="listdiv">
+        <div id="prevnext">
+            <a href="#" id="firstPage">&laquo;</a>
+            <a href="#" id="prevPage">&lt;</a>
+            <a href="#" id="pageNo1">1</a>
+            <a href="#" id="pageNo2">2</a>
+            <a href="#" id="pageNo3">3</a>
+            <a href="#" id="pageNo4">4</a>
+            <a href="#" id="pageNo5">5</a>
+            <a href="#" id="nextPage">&gt;</a>
+            <a href="#" id="lastPage">&raquo;</a>
+        </div>
         <ul id="bookmarks">
 
         </ul>
@@ -42,8 +53,8 @@
             </div>
             <div>
                 <label for="toread">To read </label>
-                <input type="checkbox" id="toread" name="toread" checked="checked" value="To read"/>
-                <button id="deleteBookmark">Delete</button>
+                <input type="checkbox" id="toread" name="toread" checked="checked" value="To read" />
+                <button id="deleteBookmark" disabled="disabled">Delete</button>
                 <button type="submit">Update</button>
             </div>
         </form>
