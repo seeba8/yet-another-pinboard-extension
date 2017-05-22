@@ -7,10 +7,9 @@
 </head>
 
 <body>
+    <button id="bookmarkcurrent">Pin current page</button>
     <input type="text" id="filter" placeholder="Search" />
-
-    <div id="listdiv">
-        <div id="prevnext">
+    <div id="prevnext">
             <a href="#" id="firstPage">&laquo;</a>
             <a href="#" id="prevPage">&lt;</a>
             <a href="#" id="pageNo1">1</a>
@@ -21,6 +20,8 @@
             <a href="#" id="nextPage">&gt;</a>
             <a href="#" id="lastPage">&raquo;</a>
         </div>
+    <div id="listdiv">
+        
         <ul id="bookmarks">
 
         </ul>
@@ -57,7 +58,7 @@
                 <label for="toread">To read </label>
                 <input type="checkbox" id="toread" name="toread" checked="checked" value="To read" />
                 <!--<button id="deleteBookmark" >Delete</button>-->
-                <button type="submit">Update</button>
+                <button type="submit">Save</button>
             </div>
         </form>
     </div>

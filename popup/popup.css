@@ -1,23 +1,32 @@
 #bookmarks {
     list-style-type: none;
     padding-left: 0;
+    margin-left: -0.5em;
+    display:table;
+    border-spacing: 0.5em 0;
+    border-collapse: separate;
 }
 #listdiv {
     min-width: 120px;
     min-height: 120px;
     max-width: 800px;
     width: 640px;
-
+    max-height: 480px;
     overflow: hidden; 
     overflow-y: auto;
-    max-height: 500px;
 }
 
-#bookmarks li {
-    padding: 1px;
+#bookmarkcurrent {
+    text-align: center;
+    margin: 1em;
 }
+#filter {
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
 #bookmarks li a {
-    margin-left: 0.5em;
+    display:table-cell;
 }
 
 #editwrapper input[type=text] {
@@ -54,14 +63,17 @@
 a.linkdisabled {
     pointer-events: none;
     color: grey;
+    text-decoration: none;
 }
 a.currentpage {
     pointer-events: none;
     color: grey;
     font-weight: bold;
+    text-decoration: none;
 }
 #prevnext{
     text-align: center;
+    margin-top: 1em;
 }
 #greyout {
     background-color: white;

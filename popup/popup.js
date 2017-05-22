@@ -3,6 +3,8 @@ var offset = 0;
 var pins;
 
 document.getElementById("filter").addEventListener("keyup", handleFilterChange);
+document.getElementById("bookmarkcurrent").addEventListener("click", handleBookmarkCurrent);
+
 //document.getElementById("deleteBookmark").addEventListener("click", handleDelete);
 document.getElementById("editform").addEventListener("submit", handleSubmit);
 document.getElementById("greyout").addEventListener("click", (e) => {
@@ -18,6 +20,20 @@ browser.storage.local.get("pins").then((token) => {
     pins = new Map(token.pins);
     displayPins();
 });
+
+function handleBookmarkCurrent(e) {
+    console.log(pins);
+    document.getElementById("editwrapper").classList.toggle("hidden");
+    document.getElementById("greyout").classList.toggle("hidden");
+    browser.tabs.query({active: true}).then((tab) => {
+        console.log(tab);
+        tab = tab[0];
+        document.getElementById("description").value = tab.title;
+        document.getElementById("url").value = tab.url;
+        document.getElementById("toread").checked = false;
+        document.getElementById("tags").value = "";
+    });
+}
 
 function preparePrevNext(numberPins) {
     Array.from(document.getElementById("prevnext").children).forEach(element => {
@@ -43,16 +59,13 @@ function preparePrevNext(numberPins) {
     document.getElementById("firstPage").dataset.offset = 0;
     document.getElementById("lastPage").dataset.offset = 100 * Math.floor(numberPins / 100);
 
-
-    switch (offset) {
-        case 0:
-            document.getElementById("firstPage").classList.add("linkdisabled");
-            document.getElementById("prevPage").classList.add("linkdisabled");
-            break;
-        case 100 * Math.floor(numberPins / 100):
-            document.getElementById("nextPage").classList.add("linkdisabled");
-            document.getElementById("lastPage").classList.add("linkdisabled");
-            break;
+    if(offset == 0) {
+        document.getElementById("firstPage").classList.add("linkdisabled");
+        document.getElementById("prevPage").classList.add("linkdisabled");
+    }
+    if(offset == 100 * Math.floor(numberPins / 100) || numberPins <= 100){
+        document.getElementById("nextPage").classList.add("linkdisabled");
+        document.getElementById("lastPage").classList.add("linkdisabled");
     }
 }
 
@@ -90,6 +103,11 @@ function handleSubmit(e) {
         let apikey = token.apikey;
         let init = { method: 'GET', headers };
         let pin = pins.get(document.getElementById("url").dataset.entryId);
+        if(pin === undefined) {
+            pin = Object();
+            pin.time = new Date().toISOString();
+            pin.href = document.getElementById("url").value;
+        }
         pin.description = document.getElementById("description").value;
         pin.tags = document.getElementById("tags").value;
         pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
@@ -105,6 +123,7 @@ function handleSubmit(e) {
             if (response.status == 200 && response.ok) {
                 response.json().then(json => {
                     if (json.result_code == "done") {
+                        browser.storage.local.set({ pins: Array.from(pins.entries()) });
                         document.getElementById("editwrapper").classList.toggle("hidden");
                         document.getElementById("greyout").classList.toggle("hidden");
                     }
