@@ -1,0 +1,90 @@
+#bookmarks {
+    list-style-type: none;
+    padding-left: 0;
+    margin-left: -0.5em;
+    display:table;
+    border-spacing: 0.5em 0;
+    border-collapse: separate;
+}
+#listdiv {
+    min-width: 120px;
+    min-height: 120px;
+    max-width: 800px;
+    width: 640px;
+    max-height: 480px;
+    overflow: hidden; 
+    overflow-y: auto;
+}
+
+#bookmarkcurrent {
+    text-align: center;
+    margin: 1em;
+}
+#filter {
+    margin-left: 1em;
+    margin-right: 1em;
+}
+
+#bookmarks li a {
+    display:table-cell;
+}
+
+#editwrapper input[type=text] {
+    width: 100%;
+}
+
+#editcontainer {
+    display:flex;
+    align-items: center;
+    justify-content: center;
+}
+#editwrapper {
+    margin: auto;
+    top:30%;
+    position:fixed;
+    width: 60%;
+    background-color: white;
+    border: 2px solid grey;
+    z-index:5;
+    opacity:1;
+    padding:1em;
+}
+#editwrapper input[readonly="readonly"], #editwrapper input[readonly] {
+    color:grey;
+}
+
+#editwrapper input[type="checkbox"] {
+    display: inline;
+    
+}
+#editwrapper button {
+    margin: 1em;
+}
+a.linkdisabled {
+    pointer-events: none;
+    color: grey;
+    text-decoration: none;
+}
+a.currentpage {
+    pointer-events: none;
+    color: grey;
+    font-weight: bold;
+    text-decoration: none;
+}
+#prevnext{
+    text-align: center;
+    margin-top: 1em;
+}
+#greyout {
+    background-color: white;
+    opacity: 0.8;
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+.hidden {
+    display:none;
+}
+body {
+    font-size: 1.1em;
+}

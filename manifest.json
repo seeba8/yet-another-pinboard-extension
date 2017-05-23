@@ -1,11 +1,11 @@
 {
   "manifest_version": 2,
-  "name": "Pinboard Omnibox Suggestions",
-  "description" : "To use, type 'pin' plus a search term into the url bar.",
-  "homepage_url": "https://github.com/seeba8/pinboard-omnibox",
+  "name": "Yet Another Pinboard Extension",
+  "description" : "To use omnibox search, type 'pin ' plus a search term into the url bar.",
+  "homepage_url": "https://github.com/seeba8/yet-another-pinboard-extension",
   "developer": {
-	"name": "seeba8",
-	"url": "https://github.com/seeba8/"
+    "name": "seeba8",
+    "url": "https://github.com/seeba8/"
   },
   "version": "1.0",
   "applications": {
@@ -16,8 +16,14 @@
   "background": {
     "scripts": ["background.js"]
   },
-  "omnibox": { "keyword" : "pin" },
-
+  "omnibox": { 
+    "keyword" : "pin" 
+    },
+  "icons": {
+    "16": "img/pinboard-icon.svg",
+    "48": "img/pinboard-icon.svg",
+    "96": "img/pinboard-icon.svg"
+  },
   "permissions": [
     "https://searchfox.org/",
 	  "https://api.pinboard.in/",
@@ -31,9 +37,18 @@
   "page_action": {
     "browser_style": true,
     "default_icon": {
-      "19": "img/pinboard-19.png",
-      "38": "img/pinboard-38.png"
+      "19": "img/pinboard-icon-blue.svg",
+      "38": "img/pinboard-icon-blue.svg"
     },
     "default_title": "Pinboard"
+  },
+  "browser_action": {
+    "browser_style": true,
+    "default_icon":  {
+        "16": "img/pinboard-icon.svg",
+        "32": "img/pinboard-icon.svg"
+    },
+    "default_title": "Pinboard",
+    "default_popup": "popup/popup.html"
   }
 }
