@@ -22,11 +22,9 @@ browser.storage.local.get("pins").then((token) => {
 });
 
 function handleBookmarkCurrent(e) {
-    console.log(pins);
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
-    browser.tabs.query({active: true}).then((tab) => {
-        console.log(tab);
+    browser.tabs.query({ active: true }).then((tab) => {
         tab = tab[0];
         document.getElementById("description").value = tab.title;
         document.getElementById("url").value = tab.url;
@@ -40,12 +38,10 @@ function preparePrevNext(numberPins) {
         element.classList.remove("linkdisabled");
         element.classList.remove("currentpage");
     });
-    console.log("numberPins", numberPins);
-    console.log("currentOffset: ", offset);
     let firstPage = Math.min(Math.max(1, offset / 100 - 1), Math.max(Math.ceil(numberPins / 100) - 4, 1));
     for (let i = 0; i < 5; i++) {
         let curElement = document.getElementById("pageNo" + (i + 1).toString());
-        curElement.innerHTML = firstPage + i;
+        curElement.firstChild.nodeValue = firstPage + i;
         curElement.dataset.offset = (firstPage + i - 1) * 100;
         if (curElement.dataset.offset == offset) {
             curElement.classList.add("currentpage");
@@ -59,24 +55,23 @@ function preparePrevNext(numberPins) {
     document.getElementById("firstPage").dataset.offset = 0;
     document.getElementById("lastPage").dataset.offset = 100 * Math.floor(numberPins / 100);
 
-    if(offset == 0) {
+    if (offset == 0) {
         document.getElementById("firstPage").classList.add("linkdisabled");
         document.getElementById("prevPage").classList.add("linkdisabled");
     }
-    if(offset == 100 * Math.floor(numberPins / 100) || numberPins <= 100){
+    if (offset == 100 * Math.floor(numberPins / 100) || numberPins <= 100) {
         document.getElementById("nextPage").classList.add("linkdisabled");
         document.getElementById("lastPage").classList.add("linkdisabled");
     }
 }
 
 function handlePrevNextClick(e) {
-    console.log("PrevNext", e.target.dataset.offset);
     offset = parseInt(e.target.dataset["offset"]);
     displayPins();
 }
 
 function handleDelete(e) {
-    console.log("DELETING!!!");
+    console.log("Not quite implemented...");
     browser.storage.local.get("apikey").then((token) => {
         let headers = new Headers({ "Accept": "application/json" });
         let apikey = token.apikey;
@@ -103,10 +98,16 @@ function handleSubmit(e) {
         let apikey = token.apikey;
         let init = { method: 'GET', headers };
         let pin = pins.get(document.getElementById("url").dataset.entryId);
-        if(pin === undefined) {
+        let newPin = false;
+        if (pin === undefined) {
             pin = Object();
             pin.time = new Date().toISOString();
             pin.href = document.getElementById("url").value;
+            var temp = new Map();
+            temp.set(pin.href, pin);
+            newPin = true;
+            pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
+            // See e.g. https://stackoverflow.com/a/32001750
         }
         pin.description = document.getElementById("description").value;
         pin.tags = document.getElementById("tags").value;
@@ -118,12 +119,17 @@ function handleSubmit(e) {
             "&tags=" + encodeURIComponent(pin.tags) +
             "&toread=" + pin.toread +
             "&format=json", init);
-        fetch(request).then( (response) => {
-            console.log(response);
+        fetch(request).then((response) => {
             if (response.status == 200 && response.ok) {
                 response.json().then(json => {
                     if (json.result_code == "done") {
                         browser.storage.local.set({ pins: Array.from(pins.entries()) });
+                        displayPins();
+                        // Update the button in case the site is bookmarked and the setting is active
+                        browser.runtime.sendMessage({
+                            callFunction: "checkDisplayBookmarked",
+                            url: pin.href
+                        });
                         document.getElementById("editwrapper").classList.toggle("hidden");
                         document.getElementById("greyout").classList.toggle("hidden");
                     }

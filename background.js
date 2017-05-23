@@ -2,12 +2,11 @@ var pins;
 var options = {};
 
 // Listeners
-browser.runtime.onStartup.addListener(handleStartup);
+
+//browser.runtime.onStartup.addListener(handleStartup);
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
+browser.runtime.onMessage.addListener(handleMessage);
 browser.storage.onChanged.addListener(handleStorageChanged);
-browser.omnibox.onInputStarted.addListener(() => {
-    console.log(pins);
-});
 browser.omnibox.onInputChanged.addListener(handleInputChanged);
 browser.omnibox.onInputEntered.addListener(handleInputEntered);
 browser.tabs.onUpdated.addListener(handleTabUpdated);
@@ -16,6 +15,8 @@ browser.tabs.onUpdated.addListener(handleTabUpdated);
 browser.omnibox.setDefaultSuggestion({
     description: `Search your pinboard bookmarks`
 });
+
+handleStartup();
 
 function handleAddonInstalled() {
     options = {
@@ -34,9 +35,7 @@ function handleAddonInstalled() {
         else if (!!res.pins && res.pins.size > 0) {
             updatePinVariable();
         }
-
     })
-
 }
 // Update the pins on startup of the browser
 function handleStartup() {
@@ -51,8 +50,16 @@ function loadOptions() {
         if (options.changeActionbarIcon) {
             browser.browserAction.setIcon({
                 path: {
-                    19: "img/pinboard-grey-19.png",
-                    38: "img/pinboard-grey-38.png"
+                    16: "img/pinboard-icon-grey.svg",
+                    32: "img/pinboard-icon-grey.svg"
+                }
+            });
+        }
+        else {
+            browser.browserAction.setIcon({
+                path: {
+                    16: "img/pinboard-icon.svg",
+                    32: "img/pinboard-icon.svg"
                 }
             });
         }
@@ -61,7 +68,6 @@ function loadOptions() {
 
 // Only update pin data when the api key was modified
 function handleStorageChanged(changes, area) {
-    console.log(changes);
     if (Object.keys(changes).includes("apikey")) {
         updatePinData();
     }
@@ -76,7 +82,6 @@ function handleStorageChanged(changes, area) {
 function updatePinVariable() {
     browser.storage.local.get("pins").then((res) => {
         pins = new Map(res["pins"]);
-        console.log("Updated pin variable");
     });
 }
 
@@ -99,10 +104,11 @@ function updatePinData() {
     browser.storage.local.get(["apikey", "lastsync", "pins"]).then((token) => {
         if (!token.apikey || token.apikey == "" || (!!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 10)) {
             console.log("Not syncing, either no API key or last sync less than 10 minutes ago.");
+            updatePinVariable();
             return;
         }
-
-        if (!!token.pins && token.pins.size > 0 && !!token.lastsync && !isUpdateAvailable()) {
+        //pins.length, because we are in the token, where the pins are stored as Array, not Map
+        if (!!token.pins && token.pins.length > 0 && !!token.lastsync && !isUpdateAvailable()) {
             console.log("Not syncing, no update available");
             updatePinVariable();
             return;
@@ -110,7 +116,8 @@ function updatePinData() {
         let request = null;
         let headers = new Headers({ "Accept": "application/json" });
         let init = { method: 'GET', headers };
-        if (!token.lastsync || token.pins.size == 0) {
+        //pins.length, because we are in the token, where the pins are stored as Array, not Map
+        if (!token.lastsync || token.pins.length == 0) {
             request = new Request("https://api.pinboard.in/v1/posts/all?auth_token=" + token.apikey + "&format=json", init);
             console.log("Loading pins from scratch!");
         }
@@ -121,7 +128,6 @@ function updatePinData() {
         browser.storage.local.set({ lastsync: Date.now() });
         fetch(request).then((response) => {
             response.json().then((json) => {
-
                 let pinsMap = new Map();
                 json.forEach((pin) => {
                     pinsMap.set(pin.href, {
@@ -131,10 +137,7 @@ function updatePinData() {
                         time: pin.time,
                         toread: pin.toread
                     });
-
                 });
-                console.log(pinsMap.size);
-                console.log(pinsMap);
                 browser.storage.local.set({ pins: Array.from(pinsMap.entries()) });
                 console.log("Sync successful, pins updated");
             });
@@ -173,7 +176,6 @@ function handleInputChanged(text, addSuggestions) {
     if (hasPrefix) {
         text = text.slice(text.indexOf(" ") + 1);
     }
-    console.log("Searching for: " + text);
     let selectedPins = [];
     for (var [key, pin] of pins) {
         searchArea.forEach((filter) => {
@@ -190,6 +192,11 @@ function handleInputChanged(text, addSuggestions) {
 // Open the page based on how the user clicks on a suggestion.
 function handleInputEntered(text, disposition) {
     let url = text;
+    const regex = /^(http:\/\/|https:\/\/|ftp:|mailto:|file:|javascript:|feed:).+$/iu;
+    let m;
+    if ((m = regex.exec(text)) === null) {
+        url = "https:\/\/pinboard.in/search/?query=" + encodeURIComponent(url) + "&mine=Search+Mine";
+    }
     switch (disposition) {
         case "currentTab":
             browser.tabs.update({ url });
@@ -224,38 +231,48 @@ function createSuggestions(pins, searchtext) {
     })
 }
 
-function handleTabUpdated(tabId, changeInfo, tab) {
+function checkDisplayBookmarked(url, tabId) {
+    if (pins.has(url)) {
+        if (options.showBookmarked) {
+            browser.pageAction.show(tabId);
+        }
+        if (options.changeActionbarIcon) {
+            browser.browserAction.setIcon({
+                path: {
+                    16: "img/pinboard-icon-blue.svg",
+                    32: "img/pinboard-icon-blue.svg"
+                },
+                tabId: tabId
+            });
+        }
+    }
+    else {
+        if (options.changeActionbarIcon) {
+            browser.browserAction.setIcon({
+                path: {
+                    16: "img/pinboard-icon-grey.svg",
+                    32: "img/pinboard-icon-grey.svg"
+                },
+                tabId: tabId
+            });
+        }
+    }
+}
 
+function handleTabUpdated(tabId, changeInfo, tab) {
     if (!options.showBookmarked && !options.changeActionbarIcon) {
-        console.log("hm...");
         return;
     }
-    if (changeInfo.status == "complete") {
-        if (pins.has(tab.url)) {
-            console.log("bookmarked!");
-            if (options.showBookmarked) {
-                browser.pageAction.show(tab.id);
-            }
-            if (options.changeActionbarIcon) {
-                browser.browserAction.setIcon({
-                    path: {
-                        19: "img/pinboard-19.png",
-                        38: "img/pinboard-38.png"
-                    },
-                    tabId: tabId
-                });
-            }
-        }
-        else {
-            if (options.changeActionbarIcon) {
-                browser.browserAction.setIcon({
-                    path: {
-                        19: "img/pinboard-grey-19.png",
-                        38: "img/pinboard-grey-38.png"
-                    },
-                    tabId: tabId
-                });
-            }
-        }
+    if (changeInfo.status == "loading") {
+        checkDisplayBookmarked(tab.url, tabId);
+    }
+}
+
+function handleMessage(request, sender, sendResponse) {
+    if (request.callFunction == "checkDisplayBookmarked" && !!request.url) {
+        browser.tabs.query({ active: true }).then((tab) => {
+            tab = tab[0];
+            checkDisplayBookmarked(request.url, tab.id);
+        });
     }
 }
