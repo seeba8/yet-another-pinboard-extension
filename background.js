@@ -103,13 +103,13 @@ function isUpdateAvailable() {
 function updatePinData() {
     browser.storage.local.get(["apikey", "lastsync", "pins"]).then((token) => {
         if (!token.apikey || token.apikey == "" || (!!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 10)) {
-            console.log("Not syncing, either no API key or last sync less than 10 minutes ago.");
+            //console.log("Not syncing, either no API key or last sync less than 10 minutes ago.");
             updatePinVariable();
             return;
         }
         //pins.length, because we are in the token, where the pins are stored as Array, not Map
         if (!!token.pins && token.pins.length > 0 && !!token.lastsync && !isUpdateAvailable()) {
-            console.log("Not syncing, no update available");
+            //console.log("Not syncing, no update available");
             updatePinVariable();
             return;
         }
@@ -119,7 +119,7 @@ function updatePinData() {
         //pins.length, because we are in the token, where the pins are stored as Array, not Map
         if (!token.lastsync || token.pins.length == 0) {
             request = new Request("https://api.pinboard.in/v1/posts/all?auth_token=" + token.apikey + "&format=json", init);
-            console.log("Loading pins from scratch!");
+            //console.log("Loading pins from scratch!");
         }
         else {
             request = new Request("https://api.pinboard.in/v1/posts/all?auth_token=" + token.apikey + "&format=json&fromdt=" +
@@ -139,7 +139,7 @@ function updatePinData() {
                     });
                 });
                 browser.storage.local.set({ pins: Array.from(pinsMap.entries()) });
-                console.log("Sync successful, pins updated");
+                //console.log("Sync successful, pins updated");
             });
         });
     });

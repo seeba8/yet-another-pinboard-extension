@@ -8,8 +8,8 @@ function saveOptions() {
     let request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" + apikey + "&format=json", init);
     fetch(request).then(function (response) {
         if (!response) {
-            console.log("Error while parsing result");
-            document.querySelector("#testresult").innerHTML = "Error!";
+            //console.log("Error while parsing result");
+            document.querySelector("#testresult").textContent = "Error!";
             return;
         }
         response.json().then(json => {
@@ -17,13 +17,13 @@ function saveOptions() {
                 browser.storage.local.set({
                     apikey: document.querySelector("#apikey").value
                 });
-                console.log("Saved successfully");
-                document.querySelector("#testresult").innerHTML = "Saved!";
+                //console.log("Saved successfully");
+                document.querySelector("#testresult").textContent = "Saved!";
                 document.querySelector("#apikey").value = "";
             }
             else {
-                console.log("Error while parsing result");
-                document.querySelector("#testresult").innerHTML = "Error!";
+                //console.log("Error while parsing result");
+                document.querySelector("#testresult").textContent = "Error!";
                 return;
             }
         });

@@ -71,7 +71,7 @@ function handlePrevNextClick(e) {
 }
 
 function handleDelete(e) {
-    console.log("Not quite implemented...");
+    //console.log("Not quite implemented...");
     browser.storage.local.get("apikey").then((token) => {
         let headers = new Headers({ "Accept": "application/json" });
         let apikey = token.apikey;
@@ -134,12 +134,12 @@ function handleSubmit(e) {
                         document.getElementById("greyout").classList.toggle("hidden");
                     }
                     else {
-                        console.log("Error. Reply was not 'done'");
+                        //console.log("Error. Reply was not 'done'");
                     }
                 });
             }
             else {
-                console.log("Error. Not status code 200 or not response OK");
+                //console.log("Error. Not status code 200 or not response OK");
             }
         });
     });
