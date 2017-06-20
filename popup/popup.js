@@ -1,3 +1,6 @@
+if(typeof browser === "undefined") {
+    browser = chrome;
+}
 var bookmarkList = document.getElementById("bookmarks");
 var offset = 0;
 var pins;
@@ -16,7 +19,7 @@ Array.from(document.getElementById("prevnext").children).forEach(element => {
     element.addEventListener("click", handlePrevNextClick);
 });
 
-browser.storage.local.get("pins").then((token) => {
+browser.storage.local.get("pins",(token) => {
     pins = new Map(token.pins);
     displayPins();
 });
@@ -24,7 +27,7 @@ browser.storage.local.get("pins").then((token) => {
 function handleBookmarkCurrent(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
-    browser.tabs.query({ active: true }).then((tab) => {
+    browser.tabs.query({ active: true },(tab) => {
         tab = tab[0];
         document.getElementById("description").value = tab.title;
         document.getElementById("url").value = tab.url;
@@ -72,7 +75,7 @@ function handlePrevNextClick(e) {
 
 function handleDelete(e) {
     //console.log("Not quite implemented...");
-    browser.storage.local.get("apikey").then((token) => {
+    browser.storage.local.get("apikey",(token) => {
         let headers = new Headers({ "Accept": "application/json" });
         let apikey = token.apikey;
         let init = { method: 'GET', headers };
@@ -93,7 +96,7 @@ function handleDelete(e) {
 
 function handleSubmit(e) {
     e.preventDefault();
-    browser.storage.local.get("apikey").then((token) => {
+    browser.storage.local.get("apikey",(token) => {
         let headers = new Headers({ "Accept": "application/json" });
         let apikey = token.apikey;
         let init = { method: 'GET', headers };

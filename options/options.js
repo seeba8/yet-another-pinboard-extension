@@ -1,3 +1,6 @@
+if(typeof browser === "undefined") {
+    browser = chrome;
+}
 var options = {};
 // TODO browser.storage.sync
 function saveOptions() {
@@ -43,17 +46,13 @@ function handleOptionChange(e) {
 }
 
 document.querySelector('#changeActionbarIcon').addEventListener("change", handleOptionChange);
-document.querySelector("#showBookmarked").addEventListener("change", handleOptionChange);
 document.querySelector("#saveapi").addEventListener("click", saveOptions);
 document.querySelectorAll(".shortcuts").forEach((element) => {
     element.addEventListener("change", handleOptionChange);
 });
 
-browser.storage.local.get("options").then((token) => {
+browser.storage.local.get("options",(token) => {
     options = token.options;
-    if (!!token.options.showBookmarked && token.options.showBookmarked) {
-        document.querySelector("#showBookmarked").checked = true;
-    }
     if (!!token.options.changeActionbarIcon && token.options.changeActionbarIcon) {
         document.querySelector("#changeActionbarIcon").checked = true;
     }

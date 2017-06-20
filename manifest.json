@@ -3,16 +3,11 @@
   "name": "Yet Another Pinboard Extension",
   "description" : "To use omnibox search, type 'pin ' plus a search term into the url bar.",
   "homepage_url": "https://github.com/seeba8/yet-another-pinboard-extension",
-  "developer": {
+  "author": {
     "name": "seeba8",
     "url": "https://github.com/seeba8/"
   },
   "version": "1.0.3",
-  "applications": {
-    "gecko": {
-      "strict_min_version": "52.0a1"
-    }
-  },
   "background": {
     "scripts": ["background.js"]
   },
@@ -22,7 +17,8 @@
   "icons": {
     "16": "img/pinboard-icon.svg",
     "48": "img/pinboard-icon.svg",
-    "96": "img/pinboard-icon.svg"
+    "96": "img/pinboard-icon.svg",
+    "128": "img/pinboard-icon.svg"
   },
   "permissions": [
 	  "https://api.pinboard.in/",
@@ -31,18 +27,9 @@
   ],
   "options_ui": {
     "page": "options/options.html",
-    "browser_style": true
-  },
-  "page_action": {
-    "browser_style": true,
-    "default_icon": {
-      "19": "img/pinboard-icon-blue.svg",
-      "38": "img/pinboard-icon-blue.svg"
-    },
-    "default_title": "Pinboard"
+    "chrome_style": true
   },
   "browser_action": {
-    "browser_style": true,
     "default_icon":  {
         "16": "img/pinboard-icon.svg",
         "32": "img/pinboard-icon.svg"

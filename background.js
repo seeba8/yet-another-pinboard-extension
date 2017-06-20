@@ -1,3 +1,6 @@
+if(typeof browser === "undefined") {
+    browser = chrome;
+}
 var pins;
 var options = {};
 
@@ -28,7 +31,7 @@ function handleAddonInstalled() {
         "changeActionbarIcon": true
     };
     browser.storage.local.set({ "options": options });
-    browser.storage.local.get(null).then((res) => {
+    browser.storage.local.get(null, (res) => {
         if (!!res.apikey && res.pins.size == 0) {
             updatePinData();
         }
@@ -45,7 +48,7 @@ function handleStartup() {
 }
 
 function loadOptions() {
-    browser.storage.local.get("options").then((res) => {
+    browser.storage.local.get("options",(res) => {
         options = res.options;
         if (options.changeActionbarIcon) {
             browser.browserAction.setIcon({
@@ -69,6 +72,7 @@ function loadOptions() {
 // Only update pin data when the api key was modified
 function handleStorageChanged(changes, area) {
     if (Object.keys(changes).includes("apikey")) {
+        console.log("update pin data");
         updatePinData();
     }
     else if (Object.keys(changes).includes("pins")) {
@@ -80,13 +84,13 @@ function handleStorageChanged(changes, area) {
 }
 
 function updatePinVariable() {
-    browser.storage.local.get("pins").then((res) => {
+    browser.storage.local.get("pins",(res) => {
         pins = new Map(res["pins"]);
     });
 }
 
 function isUpdateAvailable() {
-    browser.storage.local.get(["apikey", "lastsync"]).then((token) => {
+    browser.storage.local.get(["apikey", "lastsync"],(token) => {
         let headers = new Headers({ "Accept": "application/json" });
         let init = { method: 'GET', headers };
         let request = new Request("https://api.pinboard.in/v1/posts/update?auth_token=" + token.apikey + "&format=json", init);
@@ -101,7 +105,7 @@ function isUpdateAvailable() {
 // Reloads all bookmarks from pinboard. Should be optimized to get a delta...
 // Should listen to return codes
 function updatePinData() {
-    browser.storage.local.get(["apikey", "lastsync", "pins"]).then((token) => {
+    browser.storage.local.get(["apikey", "lastsync", "pins"],(token) => {
         if (!token.apikey || token.apikey == "" || (!!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 10)) {
             //console.log("Not syncing, either no API key or last sync less than 10 minutes ago.");
             updatePinVariable();
@@ -233,9 +237,6 @@ function createSuggestions(pins, searchtext) {
 
 function checkDisplayBookmarked(url, tabId) {
     if (pins.has(url)) {
-        if (options.showBookmarked) {
-            browser.pageAction.show(tabId);
-        }
         if (options.changeActionbarIcon) {
             browser.browserAction.setIcon({
                 path: {
@@ -260,7 +261,7 @@ function checkDisplayBookmarked(url, tabId) {
 }
 
 function handleTabUpdated(tabId, changeInfo, tab) {
-    if (!options.showBookmarked && !options.changeActionbarIcon) {
+    if (!options.changeActionbarIcon) {
         return;
     }
     if (changeInfo.status == "loading") {
