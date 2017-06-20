@@ -27,6 +27,7 @@
 
 #bookmarks li a {
     display:table-cell;
+    cursor: pointer;
 }
 
 #editwrapper input[type=text] {
