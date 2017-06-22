@@ -1,6 +1,3 @@
-if(typeof browser === "undefined") {
-    browser = chrome;
-}
 var bookmarkList = document.getElementById("bookmarks");
 var offset = 0;
 var pins;
@@ -15,6 +12,12 @@ document.getElementById("greyout").addEventListener("click", (e) => {
     document.getElementById("editwrapper").classList.toggle("hidden");
 });
 
+document.getElementById("optionspage").addEventListener("click", (e) => {
+    e.preventDefault();
+    browser.runtime.openOptionsPage();
+    window.close();
+});
+
 Array.from(document.getElementById("prevnext").children).forEach(element => {
     element.addEventListener("click", handlePrevNextClick);
 });
@@ -22,11 +25,15 @@ Array.from(document.getElementById("prevnext").children).forEach(element => {
 reloadPins();
 
 function reloadPins() {
-    browser.storage.local.get("pins",(token) => {
+    browser.storage.local.get(["apikey", "pins"]).then((token) => {
+        if(!token.apikey || token.apikey == "") {
+           document.getElementById("noapikey").classList.toggle("hidden");
+        }
         pins = new Map(token.pins);
         displayPins();
     });
  }
+
 
 function handleBookmarkCurrent(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
@@ -79,7 +86,7 @@ function handlePrevNextClick(e) {
 
 function handleDelete(e) {
     //console.log("Not quite implemented...");
-    browser.storage.local.get("apikey",(token) => {
+    browser.storage.local.get("apikey").then((token) => {
         let headers = new Headers({ "Accept": "application/json" });
         let apikey = token.apikey;
         let init = { method: 'GET', headers };
@@ -114,8 +121,8 @@ function handleSubmit(e) {
         "callFunction":"saveBookmark", 
         "pin":pin, 
         "isNewPin": newPin
-    }, (callback) => {
-        console.log(callback);
+    }).then((callback) => {
+        console.log("test4");
         reloadPins();
         document.getElementById("editwrapper").classList.toggle("hidden");
         document.getElementById("greyout").classList.toggle("hidden");

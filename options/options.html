@@ -5,6 +5,7 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" type="text/css" href="options.css">
+  <script src="../webextension-polyfill/browser-polyfill.min.js"></script>
 </head>
 
 <body>
@@ -24,13 +25,13 @@
       <label for="changeActionbarIcon">Change action bar symbol for bookmarked websites</label>
     </div>
     <div>
-      <input type="checkbox" id="changeActionbarIcon" name="changeActionbarIcon" />
+      <input type="checkbox" id="changeActionbarIcon" class="checkboxes" name="changeActionbarIcon" />
     </div>
     <div>
-      <label for="saveBrowserBookmarks">Save browser bookmarks to pinboard</label>
+      <label for="saveBrowserBookmarks">Save new browser bookmarks to pinboard</label>
     </div>
     <div>
-      <input type="checkbox" id="saveBrowserBookmarks" name="saveBrowserBookmarks" />
+      <input type="checkbox" id="saveBrowserBookmarks" class="checkboxes" name="saveBrowserBookmarks" />
     </div>
     <div>
       <label for="toReadShortcut">Shortcut to show only bookmarks tagged as "to read"</label>

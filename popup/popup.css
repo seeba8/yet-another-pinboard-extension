@@ -85,9 +85,11 @@ a.currentpage {
     width: 100%;
     height: 100%;
 }
+
 .hidden {
     display:none;
 }
 body {
-    font-size: 1em;
+    font-size: .9em;
+    font-family: sans-serif;
 }

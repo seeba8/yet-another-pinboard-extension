@@ -1,6 +1,3 @@
-if(typeof browser === "undefined") {
-    browser = chrome;
-}
 var options = {};
 // TODO browser.storage.sync
 
@@ -11,7 +8,7 @@ document.querySelectorAll(".shortcuts").forEach((element) => {
     element.addEventListener("change", handleOptionChange);
 });
 
-browser.storage.local.get("options",(token) => {
+browser.storage.local.get("options").then((token) => {
     options = token.options;
     if (!!options.changeActionbarIcon && options.changeActionbarIcon) {
         document.getElementById("changeActionbarIcon").checked = true;

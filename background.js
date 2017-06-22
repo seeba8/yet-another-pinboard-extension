@@ -1,9 +1,6 @@
-if (typeof browser === "undefined") {
-    browser = chrome;
-}
 var pins;
 var options = {};
-var apitoken = "";
+var apikey = "";
 const MIN_ERR_TIMEOUT = 1000 * 60;
 var nextErrorTimeout = MIN_ERR_TIMEOUT;
 
@@ -54,14 +51,6 @@ function handleAddonInstalled() {
         "lastsync": "",
         "lastupdate": ""
     });
-    browser.storage.local.get(null, (res) => {
-        if (!!res.apikey && res.pins.size == 0) {
-            updatePinData();
-        }
-        else if (!!res.pins && res.pins.size > 0) {
-            updatePinVariable();
-        }
-    })
 }
 // Update the pins on startup of the browser
 function handleStartup() {
@@ -70,7 +59,10 @@ function handleStartup() {
 }
 
 function loadOptions() {
-    browser.storage.local.get("options", (res) => {
+    browser.storage.local.get("options").then((res) => {
+        if(!res.options) {
+            handleAddonInstalled();
+        }
         options = res.options;
         if (options.changeActionbarIcon) {
             browser.browserAction.setIcon({
@@ -93,7 +85,7 @@ function loadOptions() {
 }
 
 function loadApiKey() {
-    browser.storage.local.get("apikey", (res) => {
+    browser.storage.local.get("apikey").then((res) => {
         if (typeof res.apikey != "undefined" && !!res.apikey && res.apikey != "") {
             apikey = res.apikey;
         }
@@ -116,7 +108,7 @@ function handleStorageChanged(changes, area) {
 }
 
 function updatePinVariable() {
-    browser.storage.local.get("pins", (res) => {
+    browser.storage.local.get("pins").then((res) => {
         pins = new Map(res["pins"]);
     });
 }
@@ -130,7 +122,7 @@ function getLastUpdateTime() {
 function updatePinData() {
     let headers = new Headers({ "Accept": "application/json" });
     let init = { method: 'GET', headers };
-    browser.storage.local.get(["lastupdate", "lastsync", "pins"], (token) => {
+    browser.storage.local.get(["lastupdate", "lastsync", "pins"]).then((token) => {
         if (apikey == "" || (!!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 5)) {
             console.log("Not syncing, either no API key or last sync less than 5 minutes ago.");
             updatePinVariable();
@@ -249,7 +241,6 @@ function handleMessage(request, sender, sendResponse) {
         });
     }
     else if (request.callFunction == "saveBookmark") {
-        console.log("blubbbb");
         sendResponse(saveBookmark(request.pin, request.isNewPin));
     }
 }
@@ -282,6 +273,9 @@ function saveBookmark(pin, isNewPin) {
                     temp.set(pin.href, pin);
                     pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
                     // See e.g. https://stackoverflow.com/a/32001750
+                }
+                else {
+                    pins.set(pin.href, pin);
                 }
                 browser.storage.local.set({ "pins": Array.from(pins.entries()) });
                 // Update the button in case the site is bookmarked and the setting is active

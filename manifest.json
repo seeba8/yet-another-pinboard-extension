@@ -7,9 +7,10 @@
     "name": "seeba8",
     "url": "https://github.com/seeba8/"
   },
-  "version": "1.0.3",
+  "version": "1.1.0",
   "background": {
     "scripts": [
+      "webextension-polyfill/browser-polyfill.min.js",
       "background.js",
       "omnibox.js"
     ]
