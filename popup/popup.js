@@ -96,55 +96,27 @@ function handleDelete(e) {
 
 function handleSubmit(e) {
     e.preventDefault();
-    browser.storage.local.get("apikey",(token) => {
-        let headers = new Headers({ "Accept": "application/json" });
-        let apikey = token.apikey;
-        let init = { method: 'GET', headers };
-        let pin = pins.get(document.getElementById("url").dataset.entryId);
-        let newPin = false;
-        if (pin === undefined) {
-            pin = Object();
-            pin.time = new Date().toISOString();
-            pin.href = document.getElementById("url").value;
-            var temp = new Map();
-            temp.set(pin.href, pin);
-            newPin = true;
-            pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
-            // See e.g. https://stackoverflow.com/a/32001750
-        }
-        pin.description = document.getElementById("description").value;
-        pin.tags = document.getElementById("tags").value;
-        pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
-        pins.set(pin.href, pin);
-        let request = new Request("https://api.pinboard.in/v1/posts/add/?auth_token=" + apikey +
-            "&url=" + encodeURIComponent(pin.href) +
-            "&description=" + encodeURIComponent(pin.description) +
-            "&tags=" + encodeURIComponent(pin.tags) +
-            "&toread=" + pin.toread +
-            "&format=json", init);
-        fetch(request).then((response) => {
-            if (response.status == 200 && response.ok) {
-                response.json().then(json => {
-                    if (json.result_code == "done") {
-                        browser.storage.local.set({ pins: Array.from(pins.entries()) });
-                        displayPins();
-                        // Update the button in case the site is bookmarked and the setting is active
-                        browser.runtime.sendMessage({
-                            callFunction: "checkDisplayBookmarked",
-                            url: pin.href
-                        });
-                        document.getElementById("editwrapper").classList.toggle("hidden");
-                        document.getElementById("greyout").classList.toggle("hidden");
-                    }
-                    else {
-                        //console.log("Error. Reply was not 'done'");
-                    }
-                });
-            }
-            else {
-                //console.log("Error. Not status code 200 or not response OK");
-            }
-        });
+    let pin = pins.get(document.getElementById("url").dataset.entryId);
+    let newPin = false;
+    if (pin === undefined) {
+        pin = Object();
+        pin.time = new Date().toISOString();
+        pin.href = document.getElementById("url").value;
+        var temp = new Map();
+        temp.set(pin.href, pin);
+        newPin = true;
+        pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
+        // See e.g. https://stackoverflow.com/a/32001750
+    }
+    pin.description = document.getElementById("description").value;
+    pin.tags = document.getElementById("tags").value;
+    pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
+    pins.set(pin.href, pin);
+    browser.runtime.sendMessage({"callFunction":"saveBookmark", "pin":pin}, (callback) => {
+        console.log(callback);
+        displayPins(); 
+        document.getElementById("editwrapper").classList.toggle("hidden");
+        document.getElementById("greyout").classList.toggle("hidden");
     });
 }
 

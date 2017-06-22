@@ -9,7 +9,10 @@
   },
   "version": "1.0.3",
   "background": {
-    "scripts": ["background.js"]
+    "scripts": [
+      "background.js",
+      "omnibox.js"
+    ]
   },
   "omnibox": { 
     "keyword" : "pin" 
@@ -23,7 +26,8 @@
   "permissions": [
 	  "https://api.pinboard.in/",
 	  "storage",
-    "tabs"
+    "tabs",
+    "bookmarks"
   ],
   "options_ui": {
     "page": "options/options.html",
