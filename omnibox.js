@@ -1,3 +1,6 @@
+browser.omnibox.onInputChanged.addListener(handleInputChanged);
+browser.omnibox.onInputEntered.addListener(handleInputEntered);
+
 // Update the suggestions whenever the input is changed.
 function handleInputChanged(text, addSuggestions) {
     /*    const toReadRegex = new Regex("(^\w\s)?"+options.toReadPrefix+"\w?\s.*","gm");
