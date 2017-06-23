@@ -12,19 +12,33 @@ document.getElementById("greyout").addEventListener("click", (e) => {
     document.getElementById("editwrapper").classList.toggle("hidden");
 });
 
+document.getElementById("optionspage").addEventListener("click", (e) => {
+    e.preventDefault();
+    browser.runtime.openOptionsPage();
+    window.close();
+});
+
 Array.from(document.getElementById("prevnext").children).forEach(element => {
     element.addEventListener("click", handlePrevNextClick);
 });
 
-browser.storage.local.get("pins").then((token) => {
-    pins = new Map(token.pins);
-    displayPins();
-});
+reloadPins();
+
+function reloadPins() {
+    browser.storage.local.get(["apikey", "pins"]).then((token) => {
+        if(!token.apikey || token.apikey == "") {
+           document.getElementById("noapikey").classList.toggle("hidden");
+        }
+        pins = new Map(token.pins);
+        displayPins();
+    });
+ }
+
 
 function handleBookmarkCurrent(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
-    browser.tabs.query({ active: true }).then((tab) => {
+    browser.tabs.query({ active: true },(tab) => {
         tab = tab[0];
         document.getElementById("description").value = tab.title;
         document.getElementById("url").value = tab.url;
@@ -93,55 +107,25 @@ function handleDelete(e) {
 
 function handleSubmit(e) {
     e.preventDefault();
-    browser.storage.local.get("apikey").then((token) => {
-        let headers = new Headers({ "Accept": "application/json" });
-        let apikey = token.apikey;
-        let init = { method: 'GET', headers };
-        let pin = pins.get(document.getElementById("url").dataset.entryId);
-        let newPin = false;
-        if (pin === undefined) {
-            pin = Object();
-            pin.time = new Date().toISOString();
-            pin.href = document.getElementById("url").value;
-            var temp = new Map();
-            temp.set(pin.href, pin);
-            newPin = true;
-            pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
-            // See e.g. https://stackoverflow.com/a/32001750
-        }
-        pin.description = document.getElementById("description").value;
-        pin.tags = document.getElementById("tags").value;
-        pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
-        pins.set(pin.href, pin);
-        let request = new Request("https://api.pinboard.in/v1/posts/add/?auth_token=" + apikey +
-            "&url=" + encodeURIComponent(pin.href) +
-            "&description=" + encodeURIComponent(pin.description) +
-            "&tags=" + encodeURIComponent(pin.tags) +
-            "&toread=" + pin.toread +
-            "&format=json", init);
-        fetch(request).then((response) => {
-            if (response.status == 200 && response.ok) {
-                response.json().then(json => {
-                    if (json.result_code == "done") {
-                        browser.storage.local.set({ pins: Array.from(pins.entries()) });
-                        displayPins();
-                        // Update the button in case the site is bookmarked and the setting is active
-                        browser.runtime.sendMessage({
-                            callFunction: "checkDisplayBookmarked",
-                            url: pin.href
-                        });
-                        document.getElementById("editwrapper").classList.toggle("hidden");
-                        document.getElementById("greyout").classList.toggle("hidden");
-                    }
-                    else {
-                        //console.log("Error. Reply was not 'done'");
-                    }
-                });
-            }
-            else {
-                //console.log("Error. Not status code 200 or not response OK");
-            }
-        });
+    let pin = pins.get(document.getElementById("url").dataset.entryId);
+    let newPin = false;
+    if (pin === undefined) {
+        pin = Object();      
+        pin.href = document.getElementById("url").value;
+    }
+    pin.description = document.getElementById("description").value;
+    pin.time = new Date().toISOString();
+    pin.tags = document.getElementById("tags").value;
+    pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
+    browser.runtime.sendMessage({
+        "callFunction":"saveBookmark", 
+        "pin":pin, 
+        "isNewPin": newPin
+    }).then((callback) => {
+        //console.log("test4");
+        reloadPins();
+        document.getElementById("editwrapper").classList.toggle("hidden");
+        document.getElementById("greyout").classList.toggle("hidden");
     });
 }
 
@@ -178,9 +162,9 @@ function handleFilterChange(e) {
 function handleEditBookmark(e) {
     e.preventDefault();
     let pin = pins.get(e.target.dataset.entryId);
-    document.getElementById("description").value = pin.description;
+    document.getElementById("description").value = pin.description || "";
     document.getElementById("url").value = pin.href;
-    document.getElementById("tags").value = pin.tags;
+    document.getElementById("tags").value = pin.tags || "";
     document.getElementById("toread").checked = (pin.toread == "yes");
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
@@ -212,7 +196,7 @@ function addListItem(pin, key) {
     link.addEventListener("click", handleLinkClick);
     link.id = key;
     link.appendChild(document.createTextNode(pin.description));
-    link.title = pin.tags;
+    link.title = pin.tags || "";
     entry.appendChild(link);
     bookmarkList.appendChild(entry);
 }

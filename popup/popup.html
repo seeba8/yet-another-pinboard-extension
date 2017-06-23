@@ -2,68 +2,73 @@
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" type="text/css" href="popup.css">
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="popup.css">
+  <script src="../webextension-polyfill/browser-polyfill.min.js"></script>
 </head>
 
 <body>
-    <button id="bookmarkcurrent">Pin current page</button>
-    <input type="text" id="filter" placeholder="Search" />
-    <div id="prevnext">
-        <a href="#" id="firstPage">&laquo;</a>
-        <a href="#" id="prevPage">&lt;</a>
-        <a href="#" id="pageNo1">1</a>
-        <a href="#" id="pageNo2">2</a>
-        <a href="#" id="pageNo3">3</a>
-        <a href="#" id="pageNo4">4</a>
-        <a href="#" id="pageNo5">5</a>
-        <a href="#" id="nextPage">&gt;</a>
-        <a href="#" id="lastPage">&raquo;</a>
-    </div>
-    <div id="listdiv">
+  <button id="bookmarkcurrent">Pin current page</button>
+  <input type="text" id="filter" placeholder="Search" />
+  <div id="prevnext">
+    <a href="#" id="firstPage">&laquo;</a>
+    <a href="#" id="prevPage">&lt;</a>
+    <a href="#" id="pageNo1">1</a>
+    <a href="#" id="pageNo2">2</a>
+    <a href="#" id="pageNo3">3</a>
+    <a href="#" id="pageNo4">4</a>
+    <a href="#" id="pageNo5">5</a>
+    <a href="#" id="nextPage">&gt;</a>
+    <a href="#" id="lastPage">&raquo;</a>
+  </div>
+  <div id="listdiv">
 
-        <ul id="bookmarks">
+    <ul id="bookmarks">
 
-        </ul>
-    </div>
-    <div id="greyout" class="hidden"></div>
-    <div id="editcontainer">
-        <div id="editwrapper" class="hidden">
-            <form id="editform">
-                <div>
-                    <div>
-                        <label for="description">Title</label>
-                    </div>
-                    <div>
-                        <input type="text" id="description" />
-                    </div>
-                </div>
-                <div>
-                    <div>
-                        <label for="url">URL</label>
-                    </div>
-                    <div>
-                        <input type="text" id="url" readonly="readonly" />
-                    </div>
-                </div>
-                <div>
-                    <div>
-                        <label for="tags">Tags</label>
-                    </div>
-                    <div>
-                        <input type="text" id="tags" />
-                    </div>
-                </div>
-                <div>
-                    <label for="toread">To read </label>
-                    <input type="checkbox" id="toread" name="toread" checked="checked" value="To read" />
-                    <!--<button id="deleteBookmark" >Delete</button>-->
-                    <button type="submit">Save</button>
-                </div>
-            </form>
+    </ul>
+  </div>
+  <div id="greyout" class="hidden"></div>
+  <div id="noapikey" class="hidden">
+    <h1>API key is missing. Go to the <a id="optionspage" href="#">options</a> to set your API key.</h1>
+  </div>
+
+  <div id="editcontainer">
+    <div id="editwrapper" class="hidden">
+      <form id="editform">
+        <div>
+          <div>
+            <label for="description">Title</label>
+          </div>
+          <div>
+            <input type="text" id="description" />
+          </div>
         </div>
+        <div>
+          <div>
+            <label for="url">URL</label>
+          </div>
+          <div>
+            <input type="text" id="url" readonly="readonly" />
+          </div>
+        </div>
+        <div>
+          <div>
+            <label for="tags">Tags</label>
+          </div>
+          <div>
+            <input type="text" id="tags" />
+          </div>
+        </div>
+        <div>
+          <label for="toread">To read </label>
+          <input type="checkbox" id="toread" name="toread" checked="checked" value="To read" />
+          <!--<button id="deleteBookmark" >Delete</button>-->
+          <button type="submit">Save</button>
+        </div>
+      </form>
     </div>
-    <script src="popup.js"></script>
+  </div>
+  <script src="popup.js"></script>
 </body>
 
 </html>
