@@ -30,6 +30,7 @@ Thanks to [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool 
 * Add private / public flag
 * ~Adapt it for Google Chrome, maybe?~ Done!
 * Re-add page action button for Firefox, maybe? (Chrome [doesn't support](https://developer.chrome.com/extensions/manifest) using both Browser and Page Action)
+* Keyboard shortcut to open the popup?
 * ...
 
 ### Changelog (incomplete)
