@@ -1,8 +1,11 @@
 # Yet Another Pinboard Extension
 Shows your [Pinboard](https://pinboard.in) bookmarks in the omnibar suggestions if "pin" is prepended.
 Also, allows you to view, open and edit your bookmarks in your browser.
+Furthermore, enables (optionally) auto-copying new browser bookmarks to pinboard.
 
-Written in pure Javascript without external dependencies. Does not send any data anywhere, as far as I know (except to pinboard, of course).
+Written in pure Javascript/HTML/CSS without external dependencies (But uses Mozilla's [Web Extension Polyfill](https://github.com/mozilla/webextension-polyfill) to be able to handle Chrome's differences (mostly, at least). 
+
+Does not send any data anywhere, as far as I know (except to pinboard, of course).
 
 Current version: 1.0
 
@@ -11,7 +14,7 @@ Current version: 1.0
 * [Github Release](https://github.com/seeba8/yet-another-pinboard-extension/releases/latest) (Signed by AMO, can be installed in regular Firefox)
 
 ### Instructions
-* To connect the add-on with your pinboard account, enter your API key in the options page (about:addons). Do *not* enter your main password! The key will be stored in the add-on's local browser storage, and I have no idea if other add-ons / users / whoever can access that.
+* To connect the add-on with your pinboard account, enter your API key in the options page (about:addons or chrome://extensions). Do *not* enter your normal password! The key will be stored in the add-on's local browser storage, and I have no idea if other add-ons / users / whoever can access that. Also, it probably wouldn't even work.
 * The API key can be found on https://pinboard.in/settings/password.
 * You can search through your bookmarks, create new ones and edit old ones via the button in the Action Menu (add it to the bar if it is not there)
 
@@ -23,5 +26,16 @@ Thanks to [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool 
 * Enable deleting the API key
 * Enable force-updating the locally stored pins
 * Probably a lot of bugfixes
-* Adapt it for Google Chrome, maybe?
+* Add field for the longer link description
+* Add private / public flag
+* ~Adapt it for Google Chrome, maybe?~ Done!
+* Re-add page action button for Firefox, maybe? (Chrome [doesn't support](https://developer.chrome.com/extensions/manifest) using both Browser and Page Action)
 * ...
+
+### Changelog (incomplete)
+#### v1.1:
+* Adds option to auto-save new bookmarks to pinboard
+* Adds Google Chrome support, among others using Mozilla's [Web Extension Polyfill](https://github.com/mozilla/webextension-polyfill)
+
+#### v1.0
+* Initial release, only for Firefox
