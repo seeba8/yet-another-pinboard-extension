@@ -122,7 +122,7 @@ function handleSubmit(e) {
         "pin":pin, 
         "isNewPin": newPin
     }).then((callback) => {
-        console.log("test4");
+        //console.log("test4");
         reloadPins();
         document.getElementById("editwrapper").classList.toggle("hidden");
         document.getElementById("greyout").classList.toggle("hidden");

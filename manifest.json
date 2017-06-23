@@ -19,10 +19,10 @@
     "keyword" : "pin" 
     },
   "icons": {
-    "16": "img/pinboard-icon.svg",
-    "48": "img/pinboard-icon.svg",
-    "96": "img/pinboard-icon.svg",
-    "128": "img/pinboard-icon.svg"
+    "16": "img/pinboard-16.png",
+    "48": "img/pinboard-48.png",
+    "96": "img/pinboard-96.png",
+    "128": "img/pinboard-128.png"
   },
   "permissions": [
 	  "https://api.pinboard.in/",

@@ -26,7 +26,7 @@ function handleBookmarkCreated(id, bookmark) {
         return;
     }
     if (!!bookmark.url && bookmark.url != "") {
-        console.log(bookmark);
+        //console.log(bookmark);
         let pin = {
             "href": bookmark.url,
             "description": bookmark.title,
@@ -124,19 +124,19 @@ function updatePinData() {
     let init = { method: 'GET', headers };
     browser.storage.local.get(["lastupdate", "lastsync", "pins"]).then((token) => {
         if (apikey == "" || (!!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 5)) {
-            console.log("Not syncing, either no API key or last sync less than 5 minutes ago.");
+            //console.log("Not syncing, either no API key or last sync less than 5 minutes ago.");
             updatePinVariable();
             return;
         }
         let lastUpdate = getLastUpdateTime();
         let request = new Request("https://api.pinboard.in/v1/posts/update?auth_token=" + apikey + "&format=json", init);
         fetch(request)
-            .then((response) => { console.log(response); return response.json(); })
+            .then((response) => { return response.json(); })
             .then((json) => {
                 lastUpdate = Date(json.update_time);
-                console.log(lastUpdate);
+                //console.log(lastUpdate);
                 if (!lastUpdate) {
-                    console.log("firstException");
+                    //console.log("firstException");
                     setTimeout(updatePinData, nextErrorTimeout);
                     nextErrorTimeout *= 2;
                     return;
@@ -150,7 +150,7 @@ function updatePinData() {
                     updatePinVariable();
                     return;
                 }
-                console.log("Loading pins from scratch!");
+                //console.log("Loading pins from scratch!");
                 setTimeout(sendRequestAllPins, 1000 * 3, lastUpdate);
             }); 
         
@@ -170,7 +170,7 @@ function sendRequestAllPins(lastUpdate) {
     let init = { method: 'GET', headers };
     request = new Request("https://api.pinboard.in/v1/posts/all?auth_token=" + apikey + "&format=json", init);
     fetch(request)
-        .then((response) => { console.log(response); return response.json(); })
+        .then((response) => { return response.json(); })
         .then((json) => {
             let pinsMap = new Map();
             json.forEach((pin) => {
@@ -233,7 +233,7 @@ function handleTabUpdated(tabId, changeInfo, tab) {
 }
 
 function handleMessage(request, sender, sendResponse) {
-    console.log(request);
+    //console.log(request);
     if (request.callFunction == "checkDisplayBookmarked" && !!request.url) {
         browser.tabs.query({ active: true }, (tab) => {
             tab = tab[0];
