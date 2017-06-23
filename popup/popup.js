@@ -3,6 +3,10 @@ var offset = 0;
 var pins;
 
 document.getElementById("filter").addEventListener("keyup", handleFilterChange);
+document.getElementById("searchform").addEventListener("reset", (e) => {
+    document.getElementById("filter").value = "";
+    handleFilterChange(e);
+});
 document.getElementById("bookmarkcurrent").addEventListener("click", handleBookmarkCurrent);
 
 //document.getElementById("deleteBookmark").addEventListener("click", handleDelete);
@@ -13,7 +17,10 @@ document.getElementById("greyout").addEventListener("click", (e) => {
 });
 
 document.getElementById("optionspage").addEventListener("click", (e) => {
-    e.preventDefault();
+    browser.runtime.openOptionsPage();
+    window.close();
+});
+document.getElementById("optionslink").addEventListener("click", (e) => {
     browser.runtime.openOptionsPage();
     window.close();
 });

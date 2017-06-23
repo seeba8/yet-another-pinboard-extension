@@ -8,8 +8,15 @@
 </head>
 
 <body>
-  <button id="bookmarkcurrent">Pin current page</button>
-  <input type="text" id="filter" placeholder="Search" />
+  <div id="toprow">
+    <div><a id="pinboardlink" href="https://pinboard.in" target="_new">Pinboard</a></div>
+    <div><a href="#" id="bookmarkcurrent">Pin current page</a></div>
+    <div><a href="#" id="optionslink">Options</a></div>
+  </div>
+  <form class="searchform" id="searchform">
+    <input type="text" id="filter" placeholder="Search" class="search" required />
+    <button type="reset" class="resetbutton">X</button>
+  </form>
   <div id="prevnext">
     <a href="#" id="firstPage">&laquo;</a>
     <a href="#" id="prevPage">&lt;</a>
@@ -29,7 +36,8 @@
   </div>
   <div id="greyout" class="hidden"></div>
   <div id="noapikey" class="hidden">
-    <h1>API key is missing. Go to the <a id="optionspage" href="#">options</a> to set your API key.</h1>
+    <h1>Your API key is missing.</h1>
+    <p>Go to the <a id="optionspage" href="#">options</a> to set your API key.</p>
   </div>
 
   <div id="editcontainer">

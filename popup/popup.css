@@ -16,13 +16,32 @@
     overflow-y: auto;
 }
 
+#toprow {
+    display: grid;
+    grid-template-columns: 1fr 3fr 1fr;
+    grid-column-gap: 2em;
+    margin-bottom: .5em;
+}
+
+#toprow a, #toprow a:visited {
+    text-decoration: none;
+    color: inherit;
+    padding: .25em;
+    display: block;
+}
+
+#toprow a:hover {
+   background-color: #eee;
+}
+
 #bookmarkcurrent {
     text-align: center;
-    margin: 1em;
+    cursor: pointer;
 }
-#filter {
-    margin-left: 1em;
-    margin-right: 1em;
+
+#optionslink {
+   text-align: right;
+   justify-self: end;
 }
 
 #bookmarks li a {
@@ -86,10 +105,40 @@ a.currentpage {
     height: 100%;
 }
 
+#noapikey {
+    text-align: center;
+}
+
 .hidden {
     display:none;
 }
 body {
     font-size: .9em;
     font-family: sans-serif;
+}
+
+.resetbutton {
+  border: none;
+  background: transparent;
+  display: inline-block;
+  position: absolute;
+  cursor: pointer;
+  outline:none;
+  color: grey;
+  right: .25em;
+  top: .2em;
+}
+.search:required:invalid ~ .resetbutton {
+    display: none;
+}
+
+#filter {
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 99%;
+}
+
+.searchform {
+    position: relative;
 }
