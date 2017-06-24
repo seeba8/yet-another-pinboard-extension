@@ -3,13 +3,18 @@ var options = {};
 
 document.getElementById('changeActionbarIcon').addEventListener("change", handleOptionChange);
 document.getElementById('saveBrowserBookmarks').addEventListener("change", handleOptionChange);
-document.querySelector("#saveapi").addEventListener("click", saveAPIKey);
+document.getElementById("saveapi").addEventListener("click", saveAPIKey);
+document.getElementById("clearapi").addEventListener("click", clearAPIKey);
+document.getElementById("forcereload").addEventListener("click", forcePinReload);
 document.querySelectorAll(".shortcuts").forEach((element) => {
     element.addEventListener("change", handleOptionChange);
 });
 
-browser.storage.local.get("options").then((token) => {
+browser.storage.local.get(["options", "apikey"]).then((token) => {
     options = token.options;
+    if(!! token.apikey && token.apikey != "") {
+        toggleAPIKeyInputs();
+    }
     if (!!options.changeActionbarIcon && options.changeActionbarIcon) {
         document.getElementById("changeActionbarIcon").checked = true;
     }
@@ -24,30 +29,44 @@ browser.storage.local.get("options").then((token) => {
     });
 });
 
+function forcePinReload() {
+    browser.runtime.sendMessage({"callFunction": "forceUpdatePins"}).then((response) => {});;
+}
+
+function toggleAPIKeyInputs() {
+    document.getElementById("apikey").classList.toggle("hidden");
+    document.getElementById("saveapi").classList.toggle("hidden");
+    document.getElementById("clearapi").classList.toggle("hidden");
+    document.getElementById("forcereload").classList.toggle("hidden");
+}
+
+function clearAPIKey() {
+    browser.storage.local.set({"apikey" : "", "pins": [], "lastupdate": ""});
+    toggleAPIKeyInputs();
+}
+
 function saveAPIKey() {
     // Call pinboard to check if the API key is working
     let headers = new Headers({ "Accept": "application/json" });
-    let apikey = document.querySelector("#apikey").value;
+    let apikey = document.getElementById("apikey").value;
     let init = { method: 'GET', headers };
     let request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" + apikey + "&format=json", init);
     fetch(request).then(function (response) {
         if (!response) {
             //console.log("Error while parsing result");
-            document.querySelector("#testresult").textContent = "Error!";
             return;
         }
         response.json().then(json => {
             if (json.result == apikey.split(":")[1]) {
                 browser.storage.local.set({
-                    apikey: document.querySelector("#apikey").value
+                    apikey: document.getElementById("apikey").value
                 });
                 //console.log("Saved successfully");
-                document.querySelector("#testresult").textContent = "Saved!";
-                document.querySelector("#apikey").value = "";
+                document.getElementById("apikey").value = "";
+                toggleAPIKeyInputs();
             }
             else {
                 //console.log("Error while parsing result");
-                document.querySelector("#testresult").textContent = "Error!";
                 return;
             }
         });

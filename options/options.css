@@ -1,6 +1,6 @@
 .wrapper {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 2fr 1fr;
     grid-row-gap: 1em;  
 }
 body{
@@ -10,4 +10,8 @@ body{
 .checkboxes {
     /* In Firefox Dev Edition 55.0b3, this is necessary, otherwise the checkbox is not shown. */
     display: inherit;
+}
+
+.hidden {
+    display: none;
 }

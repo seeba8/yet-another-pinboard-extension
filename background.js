@@ -55,7 +55,7 @@ function handleAddonInstalled() {
 // Update the pins on startup of the browser
 function handleStartup() {
     loadOptions();
-    updatePinData();
+    updatePinData(false);
 }
 
 function loadOptions() {
@@ -64,7 +64,7 @@ function loadOptions() {
             handleAddonInstalled();
         }
         options = res.options;
-        if (options.changeActionbarIcon) {
+        if (!!options.changeActionbarIcon) {
             browser.browserAction.setIcon({
                 path: {
                     16: "img/pinboard-icon-grey.svg",
@@ -86,7 +86,7 @@ function loadOptions() {
 
 function loadApiKey() {
     browser.storage.local.get("apikey").then((res) => {
-        if (typeof res.apikey != "undefined" && !!res.apikey && res.apikey != "") {
+        if (typeof res.apikey != "undefined" && !!res.apikey) {
             apikey = res.apikey;
         }
     });
@@ -97,7 +97,7 @@ function handleStorageChanged(changes, area) {
     if (Object.keys(changes).includes("apikey")) {
         loadApiKey();
         //console.log("update pin data");
-        updatePinData();
+        updatePinData(false);
     }
     else if (Object.keys(changes).includes("pins")) {
         updatePinVariable();
@@ -113,13 +113,9 @@ function updatePinVariable() {
     });
 }
 
-function getLastUpdateTime() {
-    
-}
-
 // Reloads all bookmarks from pinboard. Should be optimized to get a delta...
 // Should listen to return codes
-function updatePinData() {
+function updatePinData(forceUpdate) {
     let headers = new Headers({ "Accept": "application/json" });
     let init = { method: 'GET', headers };
     browser.storage.local.get(["lastupdate", "lastsync", "pins"]).then((token) => {
@@ -128,7 +124,7 @@ function updatePinData() {
             updatePinVariable();
             return;
         }
-        let lastUpdate = getLastUpdateTime();
+        let lastUpdate = "";
         let request = new Request("https://api.pinboard.in/v1/posts/update?auth_token=" + apikey + "&format=json", init);
         fetch(request)
             .then((response) => { return response.json(); })
@@ -137,7 +133,7 @@ function updatePinData() {
                 //console.log(lastUpdate);
                 if (!lastUpdate) {
                     //console.log("firstException");
-                    setTimeout(updatePinData, nextErrorTimeout);
+                    setTimeout(updatePinData, nextErrorTimeout, false);
                     nextErrorTimeout *= 2;
                     return;
                 }
@@ -145,7 +141,7 @@ function updatePinData() {
                     nextErrorTimeout = MIN_ERR_TIMEOUT;
                 }
                 //pins.length, because we are in the token, where the pins are stored as Array, not Map
-                if (!!token.pins && token.pins.length > 0 && !!token.lastupdate && new Date(token.lastupdate) == lastUpdate) {
+                if (!forceUpdate && !!token.pins && token.pins.length > 0 && !!token.lastupdate && new Date(token.lastupdate) == lastUpdate) {
                     //console.log("Not syncing, no update available");
                     updatePinVariable();
                     return;
@@ -243,6 +239,10 @@ function handleMessage(request, sender, sendResponse) {
     else if (request.callFunction == "saveBookmark") {
         sendResponse(saveBookmark(request.pin, request.isNewPin));
     }
+    else if (request.callFunction == "forceUpdatePins") {
+        updatePinData(true);
+        sendResponse("OK");
+    }
 }
 
 function saveBookmark(pin, isNewPin) {
@@ -279,10 +279,7 @@ function saveBookmark(pin, isNewPin) {
                 }
                 browser.storage.local.set({ "pins": Array.from(pins.entries()) });
                 // Update the button in case the site is bookmarked and the setting is active
-                browser.runtime.sendMessage({
-                    callFunction: "checkDisplayBookmarked",
-                    url: pin.href
-                });
+                checkDisplayBookmarked();
                 return "done";
 
             }

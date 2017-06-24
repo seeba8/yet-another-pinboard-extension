@@ -45,7 +45,7 @@ function reloadPins() {
 function handleBookmarkCurrent(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
-    browser.tabs.query({ active: true },(tab) => {
+    browser.tabs.query({ active: true }).then((tab) => {
         tab = tab[0];
         document.getElementById("description").value = tab.title;
         document.getElementById("url").value = tab.url;
