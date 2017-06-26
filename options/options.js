@@ -30,7 +30,8 @@ browser.storage.local.get(["options", "apikey"]).then((token) => {
 });
 
 function forcePinReload() {
-    browser.runtime.sendMessage({"callFunction": "forceUpdatePins"}).then((response) => {});;
+    //console.log("forcereload");
+    browser.runtime.sendMessage({"callFunction": "forceUpdatePins"}).then((response) => {return;});
 }
 
 function toggleAPIKeyInputs() {

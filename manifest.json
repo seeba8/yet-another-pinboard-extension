@@ -3,10 +3,7 @@
   "name": "Yet Another Pinboard Extension",
   "description" : "To use omnibox search, type 'pin ' plus a search term into the url bar.",
   "homepage_url": "https://github.com/seeba8/yet-another-pinboard-extension",
-  "author": {
-    "name": "seeba8",
-    "url": "https://github.com/seeba8/"
-  },
+  "author": "seeba8",
   "version": "1.1.0",
   "background": {
     "scripts": [

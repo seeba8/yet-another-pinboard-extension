@@ -119,6 +119,7 @@ function handleSubmit(e) {
     if (pin === undefined) {
         pin = Object();      
         pin.href = document.getElementById("url").value;
+        newPin = true;
     }
     pin.description = document.getElementById("description").value;
     pin.time = new Date().toISOString();

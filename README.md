@@ -7,8 +7,6 @@ Written in pure Javascript/HTML/CSS without external dependencies (But uses Mozi
 
 Does not send any data anywhere, as far as I know (except to pinboard, of course).
 
-Current version: 1.0
-
 ### Download / Install
 * [Mozilla Addons](https://addons.mozilla.org/en-US/firefox/addon/yet-another-pinboard-extension/)
 * [Github Release](https://github.com/seeba8/yet-another-pinboard-extension/releases/latest) (Signed by AMO, can be installed in regular Firefox)
@@ -23,14 +21,15 @@ Thanks to [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool 
 
 ### Plans for the future
 * Enable deleting of bookmarks
-* Enable deleting the API key
-* Enable force-updating the locally stored pins
+* ~Enable deleting the API key~ Done!
+* ~Enable force-updating the locally stored pins~ Done!
 * Probably a lot of bugfixes
 * Add field for the longer link description
 * Add private / public flag
 * ~Adapt it for Google Chrome, maybe?~ Done!
 * Re-add page action button for Firefox, maybe? (Chrome [doesn't support](https://developer.chrome.com/extensions/manifest) using both Browser and Page Action)
 * Keyboard shortcut to open the popup?
+* Cache saved pins locally in case connection does not work
 * ...
 
 ### Changelog (incomplete)

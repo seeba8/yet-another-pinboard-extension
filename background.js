@@ -51,6 +51,7 @@ function handleAddonInstalled() {
         "lastsync": "",
         "lastupdate": ""
     });
+    return options;
 }
 // Update the pins on startup of the browser
 function handleStartup() {
@@ -61,9 +62,11 @@ function handleStartup() {
 function loadOptions() {
     browser.storage.local.get("options").then((res) => {
         if(!res.options) {
-            handleAddonInstalled();
+            options = handleAddonInstalled();
         }
-        options = res.options;
+        else { 
+            options = res.options;
+        }
         if (!!options.changeActionbarIcon) {
             browser.browserAction.setIcon({
                 path: {
@@ -119,7 +122,7 @@ function updatePinData(forceUpdate) {
     let headers = new Headers({ "Accept": "application/json" });
     let init = { method: 'GET', headers };
     browser.storage.local.get(["lastupdate", "lastsync", "pins"]).then((token) => {
-        if (apikey == "" || (!!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 5)) {
+        if (apikey == "" || (!forceUpdate && !!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 5)) {
             //console.log("Not syncing, either no API key or last sync less than 5 minutes ago.");
             updatePinVariable();
             return;
@@ -127,19 +130,24 @@ function updatePinData(forceUpdate) {
         let lastUpdate = "";
         let request = new Request("https://api.pinboard.in/v1/posts/update?auth_token=" + apikey + "&format=json", init);
         fetch(request)
-            .then((response) => { return response.json(); })
+            .then((response) => { 
+                if(response.status == 200 && response.ok) {
+                    return response.json(); 
+                }
+                else {
+                    return null;
+                }
+            })
             .then((json) => {
-                lastUpdate = Date(json.update_time);
-                //console.log(lastUpdate);
-                if (!lastUpdate) {
+                if(json == null){
                     //console.log("firstException");
                     setTimeout(updatePinData, nextErrorTimeout, false);
                     nextErrorTimeout *= 2;
                     return;
                 }
-                else {
-                    nextErrorTimeout = MIN_ERR_TIMEOUT;
-                }
+                nextErrorTimeout = MIN_ERR_TIMEOUT;
+                lastUpdate = Date(json.update_time);
+                //console.log(lastUpdate);
                 //pins.length, because we are in the token, where the pins are stored as Array, not Map
                 if (!forceUpdate && !!token.pins && token.pins.length > 0 && !!token.lastupdate && new Date(token.lastupdate) == lastUpdate) {
                     //console.log("Not syncing, no update available");
@@ -237,11 +245,18 @@ function handleMessage(request, sender, sendResponse) {
         });
     }
     else if (request.callFunction == "saveBookmark") {
-        sendResponse(saveBookmark(request.pin, request.isNewPin));
+        if(typeof sendResponse == "function") {
+            sendResponse(saveBookmark(request.pin, request.isNewPin));
+        }
+        else {
+            saveBookmark(request.pin, request.isNewPin);
+        }
     }
     else if (request.callFunction == "forceUpdatePins") {
         updatePinData(true);
-        sendResponse("OK");
+        if(typeof sendResponse == "function") {
+            sendResponse("OK");
+        }
     }
 }
 
