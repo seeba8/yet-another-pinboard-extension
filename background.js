@@ -70,16 +70,21 @@ function loadOptions() {
         if (!!options.changeActionbarIcon) {
             browser.browserAction.setIcon({
                 path: {
-                    16: "img/pinboard-icon-grey.svg",
-                    32: "img/pinboard-icon-grey.svg"
+                    16: "img/pinboard-grey-16.png",
+                    19: "img/pinboard-grey-19.png",
+                    32: "img/pinboard-grey-32.png",
+                    38: "img/pinboard-grey-38.png",
+                    64: "img/pinboard-grey-64.png"
                 }
             });
         }
         else {
             browser.browserAction.setIcon({
                 path: {
-                    16: "img/pinboard-icon.svg",
-                    32: "img/pinboard-icon.svg"
+                    16: "img/pinboard-16.png",
+                    32: "img/pinboard-32.png",
+                    48: "img/pinboard-48.png",
+                    96: "img/pinboard-96.png"
                 }
             });
         }
@@ -207,8 +212,11 @@ function checkDisplayBookmarked(url, tabId) {
         if (options.changeActionbarIcon) {
             browser.browserAction.setIcon({
                 path: {
-                    16: "img/pinboard-icon-blue.svg",
-                    32: "img/pinboard-icon-blue.svg"
+                    16: "img/pinboard-blue-16.png",
+                    19: "img/pinboard-blue-19.png",
+                    32: "img/pinboard-blue-32.png",
+                    38: "img/pinboard-blue-38.png",
+                    64: "img/pinboard-blue-64.png"
                 },
                 tabId: tabId
             });
@@ -218,8 +226,11 @@ function checkDisplayBookmarked(url, tabId) {
         if (options.changeActionbarIcon) {
             browser.browserAction.setIcon({
                 path: {
-                    16: "img/pinboard-icon-grey.svg",
-                    32: "img/pinboard-icon-grey.svg"
+                    16: "img/pinboard-grey-16.png",
+                    19: "img/pinboard-grey-19.png",
+                    32: "img/pinboard-grey-32.png",
+                    38: "img/pinboard-grey-38.png",
+                    64: "img/pinboard-grey-64.png"
                 },
                 tabId: tabId
             });

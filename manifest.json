@@ -4,7 +4,7 @@
   "description" : "To use omnibox search, type 'pin ' plus a search term into the url bar.",
   "homepage_url": "https://github.com/seeba8/yet-another-pinboard-extension",
   "author": "seeba8",
-  "version": "1.1.0",
+  "version": "1.1.2",
   "background": {
     "scripts": [
       "webextension-polyfill/browser-polyfill.min.js",
@@ -17,6 +17,7 @@
     },
   "icons": {
     "16": "img/pinboard-16.png",
+    "32": "img/pinboard-32.png",
     "48": "img/pinboard-48.png",
     "96": "img/pinboard-96.png",
     "128": "img/pinboard-128.png"
@@ -33,8 +34,10 @@
   },
   "browser_action": {
     "default_icon":  {
-        "16": "img/pinboard-icon.svg",
-        "32": "img/pinboard-icon.svg"
+        "16": "img/pinboard-16.png",
+        "32": "img/pinboard-32.png",
+        "48": "img/pinboard-48.png",
+        "96": "img/pinboard-96.png"
     },
     "default_title": "Pinboard",
     "default_popup": "popup/popup.html"
