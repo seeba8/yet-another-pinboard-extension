@@ -4,10 +4,11 @@
   "description" : "To use omnibox search, type 'pin ' plus a search term into the url bar.",
   "homepage_url": "https://github.com/seeba8/yet-another-pinboard-extension",
   "author": "seeba8",
-  "version": "1.1.2",
+  "version": "1.1.3",
   "background": {
     "scripts": [
       "webextension-polyfill/browser-polyfill.min.js",
+      "connector.js",
       "background.js",
       "omnibox.js"
     ]

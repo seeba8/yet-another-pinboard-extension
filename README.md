@@ -31,6 +31,7 @@ Thanks to [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool 
 * Re-add page action button for Firefox, maybe? (Chrome [doesn't support](https://developer.chrome.com/extensions/manifest) using both Browser and Page Action)
 * Keyboard shortcut to open the popup?
 * Cache saved pins locally in case connection does not work
+* Add context menu when clicking on links: read later
 * ...
 
 ### Changelog (incomplete)

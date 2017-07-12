@@ -45,7 +45,7 @@ function reloadPins() {
 function handleBookmarkCurrent(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
-    browser.tabs.query({ active: true }).then((tab) => {
+    browser.tabs.query({ currentWindow: true, active: true }).then((tab) => {
         tab = tab[0];
         document.getElementById("description").value = tab.title;
         document.getElementById("url").value = tab.url;
@@ -93,22 +93,11 @@ function handlePrevNextClick(e) {
 
 function handleDelete(e) {
     //console.log("Not quite implemented...");
-    browser.storage.local.get("apikey").then((token) => {
-        let headers = new Headers({ "Accept": "application/json" });
-        let apikey = token.apikey;
-        let init = { method: 'GET', headers };
-        let request = new Request("https://api.pinboard.in/v1/posts/delete/?auth_token=" + apikey +
-            "&url=" + encodeURIComponent(document.getElementById("url").value) + "&format=json", init);
-        fetch(request).then(function (response) {
-            if (response.status == 200 && response.ok) {
-                response.json().then(json => {
-                    if (json.result_code == "done") {
-                        // delete from storage using document.[...].dataset["entryID"].slice(3) for the ID
-                        // delete from local list
-                    }
-                });
-            }
-        });
+    browser.runtime.sendMessage({
+        "callFunction": "deleteBookmark",
+        "pin": {"url": document.getElementById("url").value}
+    }).then((callback) => {
+        // Do nothing?
     });
 }
 
