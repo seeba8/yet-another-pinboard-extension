@@ -29,23 +29,51 @@ Array.from(document.getElementById("prevnext").children).forEach(element => {
     element.addEventListener("click", handlePrevNextClick);
 });
 
+document.getElementById("delete").addEventListener("click", handleDeletePin);
+
+browser.storage.local.get(["options"]).then(token => {
+    if (token.options.hasOwnProperty("sharedByDefault") && token.options.sharedByDefault === true) {
+        document.getElementById("shared").checked = true;
+    }
+});
+
+browser.storage.local.get(["lastsync"]).then(token => {
+    document.getElementById("optionslink").title = "Last bookmark sync: " + new Date(token.lastsync);
+});
+
 reloadPins();
 
 function reloadPins() {
     browser.storage.local.get(["apikey", "pins"]).then((token) => {
-        if(!token.apikey || token.apikey == "") {
-           document.getElementById("noapikey").classList.toggle("hidden");
+        if (!token.apikey || token.apikey == "") {
+            document.getElementById("noapikey").classList.toggle("hidden");
         }
         pins = new Map(token.pins);
         displayPins();
     });
- }
+}
 
+function handleDeletePin(e) {
+    e.preventDefault();
+    if (confirm("Delete?")) {
+        browser.runtime.sendMessage({
+            "callFunction": "deleteBookmark",
+            "pin": { "url": document.getElementById("url").value }
+        }).then((callback) => {
+            // Do nothing?
+        });
+        pins.delete(document.getElementById("url").value);
+        displayPins();
+        document.getElementById("editwrapper").classList.toggle("hidden");
+        document.getElementById("greyout").classList.toggle("hidden");
+    }
+    
+}
 
 function handleBookmarkCurrent(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
-    browser.tabs.query({ active: true }).then((tab) => {
+    browser.tabs.query({ currentWindow: true, active: true }).then((tab) => {
         tab = tab[0];
         document.getElementById("description").value = tab.title;
         document.getElementById("url").value = tab.url;
@@ -91,33 +119,12 @@ function handlePrevNextClick(e) {
     displayPins();
 }
 
-function handleDelete(e) {
-    //console.log("Not quite implemented...");
-    browser.storage.local.get("apikey").then((token) => {
-        let headers = new Headers({ "Accept": "application/json" });
-        let apikey = token.apikey;
-        let init = { method: 'GET', headers };
-        let request = new Request("https://api.pinboard.in/v1/posts/delete/?auth_token=" + apikey +
-            "&url=" + encodeURIComponent(document.getElementById("url").value) + "&format=json", init);
-        fetch(request).then(function (response) {
-            if (response.status == 200 && response.ok) {
-                response.json().then(json => {
-                    if (json.result_code == "done") {
-                        // delete from storage using document.[...].dataset["entryID"].slice(3) for the ID
-                        // delete from local list
-                    }
-                });
-            }
-        });
-    });
-}
-
 function handleSubmit(e) {
     e.preventDefault();
     let pin = pins.get(document.getElementById("url").dataset.entryId);
     let newPin = false;
     if (pin === undefined) {
-        pin = Object();      
+        pin = Object();
         pin.href = document.getElementById("url").value;
         newPin = true;
     }
@@ -125,16 +132,19 @@ function handleSubmit(e) {
     pin.time = new Date().toISOString();
     pin.tags = document.getElementById("tags").value;
     pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
+    pin.shared = (document.getElementById("shared").checked ? "yes" : "no");
+    pin.extended = document.getElementById("extended").value;
     browser.runtime.sendMessage({
-        "callFunction":"saveBookmark", 
-        "pin":pin, 
+        "callFunction": "saveBookmark",
+        "pin": pin,
         "isNewPin": newPin
     }).then((callback) => {
         //console.log("test4");
-        reloadPins();
-        document.getElementById("editwrapper").classList.toggle("hidden");
-        document.getElementById("greyout").classList.toggle("hidden");
     });
+    pins.set(pin.href, pin);
+    displayPins();
+    document.getElementById("editwrapper").classList.toggle("hidden");
+    document.getElementById("greyout").classList.toggle("hidden");
 }
 
 function displayPins() {
@@ -155,7 +165,7 @@ function displayPins() {
 }
 
 function pinContains(pin, searchText) {
-    return (contains(pin.description, searchText) || contains(pin.href, searchText) || contains(pin.tags, searchText));
+    return (contains(pin.description, searchText) || contains(pin.href, searchText) || contains(pin.tags, searchText) || contains(pin.extended, searchText));
 }
 
 function contains(haystack, needle) {
@@ -174,9 +184,11 @@ function handleEditBookmark(e) {
     document.getElementById("url").value = pin.href;
     document.getElementById("tags").value = pin.tags || "";
     document.getElementById("toread").checked = (pin.toread == "yes");
+    document.getElementById("shared").checked = (pin.shared == "yes");
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
     document.getElementById("url").dataset.entryId = e.target.dataset.entryId;
+    document.getElementById("extended").value = pin.extended;
     //document.getElementById("listdiv").style.maxHeight = "360px";
     //document.getElementById("deleteBookmark").dataset["entryId"] = e.target.dataset.entryId;
 }
@@ -203,8 +215,9 @@ function addListItem(pin, key) {
     link.href = pin.href;
     link.addEventListener("click", handleLinkClick);
     link.id = key;
-    link.appendChild(document.createTextNode(pin.description));
-    link.title = pin.tags || "";
+    let textcontent = pin.description == "Twitter" ? (pin.extended != "" ? "(Twitter) " + pin.extended : pin.description) : pin.description;
+    link.appendChild(document.createTextNode(textcontent));
+    link.title = pin.href || "";
     entry.appendChild(link);
     bookmarkList.appendChild(entry);
 }

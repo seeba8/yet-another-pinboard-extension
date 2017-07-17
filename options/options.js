@@ -3,13 +3,16 @@ var options = {};
 
 document.getElementById('changeActionbarIcon').addEventListener("change", handleOptionChange);
 document.getElementById('saveBrowserBookmarks').addEventListener("change", handleOptionChange);
+document.getElementById("sharedByDefault").addEventListener("change", handleOptionChange);
 document.getElementById("saveapi").addEventListener("click", saveAPIKey);
 document.getElementById("clearapi").addEventListener("click", clearAPIKey);
 document.getElementById("forcereload").addEventListener("click", forcePinReload);
 document.querySelectorAll(".shortcuts").forEach((element) => {
     element.addEventListener("change", handleOptionChange);
 });
-
+browser.storage.local.get("lastsync").then(token => {
+    document.getElementById("forcereload").title = "Last bookmark sync: " + new Date(token.lastsync);
+});
 browser.storage.local.get(["options", "apikey"]).then((token) => {
     options = token.options;
     if(!! token.apikey && token.apikey != "") {
@@ -21,9 +24,12 @@ browser.storage.local.get(["options", "apikey"]).then((token) => {
     if(!!options.saveBrowserBookmarks && options.saveBrowserBookmarks) {
         document.getElementById("saveBrowserBookmarks").checked = true;
     }
+    if(options.hasOwnProperty("sharedByDefault") && options.sharedByDefault) {
+        document.getElementById("sharedByDefault").checked = true;
+    }
 
     Object.keys(options).forEach((k, v) => {
-        if (k !== "showBookmarked" && k !== "changeActionbarIcon" && k !== "saveBrowserBookmarks") {
+        if (k !== "showBookmarked" && k !== "changeActionbarIcon" && k !== "saveBrowserBookmarks" && k !== "sharedByDefault") {
             document.querySelector('input[name=' + k + ']').value = options[k];
         }
     });

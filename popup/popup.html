@@ -48,7 +48,7 @@
             <label for="description">Title</label>
           </div>
           <div>
-            <input type="text" id="description" />
+            <input maxlength="255" type="text" id="description" />
           </div>
         </div>
         <div>
@@ -57,6 +57,14 @@
           </div>
           <div>
             <input type="text" id="url" readonly="readonly" />
+          </div>
+        </div>
+        <div>
+          <div>
+            <label for="extended">Description</label>
+          </div>
+          <div>
+            <textarea maxlength="65536" id="extended"></textarea>
           </div>
         </div>
         <div>
@@ -70,8 +78,11 @@
         <div>
           <label for="toread">To read </label>
           <input type="checkbox" id="toread" name="toread" checked="checked" value="To read" />
+          <label for="shared">Shared </label>
+          <input type="checkbox" id="shared" name="shared" value="Shared" />
           <!--<button id="deleteBookmark" >Delete</button>-->
           <button type="submit">Save</button>
+          <button id="delete" class="delete">Delete</button>
         </div>
       </form>
     </div>

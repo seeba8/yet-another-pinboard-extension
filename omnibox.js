@@ -23,7 +23,7 @@ function handleInputChanged(text, addSuggestions) {
         hasPrefix = true;
     }
     else {
-        searchArea = ["tags", "href", "description"];
+        searchArea = ["tags", "href", "description", "extended"];
     }
     if (text.startsWith(options.toReadPrefix + " ")) {
         hasPrefix = true;
