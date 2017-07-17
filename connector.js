@@ -159,7 +159,6 @@ let connector = (function () {
                     break;
                 case "suggestTags":
                     if(typeof json !== "object") {
-                        console.log("noobject");
                         reject(Error(json));
                         return;
                     }

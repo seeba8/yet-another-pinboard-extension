@@ -42,7 +42,8 @@ function handleAddonInstalled() {
         "toReadPrefix": "r",
         "showBookmarked": true,
         "changeActionbarIcon": true,
-        "saveBrowserBookmarks": false
+        "saveBrowserBookmarks": false,
+        "sharedByDefault": false
     };
     browser.storage.local.set({
         "options": options,
@@ -153,14 +154,15 @@ function sendRequestAllPins(lastUpdate) {
                     tags: pin.tags,
                     time: pin.time,
                     toread: pin.toread,
-                    extended: pin.extended
+                    extended: pin.extended,
+                    shared: pin.shared
                 });
             });
             browser.storage.local.set({ pins: Array.from(pinsMap.entries()) });
             pins = new Map(Array.from(pinsMap.entries()));
             //console.log("Sync successful, pins updated");
-            browser.storage.local.set({ lastupdate: lastUpdate });
-            browser.storage.local.set({ lastsync: Date.now() });
+            browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
+            browser.storage.local.set({ lastsync: new Date().getTime() });
         });
     /* catch (e) {
          // Not valid Json, maybe pinboard is down? Nothing to do.
@@ -219,12 +221,11 @@ function handleMessage(request, sender, sendResponse) {
         });
     }
     else if (request.callFunction == "saveBookmark") {
-        if (typeof sendResponse == "function") {
-            sendResponse(saveBookmark(request.pin, request.isNewPin));
-        }
-        else {
-            saveBookmark(request.pin, request.isNewPin);
-        }
+        saveBookmark(request.pin, request.isNewPin).then(resp => {
+            if (typeof sendResponse == "function") {
+                sendResponse(resp);
+            }
+        });
     }
     else if (request.callFunction == "forceUpdatePins") {
         updatePinData(true);
@@ -233,7 +234,19 @@ function handleMessage(request, sender, sendResponse) {
         }
     }
     else if (request.callFunction == "deleteBookmark") {
-        deletePin(request.pin).then(response => {
+        connector.deletePin(request.pin).then(response => {
+            if (typeof request.pin === "string") {
+                pins.delete(request.pin);
+            }
+            else {
+                if (request.pin.hasOwnProperty("href")) {
+                    pins.delete(request.pin.href);
+                }
+                else {
+                    pins.delete(request.pin.url);
+                }
+            }
+            browser.storage.local.set({ "pins": Array.from(pins.entries()) });
             if (typeof sendResponse == "function") {
                 sendResponse("OK");
             }
@@ -242,8 +255,8 @@ function handleMessage(request, sender, sendResponse) {
 }
 
 function saveBookmark(pin, isNewPin) {
-    connector.addPin(pin)
-        .then(json => {
+    return new Promise((resolve, reject) => {
+        connector.addPin(pin).then(json => {
             if (json.result_code == "done") {
                 if (isNewPin) {
                     var temp = new Map();
@@ -257,11 +270,12 @@ function saveBookmark(pin, isNewPin) {
                 browser.storage.local.set({ "pins": Array.from(pins.entries()) });
                 // Update the button in case the site is bookmarked and the setting is active
                 checkDisplayBookmarked();
-                return "done";
-
+                resolve("done");
             }
             else {
                 //console.log("Error. Reply was not 'done'");
+                reject("Oops");
             }
         });
+    });
 }

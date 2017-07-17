@@ -142,3 +142,7 @@ body {
 .searchform {
     position: relative;
 }
+
+.delete {
+    color: red;
+}
