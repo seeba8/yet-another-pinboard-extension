@@ -133,6 +133,7 @@ function handleSubmit(e) {
     pin.tags = document.getElementById("tags").value;
     pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
     pin.shared = (document.getElementById("shared").checked ? "yes" : "no");
+    pin.extended = document.getElementById("extended").value;
     browser.runtime.sendMessage({
         "callFunction": "saveBookmark",
         "pin": pin,
@@ -164,7 +165,7 @@ function displayPins() {
 }
 
 function pinContains(pin, searchText) {
-    return (contains(pin.description, searchText) || contains(pin.href, searchText) || contains(pin.tags, searchText));
+    return (contains(pin.description, searchText) || contains(pin.href, searchText) || contains(pin.tags, searchText) || contains(pin.extended, searchText));
 }
 
 function contains(haystack, needle) {
@@ -187,6 +188,7 @@ function handleEditBookmark(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
     document.getElementById("url").dataset.entryId = e.target.dataset.entryId;
+    document.getElementById("extended").value = pin.extended;
     //document.getElementById("listdiv").style.maxHeight = "360px";
     //document.getElementById("deleteBookmark").dataset["entryId"] = e.target.dataset.entryId;
 }

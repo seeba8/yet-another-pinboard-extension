@@ -77,8 +77,16 @@
     display: inline;
     
 }
+
+label {
+    user-select: none;
+    -moz-user-select: none;
+}
+
 #editwrapper button {
-    margin: 1em;
+    margin-top: 1em;
+    margin-left: 1em;
+    margin-right: 1em;
 }
 a.linkdisabled {
     pointer-events: none;
@@ -145,4 +153,9 @@ body {
 
 .delete {
     color: red;
+}
+#extended {
+   width: 100%;
+   height: 5em;
+   font-family: sans-serif;
 }

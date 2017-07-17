@@ -21,20 +21,25 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 Thanks to [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool addon and for the bug motivating me to look into WebExtensions.
 
 ### Plans for the future
-* Enable deleting of bookmarks
+* ~Enable deleting of bookmarks~ Done!
 * ~Enable deleting the API key~ Done!
 * ~Enable force-updating the locally stored pins~ Done!
 * Probably a lot of bugfixes
-* Add field for the longer link description
-* Add private / public flag
+* ~Add field for the longer link description~ Done!
+* ~Add private / public flag~ Done!
 * ~Adapt it for Google Chrome, maybe?~ Done!
 * Re-add page action button for Firefox, maybe? (Chrome [doesn't support](https://developer.chrome.com/extensions/manifest) using both Browser and Page Action)
 * Keyboard shortcut to open the popup?
-* Cache saved pins locally in case connection does not work
+* ~Cache saved pins locally in case connection does not work~ Done!
 * Add context menu when clicking on links: read later
 * ...
 
 ### Changelog (incomplete)
+#### v1.2: 
+* Adds deleting of pins
+* Adds private/public flags
+* Revamps API access (caches connection if internet doesn't work)
+
 #### v1.1:
 * Adds option to auto-save new bookmarks to pinboard
 * Adds Google Chrome support, among others using Mozilla's [Web Extension Polyfill](https://github.com/mozilla/webextension-polyfill)
