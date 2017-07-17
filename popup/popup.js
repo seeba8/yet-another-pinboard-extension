@@ -55,18 +55,18 @@ function reloadPins() {
 
 function handleDeletePin(e) {
     e.preventDefault();
-    if (confirm("Delete?")) {
-        browser.runtime.sendMessage({
-            "callFunction": "deleteBookmark",
-            "pin": { "url": document.getElementById("url").value }
-        }).then((callback) => {
-            // Do nothing?
-        });
-        pins.delete(document.getElementById("url").value);
-        displayPins();
-        document.getElementById("editwrapper").classList.toggle("hidden");
-        document.getElementById("greyout").classList.toggle("hidden");
-    }
+    //if (confirm("Delete?")) { // DOES NOT WORK IN FIREFOX
+    browser.runtime.sendMessage({
+        "callFunction": "deleteBookmark",
+        "pin": { "url": document.getElementById("url").value }
+    }).then((callback) => {
+        // Do nothing?
+    });
+    pins.delete(document.getElementById("url").value);
+    displayPins();
+    document.getElementById("editwrapper").classList.toggle("hidden");
+    document.getElementById("greyout").classList.toggle("hidden");
+   // }
     
 }
 

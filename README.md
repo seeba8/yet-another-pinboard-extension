@@ -31,7 +31,7 @@ Thanks to [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool 
 * Re-add page action button for Firefox, maybe? (Chrome [doesn't support](https://developer.chrome.com/extensions/manifest) using both Browser and Page Action)
 * Keyboard shortcut to open the popup?
 * ~Cache saved pins locally in case connection does not work~ Done!
-* Add context menu when clicking on links: read later
+* ~Add context menu when clicking on links: read later~ Done!
 * ...
 
 ### Changelog (incomplete)
@@ -39,6 +39,8 @@ Thanks to [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool 
 * Adds deleting of pins
 * Adds private/public flags
 * Revamps API access (caches connection if internet doesn't work)
+* Adds context menu item for "To Read"
+* Changes icon scheme -- show pin status as badge instead of changing the icon itself
 
 #### v1.1:
 * Adds option to auto-save new bookmarks to pinboard
