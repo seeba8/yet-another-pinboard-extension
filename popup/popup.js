@@ -204,6 +204,20 @@ function handleLinkClick(e) {
     window.close();
 }
 
+function handleBookmarkRead(e) {
+    e.preventDefault();
+    let pin = pins.get(e.target.dataset.entryId);
+    pin.toread = "no";
+    browser.runtime.sendMessage({
+        "callFunction": "saveBookmark",
+        "pin": pin,
+        "isNewPin": false
+    }).then((callback) => {
+        //console.log("test4");
+    });
+    e.target.classList.toggle("invisible");
+}
+
 function addListItem(pin, key) {
     let entry = document.createElement('li');
     let edit = document.createElement("a");
@@ -219,5 +233,14 @@ function addListItem(pin, key) {
     link.appendChild(document.createTextNode(textcontent));
     link.title = pin.href || "";
     entry.appendChild(link);
+    let toreadeye = document.createElement("a");
+    toreadeye.appendChild(document.createTextNode("\u{1f441}"));
+    toreadeye.addEventListener("click", handleBookmarkRead);
+    toreadeye.title = "Mark as read";
+    toreadeye.dataset.entryId = key;
+    if(pin.toread == "no") {
+        toreadeye.classList.add("invisible");
+    }
+    entry.appendChild(toreadeye);
     bookmarkList.appendChild(entry);
 }

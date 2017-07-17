@@ -6,6 +6,13 @@
     border-spacing: 0.5em 0;
     border-collapse: separate;
 }
+#bookmarks li {
+    display: table-row;
+}
+.invisible {
+    visibility: hidden;
+}
+
 #listdiv {
     min-width: 120px;
     min-height: 120px;
@@ -45,7 +52,7 @@
 }
 
 #bookmarks li a {
-    display:table-cell;
+    display: table-cell;
     cursor: pointer;
 }
 

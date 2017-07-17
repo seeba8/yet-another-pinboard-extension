@@ -66,35 +66,20 @@ function loadOptions() {
         else {
             options = res.options;
         }
-        if (!!options.changeActionbarIcon) {
-            browser.browserAction.setIcon({
-                path: {
-                    16: "img/pinboard-grey-16.png",
-                    19: "img/pinboard-grey-19.png",
-                    32: "img/pinboard-grey-32.png",
-                    38: "img/pinboard-grey-38.png",
-                    64: "img/pinboard-grey-64.png"
-                }
-            });
-        }
-        else {
-            browser.browserAction.setIcon({
-                path: {
-                    16: "img/pinboard-16.png",
-                    32: "img/pinboard-32.png",
-                    48: "img/pinboard-48.png",
-                    96: "img/pinboard-96.png"
-                }
-            });
-        }
     });
     loadApiKey();
 }
 
 function loadApiKey() {
     browser.storage.local.get("apikey").then((res) => {
-        if (typeof res.apikey != "undefined" && !!res.apikey) {
+        if (typeof res.apikey != "undefined") {
             apikey = res.apikey;
+            if(apikey != "") {
+                updatePinData(false);
+            }
+            else {
+                pins = new Map();
+            }
         }
     });
 }
@@ -104,7 +89,7 @@ function handleStorageChanged(changes, area) {
     if (Object.keys(changes).includes("apikey")) {
         loadApiKey();
         //console.log("update pin data");
-        updatePinData(false);
+ 
     }
     else if (Object.keys(changes).includes("pins")) {
         updatePinVariable();
@@ -173,33 +158,9 @@ function sendRequestAllPins(lastUpdate) {
 }
 
 function checkDisplayBookmarked(url, tabId) {
-    if (!!pins && pins.has(url)) {
-        if (options.changeActionbarIcon) {
-            browser.browserAction.setIcon({
-                path: {
-                    16: "img/pinboard-blue-16.png",
-                    19: "img/pinboard-blue-19.png",
-                    32: "img/pinboard-blue-32.png",
-                    38: "img/pinboard-blue-38.png",
-                    64: "img/pinboard-blue-64.png"
-                },
-                tabId: tabId
-            });
-        }
-    }
-    else {
-        if (options.changeActionbarIcon) {
-            browser.browserAction.setIcon({
-                path: {
-                    16: "img/pinboard-grey-16.png",
-                    19: "img/pinboard-grey-19.png",
-                    32: "img/pinboard-grey-32.png",
-                    38: "img/pinboard-grey-38.png",
-                    64: "img/pinboard-grey-64.png"
-                },
-                tabId: tabId
-            });
-        }
+    if (!!pins && pins.has(url) && options.changeActionbarIcon) {
+        browser.browserAction.setBadgeText({text: "\u{2713}", tabId: tabId});
+        browser.browserAction.setBadgeBackgroundColor({color: "#333", tabId: tabId});
     }
 }
 
@@ -252,6 +213,9 @@ function handleMessage(request, sender, sendResponse) {
             }
         });
     }
+    else if(request.callFunction == "getURLText") {
+
+    }
 }
 
 function saveBookmark(pin, isNewPin) {
@@ -279,3 +243,27 @@ function saveBookmark(pin, isNewPin) {
         });
     });
 }
+
+browser.contextMenus.create({
+    "id": "addToToRead",
+    "title": "Add to To Read",
+    "contexts": ["link"]
+});
+
+browser.contextMenus.onClicked.addListener(function(info, tab) {
+    console.log(info);
+    console.log(tab);
+    browser.tabs.executeScript({
+        allFrames: true,
+        code: 'document.activeElement.textContent.trim();'
+    }).then(result => {
+        saveBookmark({
+            href: info.linkUrl,
+            description: result[0],
+            extended: "Found on " + info.pageUrl,
+            toread: "yes",
+            shared: "no"
+        }, true);
+    });
+    // chrome.runtime.sendMessage({callFunction: "getURLText", "text": });
+});

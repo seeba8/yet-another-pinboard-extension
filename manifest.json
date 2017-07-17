@@ -27,7 +27,9 @@
 	  "https://api.pinboard.in/",
 	  "storage",
     "tabs",
-    "bookmarks"
+    "bookmarks",
+    "contextMenus",
+    "activeTab"
   ],
   "options_ui": {
     "page": "options/options.html",
