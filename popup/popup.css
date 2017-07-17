@@ -166,3 +166,7 @@ body {
    height: 5em;
    font-family: sans-serif;
 }
+
+#tagsuggestions a {
+    cursor: pointer;
+}

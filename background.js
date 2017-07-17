@@ -6,7 +6,7 @@ var apikey = "";
 
 //browser.runtime.onStartup.addListener(handleStartup);
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
-browser.runtime.onMessage.addListener(handleMessage);
+chrome.runtime.onMessage.addListener(handleMessage); // browser.runtime... has a bug where sendResponse does not work currently
 browser.storage.onChanged.addListener(handleStorageChanged);
 
 browser.tabs.onUpdated.addListener(handleTabUpdated);
@@ -15,6 +15,30 @@ browser.bookmarks.onCreated.addListener(handleBookmarkCreated);
 // Provide help text to the user.
 browser.omnibox.setDefaultSuggestion({
     description: `Search your pinboard bookmarks`
+});
+
+browser.contextMenus.create({
+    "id": "addToToRead",
+    "title": "Add to To Read",
+    "contexts": ["link"]
+});
+
+browser.contextMenus.onClicked.addListener(function(info, tab) {
+    console.log(info);
+    console.log(tab);
+    browser.tabs.executeScript({
+        allFrames: true,
+        code: 'document.activeElement.textContent.trim();'
+    }).then(result => {
+        saveBookmark({
+            href: info.linkUrl,
+            description: result[0],
+            extended: "Found on " + info.pageUrl,
+            toread: "yes",
+            shared: "no"
+        }, true);
+    });
+    // chrome.runtime.sendMessage({callFunction: "getURLText", "text": });
 });
 
 handleStartup();
@@ -176,10 +200,11 @@ function handleTabUpdated(tabId, changeInfo, tab) {
 function handleMessage(request, sender, sendResponse) {
     //console.log(request);
     if (request.callFunction == "checkDisplayBookmarked" && !!request.url) {
-        browser.tabs.query({ currentWindow: true, active: true }, (tab) => {
+        browser.tabs.query({ currentWindow: true, active: true }).then( (tab) => {
             tab = tab[0];
             checkDisplayBookmarked(request.url, tab.id);
         });
+        return true;
     }
     else if (request.callFunction == "saveBookmark") {
         saveBookmark(request.pin, request.isNewPin).then(resp => {
@@ -187,12 +212,14 @@ function handleMessage(request, sender, sendResponse) {
                 sendResponse(resp);
             }
         });
+        return true;
     }
     else if (request.callFunction == "forceUpdatePins") {
         updatePinData(true);
         if (typeof sendResponse == "function") {
             sendResponse("OK");
         }
+        return true;
     }
     else if (request.callFunction == "deleteBookmark") {
         connector.deletePin(request.pin).then(response => {
@@ -212,10 +239,22 @@ function handleMessage(request, sender, sendResponse) {
                 sendResponse("OK");
             }
         });
+        return true;
     }
-    else if(request.callFunction == "getURLText") {
+    else if(request.callFunction == "getTagSuggestions") {
+        connector.suggestTags(request.url).then(suggestions => {
+            //console.log(suggestions);
+            sendResponse(suggestions);
+        });
+        return true;
+    }
+}
 
-    }
+function addNewPinToMap(pin) {
+    let temp = new Map();
+    temp.set(pin.href, pin);
+    pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
+    // See e.g. https://stackoverflow.com/a/32001750
 }
 
 function saveBookmark(pin, isNewPin) {
@@ -223,10 +262,7 @@ function saveBookmark(pin, isNewPin) {
         connector.addPin(pin).then(json => {
             if (json.result_code == "done") {
                 if (isNewPin) {
-                    var temp = new Map();
-                    temp.set(pin.href, pin);
-                    pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
-                    // See e.g. https://stackoverflow.com/a/32001750
+                    addNewPinToMap(pin);
                 }
                 else {
                     pins.set(pin.href, pin);
@@ -243,27 +279,3 @@ function saveBookmark(pin, isNewPin) {
         });
     });
 }
-
-browser.contextMenus.create({
-    "id": "addToToRead",
-    "title": "Add to To Read",
-    "contexts": ["link"]
-});
-
-browser.contextMenus.onClicked.addListener(function(info, tab) {
-    console.log(info);
-    console.log(tab);
-    browser.tabs.executeScript({
-        allFrames: true,
-        code: 'document.activeElement.textContent.trim();'
-    }).then(result => {
-        saveBookmark({
-            href: info.linkUrl,
-            description: result[0],
-            extended: "Found on " + info.pageUrl,
-            toread: "yes",
-            shared: "no"
-        }, true);
-    });
-    // chrome.runtime.sendMessage({callFunction: "getURLText", "text": });
-});

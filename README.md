@@ -41,6 +41,7 @@ Thanks to [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool 
 * Revamps API access (caches connection if internet doesn't work)
 * Adds context menu item for "To Read"
 * Changes icon scheme -- show pin status as badge instead of changing the icon itself
+* Adds tag suggestions
 
 #### v1.1:
 * Adds option to auto-save new bookmarks to pinboard

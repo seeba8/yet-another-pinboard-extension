@@ -79,7 +79,26 @@ function handleBookmarkCurrent(e) {
         document.getElementById("url").value = tab.url;
         document.getElementById("toread").checked = false;
         document.getElementById("tags").value = "";
+        browser.runtime.sendMessage({
+            "callFunction": "getTagSuggestions",
+            "url": tab.url
+        }).then((tagSuggestions) => {
+            let space = document.getElementById("tagsuggestions");
+            tagSuggestions.forEach(tag => {
+                let t = document.createElement("a");
+                t.addEventListener("click", handleAddTag);
+                t.appendChild(document.createTextNode(tag));
+                space.appendChild(t);
+                space.appendChild(document.createTextNode(" "));
+           });
+        });
     });
+}
+
+function handleAddTag(e) {
+    console.log(e);
+    document.getElementById("tags").value += " " + e.target.textContent;
+    e.target.parentElement.removeChild(e.target);
 }
 
 function preparePrevNext(numberPins) {
@@ -134,6 +153,12 @@ function handleSubmit(e) {
     pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
     pin.shared = (document.getElementById("shared").checked ? "yes" : "no");
     pin.extended = document.getElementById("extended").value;
+    if(newPin) {
+        addNewPinToMap(pin);
+    }
+    else {
+        pins.set(pin.href, pin);
+    }
     browser.runtime.sendMessage({
         "callFunction": "saveBookmark",
         "pin": pin,
@@ -141,7 +166,6 @@ function handleSubmit(e) {
     }).then((callback) => {
         //console.log("test4");
     });
-    pins.set(pin.href, pin);
     displayPins();
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
@@ -243,4 +267,11 @@ function addListItem(pin, key) {
     }
     entry.appendChild(toreadeye);
     bookmarkList.appendChild(entry);
+}
+
+function addNewPinToMap(pin) {
+    let temp = new Map();
+    temp.set(pin.href, pin);
+    pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
+    // See e.g. https://stackoverflow.com/a/32001750
 }
