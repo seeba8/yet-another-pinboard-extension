@@ -40,7 +40,7 @@ function handleStartup() {
         "title": "Add page to To Read",
         "contexts": ["browser_action", "page"] // chrome can't do context type "tab" yet as of July 2017
     });
-
+    browser.browserAction.setBadgeBackgroundColor({color: "#333"});
     browser.contextMenus.onClicked.addListener(handleContextMenuClick);
     loadOptions();
     updatePinData(false);
@@ -89,13 +89,19 @@ function handleContextMenuClick(info, tab) {
 
 function handleAddonInstalled() {
     //console.log("install");
-    options = defaultOptions;
-    browser.storage.local.set({
-        "options": options,
-        "lastsync": "",
-        "lastupdate": ""
+    
+    browser.storage.local.get(["options", "lastsync", "lastupdate"]).then(token => {
+        if(!token.hasOwnProperty("options")) {
+            token.options = defaultOptions;
+            options = defaultOptions;
+            token.lastsync = "";
+            token.lastupdate = "";
+            browser.storage.local.set(token);
+        }
+        handleStartup();
     });
-    handleStartup();
+   
+
 }
 
 function loadOptions() {
@@ -114,10 +120,7 @@ function loadApiKey() {
     browser.storage.local.get("apikey").then((res) => {
         if (typeof res.apikey != "undefined") {
             apikey = res.apikey;
-            if(apikey != "") {
-                updatePinData(false);
-            }
-            else {
+            if(apikey == "") {
                 pins = new Map();
             }
         }
@@ -200,7 +203,9 @@ function sendRequestAllPins(lastUpdate) {
 function checkDisplayBookmarked(url, tabId) {
     if (!!pins && pins.has(url) && options.changeActionbarIcon) {
         browser.browserAction.setBadgeText({text: "\u{2713}", tabId: tabId});
-        browser.browserAction.setBadgeBackgroundColor({color: "#333", tabId: tabId});
+    }
+    else {
+        browser.browserAction.setBadgeText({text: "", tabId: tabId});
     }
 }
 
@@ -209,6 +214,7 @@ function handleTabUpdated(tabId, changeInfo, tab) {
         return;
     }
     if (changeInfo.status == "loading") {
+        //console.log(tab.url);
         checkDisplayBookmarked(tab.url, tabId);
     }
 }
