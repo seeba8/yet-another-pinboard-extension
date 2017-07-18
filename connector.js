@@ -224,7 +224,7 @@ let connector = (function () {
         addPin: function (pin) {
             //console.log("save", pin);
             if(pin.hasOwnProperty("href")) {
-                pin["url"] = pin.href;
+                pin.url = pin.href;
             }
             return new Promise((resolve, reject) => {
                 addToQueue({
@@ -251,7 +251,7 @@ let connector = (function () {
                     pin = {"url": pin};
             }
             else if(pin.hasOwnProperty("href")) {
-                pin["url"] = pin.href;
+                pin.url = pin.href;
             }
             
             return new Promise((resolve, reject) => {
@@ -263,11 +263,10 @@ let connector = (function () {
                 });
             });
         },
-        suggestTags: function (url) {
-            
+        suggestTags: function (url) {     
             return new Promise((resolve, reject) => {
                 if(typeof url === "string") {
-                    url = {"url": url};
+                    url = {"href": url};
                 }
                 addToQueue({
                     "type": "suggestTags",

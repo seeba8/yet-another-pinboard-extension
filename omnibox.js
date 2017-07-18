@@ -15,7 +15,7 @@ function handleInputChanged(text, addSuggestions) {
         hasPrefix = true;
     }
     else if (text.startsWith(options.urlPrefix + " ")) {
-        searchArea.push("href");
+        searchArea.push("url");
         hasPrefix = true;
     }
     else if (text.startsWith(options.titlePrefix + " ")) {
@@ -23,7 +23,7 @@ function handleInputChanged(text, addSuggestions) {
         hasPrefix = true;
     }
     else {
-        searchArea = ["tags", "href", "description", "extended"];
+        searchArea = ["tags", "url", "description", "extended"];
     }
     if (text.startsWith(options.toReadPrefix + " ")) {
         hasPrefix = true;
@@ -79,7 +79,7 @@ function createSuggestions(pins, searchtext) {
         }
         pins.forEach(function (pin) {
             suggestions.push({
-                content: pin.href,
+                content: pin.url,
                 description: pin.description
             });
         });

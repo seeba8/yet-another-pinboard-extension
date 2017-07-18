@@ -53,7 +53,7 @@ function handleBookmarkCreated(id, bookmark) {
     if (!!bookmark.url && bookmark.url != "") {
         //console.log(bookmark);
         let pin = {
-            "href": bookmark.url,
+            "url": bookmark.url,
             "description": bookmark.title,
             "time": new Date().toISOString()
         };
@@ -69,7 +69,7 @@ function handleContextMenuClick(info, tab) {
                 code: "document.activeElement.textContent.trim();"
             }).then(result => {
                 saveBookmark({
-                    href: info.linkUrl,
+                    url: info.linkUrl,
                     description: result[0],
                     extended: "Found on " + info.pageUrl,
                     toread: "yes",
@@ -79,7 +79,7 @@ function handleContextMenuClick(info, tab) {
             break;
         case "tabAddToToRead": 
             saveBookmark({
-                    href: tab.url,
+                    url: tab.url,
                     description: tab.title,
                     toread: "yes",
                     shared: "no"
@@ -176,8 +176,8 @@ function sendRequestAllPins(lastUpdate) {
         .then((json) => {
             let pinsMap = new Map();
             json.forEach((pin) => {
-                pinsMap.set(pin.href, {
-                    href: pin.href,
+                pinsMap.set(pin.href, { //pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url
+                    url: pin.href, 
                     description: pin.description,
                     tags: pin.tags,
                     time: pin.time,
@@ -188,7 +188,6 @@ function sendRequestAllPins(lastUpdate) {
             });
             browser.storage.local.set({ pins: Array.from(pinsMap.entries()) });
             pins = new Map(Array.from(pinsMap.entries()));
-            //console.log("Sync successful, pins updated");
             browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
             browser.storage.local.set({ lastsync: new Date().getTime() });
         });
@@ -214,13 +213,11 @@ function handleTabUpdated(tabId, changeInfo, tab) {
         return;
     }
     if (changeInfo.status == "loading") {
-        //console.log(tab.url);
         checkDisplayBookmarked(tab.url, tabId);
     }
 }
 
 function handleMessage(request, sender, sendResponse) {
-    //console.log(request);
     if (request.callFunction == "checkDisplayBookmarked" && !!request.url) {
         browser.tabs.query({ currentWindow: true, active: true }).then( (tab) => {
             tab = tab[0];
@@ -249,13 +246,17 @@ function handleMessage(request, sender, sendResponse) {
                 pins.delete(request.pin);
             }
             else {
-                if (request.pin.hasOwnProperty("href")) {
-                    pins.delete(request.pin.href);
+                if (request.pin.hasOwnProperty("url")) {
+                    pins.delete(request.pin.url);
                 }
                 else {
                     pins.delete(request.pin.url);
                 }
             }
+            browser.tabs.query({ currentWindow: true, active: true }).then( (tab) => {
+                tab = tab[0];
+                checkDisplayBookmarked(request.pin.url, tab.id);
+            });
             browser.storage.local.set({ "pins": Array.from(pins.entries()) });
         });
     }
@@ -270,7 +271,7 @@ function handleMessage(request, sender, sendResponse) {
 
 function addNewPinToMap(pin) {
     let temp = new Map();
-    temp.set(pin.href, pin);
+    temp.set(pin.url, pin);
     pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
     // See e.g. https://stackoverflow.com/a/32001750
 }
@@ -283,11 +284,14 @@ function saveBookmark(pin, isNewPin) {
                     addNewPinToMap(pin);
                 }
                 else {
-                    pins.set(pin.href, pin);
+                    pins.set(pin.url, pin);
                 }
                 browser.storage.local.set({ "pins": Array.from(pins.entries()) });
                 // Update the button in case the site is bookmarked and the setting is active
-                checkDisplayBookmarked();
+                browser.tabs.query({ currentWindow: true, active: true }).then( (tab) => {
+                    tab = tab[0];
+                    checkDisplayBookmarked(pin.url, tab.id);
+                });
                 resolve("done");
             }
             else {

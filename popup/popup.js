@@ -76,7 +76,7 @@ function handleReadLaterCurrent(e) {
     browser.tabs.query({currentWindow: true, active: true}).then(tab => {
         tab = tab[0];
         let pin = {
-            href: tab.url,
+            url: tab.url,
             description: tab.title, 
             toread: "yes",
             shared: "no"
@@ -159,7 +159,7 @@ function handleSubmit(e) {
     let newPin = false;
     if (pin === undefined) {
         pin = Object();
-        pin.href = document.getElementById("url").value;
+        pin.url = document.getElementById("url").value;
         newPin = true;
     }
     pin.description = document.getElementById("description").value;
@@ -178,7 +178,7 @@ function addPin(pin, newPin) {
         addNewPinToMap(pin);
     }
     else {
-        pins.set(pin.href, pin);
+        pins.set(pin.url, pin);
     }
     browser.runtime.sendMessage({
         "callFunction": "saveBookmark",
@@ -208,7 +208,7 @@ function displayPins() {
 }
 
 function pinContains(pin, searchText) {
-    return (contains(pin.description, searchText) || contains(pin.href, searchText) || contains(pin.tags, searchText) || contains(pin.extended, searchText));
+    return (contains(pin.description, searchText) || contains(pin.url, searchText) || contains(pin.tags, searchText) || contains(pin.extended, searchText));
 }
 
 function contains(haystack, needle) {
@@ -224,7 +224,7 @@ function handleEditBookmark(e) {
     e.preventDefault();
     let pin = pins.get(e.target.dataset.entryId);
     document.getElementById("description").value = pin.description || "";
-    document.getElementById("url").value = pin.href;
+    document.getElementById("url").value = pin.url;
     document.getElementById("tags").value = pin.tags || "";
     document.getElementById("toread").checked = (pin.toread == "yes");
     document.getElementById("shared").checked = (pin.shared == "yes");
@@ -268,12 +268,12 @@ function addListItem(pin, key) {
     edit.dataset.entryId = key;
     entry.appendChild(edit);
     let link = document.createElement("a");
-    link.href = pin.href;
+    link.href = pin.url;
     link.addEventListener("click", handleLinkClick);
     link.id = key;
     let textcontent = pin.description == "Twitter" ? (pin.extended != "" ? "(Twitter) " + pin.extended : pin.description) : pin.description;
     link.appendChild(document.createTextNode(textcontent));
-    link.title = pin.href || "";
+    link.title = pin.url || "";
     entry.appendChild(link);
     let toreadeye = document.createElement("a");
     toreadeye.appendChild(document.createTextNode("\u{1f441}"));
@@ -289,7 +289,7 @@ function addListItem(pin, key) {
 
 function addNewPinToMap(pin) {
     let temp = new Map();
-    temp.set(pin.href, pin);
+    temp.set(pin.url, pin);
     pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
     // See e.g. https://stackoverflow.com/a/32001750
 }
