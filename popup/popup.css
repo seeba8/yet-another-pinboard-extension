@@ -25,8 +25,8 @@
 
 #toprow {
     display: grid;
-    grid-template-columns: 1fr 3fr 1fr;
-    grid-column-gap: 2em;
+    grid-template-columns: 1fr 3fr 3fr 1fr;
+    grid-column-gap: 1.5em;
     margin-bottom: .5em;
 }
 
@@ -41,9 +41,9 @@
    background-color: #eee;
 }
 
-#bookmarkcurrent {
+.centerbuttons {
     text-align: center;
-    cursor: pointer;
+
 }
 
 #optionslink {

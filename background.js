@@ -1,47 +1,50 @@
 var pins;
 var options = {};
 var apikey = "";
-
+let defaultOptions = options = {
+        "urlPrefix": "u",
+        "tagPrefix": "t",
+        "titlePrefix": "n",
+        "toReadPrefix": "r",
+        "showBookmarked": true,
+        "changeActionbarIcon": true,
+        "saveBrowserBookmarks": false,
+        "sharedByDefault": false
+};
 // Listeners
 
 //browser.runtime.onStartup.addListener(handleStartup);
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
-chrome.runtime.onMessage.addListener(handleMessage); // browser.runtime... has a bug where sendResponse does not work currently
-browser.storage.onChanged.addListener(handleStorageChanged);
+browser.runtime.onStartup.addListener(handleStartup);
 
-browser.tabs.onUpdated.addListener(handleTabUpdated);
-browser.bookmarks.onCreated.addListener(handleBookmarkCreated);
+// Update the pins on startup of the browser
+function handleStartup() {
+    chrome.runtime.onMessage.addListener(handleMessage); // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
+                                                         // That is possibly caused by browser-polyfill
+    browser.storage.onChanged.addListener(handleStorageChanged);
+    browser.tabs.onUpdated.addListener(handleTabUpdated);
+    browser.bookmarks.onCreated.addListener(handleBookmarkCreated);
 
-// Provide help text to the user.
-browser.omnibox.setDefaultSuggestion({
-    description: `Search your pinboard bookmarks`
-});
-
-browser.contextMenus.create({
-    "id": "addToToRead",
-    "title": "Add to To Read",
-    "contexts": ["link"]
-});
-
-browser.contextMenus.onClicked.addListener(function(info, tab) {
-    console.log(info);
-    console.log(tab);
-    browser.tabs.executeScript({
-        allFrames: true,
-        code: 'document.activeElement.textContent.trim();'
-    }).then(result => {
-        saveBookmark({
-            href: info.linkUrl,
-            description: result[0],
-            extended: "Found on " + info.pageUrl,
-            toread: "yes",
-            shared: "no"
-        }, true);
+    // Provide help text to the user.
+    browser.omnibox.setDefaultSuggestion({
+        description: `Search your pinboard bookmarks`
     });
-    // chrome.runtime.sendMessage({callFunction: "getURLText", "text": });
-});
 
-handleStartup();
+    browser.contextMenus.create({
+        "id": "linkAddToToRead",
+        "title": "Add to To Read",
+        "contexts": ["link"]
+    });
+    browser.contextMenus.create({
+        "id": "tabAddToToRead",
+        "title": "Add page to To Read",
+        "contexts": ["browser_action", "page"] // chrome can't do context type "tab" yet as of July 2017
+    });
+
+    browser.contextMenus.onClicked.addListener(handleContextMenuClick);
+    loadOptions();
+    updatePinData(false);
+}
 
 function handleBookmarkCreated(id, bookmark) {
     if (!options.saveBrowserBookmarks) {
@@ -58,34 +61,47 @@ function handleBookmarkCreated(id, bookmark) {
     }
 }
 
+function handleContextMenuClick(info, tab) {
+    switch (info.menuItemId) {
+        case "linkAddToToRead":
+            browser.tabs.executeScript({
+                allFrames: true,
+                code: "document.activeElement.textContent.trim();"
+            }).then(result => {
+                saveBookmark({
+                    href: info.linkUrl,
+                    description: result[0],
+                    extended: "Found on " + info.pageUrl,
+                    toread: "yes",
+                    shared: "no"
+                }, true);
+            });
+            break;
+        case "tabAddToToRead": 
+            saveBookmark({
+                    href: tab.url,
+                    description: tab.title,
+                    toread: "yes",
+                    shared: "no"
+                }, true);
+    } 
+}
+
 function handleAddonInstalled() {
-    options = {
-        "urlPrefix": "u",
-        "tagPrefix": "t",
-        "titlePrefix": "n",
-        "toReadPrefix": "r",
-        "showBookmarked": true,
-        "changeActionbarIcon": true,
-        "saveBrowserBookmarks": false,
-        "sharedByDefault": false
-    };
+    //console.log("install");
+    options = defaultOptions;
     browser.storage.local.set({
         "options": options,
         "lastsync": "",
         "lastupdate": ""
     });
-    return options;
-}
-// Update the pins on startup of the browser
-function handleStartup() {
-    loadOptions();
-    updatePinData(false);
+    handleStartup();
 }
 
 function loadOptions() {
     browser.storage.local.get("options").then((res) => {
         if (!res.options) {
-            options = handleAddonInstalled();
+            options = defaultOptions;
         }
         else {
             options = res.options;
@@ -235,11 +251,7 @@ function handleMessage(request, sender, sendResponse) {
                 }
             }
             browser.storage.local.set({ "pins": Array.from(pins.entries()) });
-            if (typeof sendResponse == "function") {
-                sendResponse("OK");
-            }
         });
-        return true;
     }
     else if(request.callFunction == "getTagSuggestions") {
         connector.suggestTags(request.url).then(suggestions => {

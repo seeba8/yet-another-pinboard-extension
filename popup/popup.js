@@ -8,6 +8,7 @@ document.getElementById("searchform").addEventListener("reset", (e) => {
     handleFilterChange(e);
 });
 document.getElementById("bookmarkcurrent").addEventListener("click", handleBookmarkCurrent);
+document.getElementById("readlatercurrent").addEventListener("click", handleReadLaterCurrent);
 
 //document.getElementById("deleteBookmark").addEventListener("click", handleDelete);
 document.getElementById("editform").addEventListener("submit", handleSubmit);
@@ -70,7 +71,22 @@ function handleDeletePin(e) {
     
 }
 
+function handleReadLaterCurrent(e) {
+    e.preventDefault();
+    browser.tabs.query({currentWindow: true, active: true}).then(tab => {
+        tab = tab[0];
+        let pin = {
+            href: tab.url,
+            description: tab.title, 
+            toread: "yes",
+            shared: "no"
+        }
+        addPin(pin, true);
+    });
+}
+
 function handleBookmarkCurrent(e) {
+    e.preventDefault();
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
     browser.tabs.query({ currentWindow: true, active: true }).then((tab) => {
@@ -96,7 +112,6 @@ function handleBookmarkCurrent(e) {
 }
 
 function handleAddTag(e) {
-    console.log(e);
     document.getElementById("tags").value += " " + e.target.textContent;
     e.target.parentElement.removeChild(e.target);
 }
@@ -153,6 +168,12 @@ function handleSubmit(e) {
     pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
     pin.shared = (document.getElementById("shared").checked ? "yes" : "no");
     pin.extended = document.getElementById("extended").value;
+    addPin(pin, newPin);
+    document.getElementById("editwrapper").classList.toggle("hidden");
+    document.getElementById("greyout").classList.toggle("hidden");
+}
+
+function addPin(pin, newPin) {
     if(newPin) {
         addNewPinToMap(pin);
     }
@@ -164,11 +185,9 @@ function handleSubmit(e) {
         "pin": pin,
         "isNewPin": newPin
     }).then((callback) => {
-        //console.log("test4");
+        //Empty
     });
     displayPins();
-    document.getElementById("editwrapper").classList.toggle("hidden");
-    document.getElementById("greyout").classList.toggle("hidden");
 }
 
 function displayPins() {
@@ -212,7 +231,7 @@ function handleEditBookmark(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
     document.getElementById("url").dataset.entryId = e.target.dataset.entryId;
-    document.getElementById("extended").value = pin.extended;
+    document.getElementById("extended").value = pin.extended || "";
     //document.getElementById("listdiv").style.maxHeight = "360px";
     //document.getElementById("deleteBookmark").dataset["entryId"] = e.target.dataset.entryId;
 }
@@ -237,7 +256,6 @@ function handleBookmarkRead(e) {
         "pin": pin,
         "isNewPin": false
     }).then((callback) => {
-        //console.log("test4");
     });
     e.target.classList.toggle("invisible");
 }
