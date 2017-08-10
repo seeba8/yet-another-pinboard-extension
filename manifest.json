@@ -24,7 +24,7 @@
     "128": "img/pinboard-128.png"
   },
   "permissions": [
-	  "https://api.pinboard.in/",
+	  "https://api.pinboard.in/v1/*",
 	  "storage",
     "tabs",
     "bookmarks",

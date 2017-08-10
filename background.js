@@ -153,7 +153,7 @@ function updatePinVariable() {
 function updatePinData(forceUpdate) {
     browser.storage.local.get(["lastupdate", "lastsync", "pins"]).then((token) => {
         if (apikey == "" || (!forceUpdate && !!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 5)) {
-            //console.log("Not syncing, either no API key or last sync less than 5 minutes ago.");
+// {0}
             updatePinVariable();
             return;
         }
@@ -164,7 +164,7 @@ function updatePinData(forceUpdate) {
                     updatePinVariable();
                     return;
                 }
-                //console.log("Loading pins from scratch!");
+                // console.log("Loading pins from scratch!");
                 setTimeout(sendRequestAllPins, 1000 * 3, lastUpdate);
             });
 
@@ -172,6 +172,7 @@ function updatePinData(forceUpdate) {
 }
 
 function sendRequestAllPins(lastUpdate) {
+    // console.log("SendRequestAllPins");
     connector.getAllPins()
         .then((json) => {
             let pinsMap = new Map();

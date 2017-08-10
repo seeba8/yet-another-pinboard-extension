@@ -1,5 +1,5 @@
 "use strict";
-let connector = (function () {
+var connector = (function () {
     let API_URL = Object.freeze({
         getLastUpdate: "https://api.pinboard.in/v1/posts/update",
         addPin: "https://api.pinboard.in/v1/posts/add",
@@ -51,9 +51,10 @@ let connector = (function () {
     function addToQueue(item) {
         hasQueueStarted = true;
         localQueue.push(item);
-        //console.log("new queue length: ", localQueue.length);
+        // console.log("new queue: ", localQueue);
         saveQueue(localQueue);
         if (localQueue.length == 1) {
+            // console.log("queue 1");
             if (lastRequest < new Date(Date.now() - MIN_INTERVAL)) {
                 proceedQueue();
             }
@@ -88,10 +89,13 @@ let connector = (function () {
     }
 
     function proceedQueue() {
-        //console.log("Proceeding in queue");
+        // console.log("Proceeding in queue");
+        // console.log(localQueue);
         if (localQueue.length == 0) {
+            // console.log("length 0");
             return;
         }
+        // console.log("sending request");
         sendRequest(localQueue[0])
             .then(validateResponse)
             .then(parseJSON)
@@ -114,15 +118,22 @@ let connector = (function () {
                 }
             })
             .catch((error) => {
-                intervallAll *= 2;
+                intervalAll *= 2;
                 setTimeout(proceedGetAllData, intervalAll, item);
             });
-    }
+    }  
 
     function sendRequest(item) {
-        //console.log("queue: ", localQueue);
-        return fetch(API_URL[item.type] + "?auth_token=seeba:7D0373252F9316ADDABD&format=json" +
-            makeParamString(item.params));
+        return new Promise((resolve, reject) => {
+            // console.log("item to fetch: ", item);
+        // console.log(API_URL[item.type]);
+        browser.storage.local.get(["apikey"]).then(token => {
+            // console.log(API_URL[item.type] + "?auth_token="+ encodeURIComponent(token.apikey) +"&format=json" +
+            //    makeParamString(item.params));
+            fetch(API_URL[item.type] + "?auth_token="+ encodeURIComponent(token.apikey) +"&format=json" +
+                makeParamString(item.params)).then(resp => resolve(resp)).catch(err => reject(err));
+            });
+        });
     }
 
     function validateResponse(response) {
@@ -210,7 +221,7 @@ let connector = (function () {
     // Public methods of the connector "class"
     return {
         getLastUpdate: function () {
-            //console.log("update");
+            // console.log("update");
             return new Promise((resolve, reject) => {
                 addToQueue({
                     "type": "getLastUpdate",
@@ -236,7 +247,7 @@ let connector = (function () {
             })
         },
         getAllPins: function () {
-            //console.log("getAll");
+            // console.log("getAll");
             return new Promise((resolve, reject) => {
                 setTimeout(proceedGetAllData, Math.max(0, intervalAll - (Date.now() - lastGetAllPins)), {
                     "type": "getAllPins",
