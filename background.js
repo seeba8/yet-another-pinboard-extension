@@ -61,21 +61,20 @@ function handleBookmarkCreated(id, bookmark) {
     }
 }
 
-function handleContextMenuClick(info, tab) {
+async function handleContextMenuClick(info, tab) {
     switch (info.menuItemId) {
         case "linkAddToToRead":
-            browser.tabs.executeScript({
+            let result = await browser.tabs.executeScript({
                 allFrames: true,
                 code: "document.activeElement.textContent.trim();"
-            }).then(result => {
-                saveBookmark({
-                    url: info.linkUrl,
-                    description: result[0],
-                    extended: "Found on " + info.pageUrl,
-                    toread: "yes",
-                    shared: "no"
-                }, true);
             });
+            saveBookmark({
+                url: info.linkUrl,
+                description: result[0],
+                extended: "Found on " + info.pageUrl,
+                toread: "yes",
+                shared: "no"
+            }, true);
             break;
         case "tabAddToToRead": 
             saveBookmark({
@@ -87,44 +86,37 @@ function handleContextMenuClick(info, tab) {
     } 
 }
 
-function handleAddonInstalled() {
-    //console.log("install");
-    
-    browser.storage.local.get(["options", "lastsync", "lastupdate"]).then(token => {
-        if(!token.hasOwnProperty("options")) {
-            token.options = defaultOptions;
-            options = defaultOptions;
-            token.lastsync = "";
-            token.lastupdate = "";
-            browser.storage.local.set(token);
-        }
-        handleStartup();
-    });
-   
-
+async function handleAddonInstalled() {
+    let token = await browser.storage.local.get(["options", "lastsync", "lastupdate"]);
+    if(!token.hasOwnProperty("options")) {
+        token.options = defaultOptions;
+        options = defaultOptions;
+        token.lastsync = "";
+        token.lastupdate = "";
+        browser.storage.local.set(token);
+    }
+    handleStartup();
 }
 
-function loadOptions() {
-    browser.storage.local.get("options").then((res) => {
-        if (!res.options) {
-            options = defaultOptions;
-        }
-        else {
-            options = res.options;
-        }
-    });
+async function loadOptions() {
+    let res = await browser.storage.local.get("options");
+    if (!res.options) {
+        options = defaultOptions;
+    }
+    else {
+        options = res.options;
+    }
     loadApiKey();
 }
 
-function loadApiKey() {
-    browser.storage.local.get("apikey").then((res) => {
-        if (typeof res.apikey != "undefined") {
-            apikey = res.apikey;
-            if(apikey == "") {
-                pins = new Map();
-            }
+async function loadApiKey() {
+    let res = (await browser.storage.local.get("apikey")).apikey;
+    if (typeof res != "undefined") {
+        apikey = res;
+        if(apikey == "") {
+            pins = new Map();
         }
-    });
+    }
 }
 
 // Only update pin data when the api key was modified
@@ -142,56 +134,47 @@ function handleStorageChanged(changes, area) {
     }
 }
 
-function updatePinVariable() {
-    browser.storage.local.get("pins").then((res) => {
-        pins = new Map(res["pins"]);
-    });
+async function updatePinVariable() {
+    let res = (await browser.storage.local.get("pins")).pins;
+    pins = new Map(res);
 }
 
 // Reloads all bookmarks from pinboard. Should be optimized to get a delta...
 // Should listen to return codes
-function updatePinData(forceUpdate) {
-    browser.storage.local.get(["lastupdate", "lastsync", "pins"]).then((token) => {
-        if (apikey == "" || (!forceUpdate && !!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 5)) {
-// {0}
-            updatePinVariable();
-            return;
-        }
-        connector.getLastUpdate()
-            .then(lastUpdate => {
-                if (!forceUpdate && !!token.pins && token.pins.length > 0 && !!token.lastupdate && new Date(token.lastupdate) == lastUpdate) {
-                    //console.log("Not syncing, no update available");
-                    updatePinVariable();
-                    return;
-                }
-                // console.log("Loading pins from scratch!");
-                setTimeout(sendRequestAllPins, 1000 * 3, lastUpdate);
-            });
-
-    });
+async function updatePinData(forceUpdate) {
+    let token = await browser.storage.local.get(["lastupdate", "lastsync", "pins"]);
+    if (apikey == "" || (!forceUpdate && !!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 5)) {
+        updatePinVariable();
+        return;
+    }
+    let lastUpdate = await connector.getLastUpdate();
+    if (!forceUpdate && !!token.pins && token.pins.length > 0 && !!token.lastupdate && new Date(token.lastupdate) == lastUpdate) {
+        //console.log("Not syncing, no update available");
+        updatePinVariable();
+        return;
+    }
+    // console.log("Loading pins from scratch!");
+    setTimeout(sendRequestAllPins, 1000 * 3, lastUpdate);
 }
 
-function sendRequestAllPins(lastUpdate) {
-    // console.log("SendRequestAllPins");
-    connector.getAllPins()
-        .then((json) => {
-            let pinsMap = new Map();
-            json.forEach((pin) => {
-                pinsMap.set(pin.href, { //pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url
-                    url: pin.href, 
-                    description: pin.description,
-                    tags: pin.tags,
-                    time: pin.time,
-                    toread: pin.toread,
-                    extended: pin.extended,
-                    shared: pin.shared
-                });
-            });
-            browser.storage.local.set({ pins: Array.from(pinsMap.entries()) });
-            pins = new Map(Array.from(pinsMap.entries()));
-            browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
-            browser.storage.local.set({ lastsync: new Date().getTime() });
+async function sendRequestAllPins(lastUpdate) {
+    let pinsMap = new Map();
+    let json = await connector.getAllPins();
+    json.forEach((pin) => {
+        pinsMap.set(pin.href, { //pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url
+            url: pin.href, 
+            description: pin.description,
+            tags: pin.tags,
+            time: pin.time,
+            toread: pin.toread,
+            extended: pin.extended,
+            shared: pin.shared
         });
+    });
+    browser.storage.local.set({ pins: Array.from(pinsMap.entries()) });
+    pins = new Map(Array.from(pinsMap.entries()));
+    browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
+    browser.storage.local.set({ lastsync: new Date().getTime() });
     /* catch (e) {
          // Not valid Json, maybe pinboard is down? Nothing to do.
          setTimeout(updatePinData,nextErrorTimeout);
@@ -218,20 +201,18 @@ function handleTabUpdated(tabId, changeInfo, tab) {
     }
 }
 
-function handleMessage(request, sender, sendResponse) {
+async function handleMessage(request, sender, sendResponse) {
     if (request.callFunction == "checkDisplayBookmarked" && !!request.url) {
-        browser.tabs.query({ currentWindow: true, active: true }).then( (tab) => {
-            tab = tab[0];
-            checkDisplayBookmarked(request.url, tab.id);
-        });
+        let tab = await browser.tabs.query({ currentWindow: true, active: true });
+        tab = tab[0];
+        checkDisplayBookmarked(request.url, tab.id);
         return true;
     }
     else if (request.callFunction == "saveBookmark") {
-        saveBookmark(request.pin, request.isNewPin).then(resp => {
-            if (typeof sendResponse == "function") {
-                sendResponse(resp);
-            }
-        });
+        let resp = await saveBookmark(request.pin, request.isNewPin);
+        if (typeof sendResponse == "function") {
+            sendResponse(resp);
+        }
         return true;
     }
     else if (request.callFunction == "forceUpdatePins") {
@@ -242,30 +223,27 @@ function handleMessage(request, sender, sendResponse) {
         return true;
     }
     else if (request.callFunction == "deleteBookmark") {
-        connector.deletePin(request.pin).then(response => {
-            if (typeof request.pin === "string") {
-                pins.delete(request.pin);
+        let rsponse = await connector.deletePin(request.pin);
+        if (typeof request.pin === "string") {
+            pins.delete(request.pin);
+        }
+        else {
+            if (request.pin.hasOwnProperty("url")) {
+                pins.delete(request.pin.url);
             }
             else {
-                if (request.pin.hasOwnProperty("url")) {
-                    pins.delete(request.pin.url);
-                }
-                else {
-                    pins.delete(request.pin.url);
-                }
+                pins.delete(request.pin.url);
             }
-            browser.tabs.query({ currentWindow: true, active: true }).then( (tab) => {
-                tab = tab[0];
-                checkDisplayBookmarked(request.pin.url, tab.id);
-            });
-            browser.storage.local.set({ "pins": Array.from(pins.entries()) });
-        });
+        }
+        let tab = await browser.tabs.query({ currentWindow: true, active: true });
+        tab = tab[0];
+        checkDisplayBookmarked(request.pin.url, tab.id);
+        browser.storage.local.set({ "pins": Array.from(pins.entries()) });
     }
     else if(request.callFunction == "getTagSuggestions") {
-        connector.suggestTags(request.url).then(suggestions => {
-            //console.log(suggestions);
-            sendResponse(suggestions);
-        });
+        let suggestions = connector.suggestTags(request.url);
+        //console.log(suggestions);
+        sendResponse(suggestions);
         return true;
     }
 }
@@ -277,28 +255,24 @@ function addNewPinToMap(pin) {
     // See e.g. https://stackoverflow.com/a/32001750
 }
 
-function saveBookmark(pin, isNewPin) {
-    return new Promise((resolve, reject) => {
-        connector.addPin(pin).then(json => {
-            if (json.result_code == "done") {
-                if (isNewPin) {
-                    addNewPinToMap(pin);
-                }
-                else {
-                    pins.set(pin.url, pin);
-                }
-                browser.storage.local.set({ "pins": Array.from(pins.entries()) });
-                // Update the button in case the site is bookmarked and the setting is active
-                browser.tabs.query({ currentWindow: true, active: true }).then( (tab) => {
-                    tab = tab[0];
-                    checkDisplayBookmarked(pin.url, tab.id);
-                });
-                resolve("done");
-            }
-            else {
-                //console.log("Error. Reply was not 'done'");
-                reject("Oops");
-            }
-        });
-    });
+async function saveBookmark(pin, isNewPin) {
+    let json = await connector.addPin(pin);
+    if (json.result_code == "done") {
+        if (isNewPin) {
+            addNewPinToMap(pin);
+        }
+        else {
+            pins.set(pin.url, pin);
+        }
+        browser.storage.local.set({ "pins": Array.from(pins.entries()) });
+        // Update the button in case the site is bookmarked and the setting is active
+        let tab = await browser.tabs.query({ currentWindow: true, active: true });
+        tab = tab[0];
+        checkDisplayBookmarked(pin.url, tab.id);
+        return "done";
+    }
+    else {
+        //console.log("Error. Reply was not 'done'");
+        throw "Oops";
+    }
 }

@@ -44,14 +44,13 @@ browser.storage.local.get(["lastsync"]).then(token => {
 
 reloadPins();
 
-function reloadPins() {
-    browser.storage.local.get(["apikey", "pins"]).then((token) => {
-        if (!token.apikey || token.apikey == "") {
-            document.getElementById("noapikey").classList.toggle("hidden");
-        }
-        pins = new Map(token.pins);
-        displayPins();
-    });
+async function reloadPins() {
+    let token = await browser.storage.local.get(["apikey", "pins"]);
+    if (!token.apikey || token.apikey == "") {
+        document.getElementById("noapikey").classList.toggle("hidden");
+    }
+    pins = new Map(token.pins);
+    displayPins();
 }
 
 function handleDeletePin(e) {
@@ -60,8 +59,6 @@ function handleDeletePin(e) {
     browser.runtime.sendMessage({
         "callFunction": "deleteBookmark",
         "pin": { "url": document.getElementById("url").value }
-    }).then((callback) => {
-        // Do nothing?
     });
     pins.delete(document.getElementById("url").value);
     displayPins();
@@ -71,43 +68,39 @@ function handleDeletePin(e) {
     
 }
 
-function handleReadLaterCurrent(e) {
+async function handleReadLaterCurrent(e) {
     e.preventDefault();
-    browser.tabs.query({currentWindow: true, active: true}).then(tab => {
-        tab = tab[0];
-        let pin = {
-            url: tab.url,
-            description: tab.title, 
-            toread: "yes",
-            shared: "no"
-        }
-        addPin(pin, true);
-    });
+    let tab = await browser.tabs.query({currentWindow: true, active: true});
+    tab = tab[0];
+    let pin = {
+        url: tab.url,
+        description: tab.title, 
+        toread: "yes",
+        shared: "no"
+    }
+    addPin(pin, true);
 }
 
-function handleBookmarkCurrent(e) {
+async function handleBookmarkCurrent(e) {
     e.preventDefault();
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
-    browser.tabs.query({ currentWindow: true, active: true }).then((tab) => {
-        tab = tab[0];
-        document.getElementById("description").value = tab.title;
-        document.getElementById("url").value = tab.url;
-        document.getElementById("toread").checked = false;
-        document.getElementById("tags").value = "";
-        browser.runtime.sendMessage({
-            "callFunction": "getTagSuggestions",
-            "url": tab.url
-        }).then((tagSuggestions) => {
-            let space = document.getElementById("tagsuggestions");
-            tagSuggestions.forEach(tag => {
-                let t = document.createElement("a");
-                t.addEventListener("click", handleAddTag);
-                t.appendChild(document.createTextNode(tag));
-                space.appendChild(t);
-                space.appendChild(document.createTextNode(" "));
-           });
-        });
+    let tab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
+    document.getElementById("description").value = tab.title;
+    document.getElementById("url").value = tab.url;
+    document.getElementById("toread").checked = false;
+    document.getElementById("tags").value = "";
+    let tagSuggestions= await browser.runtime.sendMessage({
+        "callFunction": "getTagSuggestions",
+        "url": tab.url
+    });
+    let space = document.getElementById("tagsuggestions");
+    tagSuggestions.forEach(tag => {
+        let t = document.createElement("a");
+        t.addEventListener("click", handleAddTag);
+        t.appendChild(document.createTextNode(tag));
+        space.appendChild(t);
+        space.appendChild(document.createTextNode(" "));
     });
 }
 
@@ -184,8 +177,6 @@ function addPin(pin, newPin) {
         "callFunction": "saveBookmark",
         "pin": pin,
         "isNewPin": newPin
-    }).then((callback) => {
-        //Empty
     });
     displayPins();
 }

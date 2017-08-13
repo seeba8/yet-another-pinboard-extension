@@ -14,10 +14,8 @@
 }
 
 #listdiv {
-    min-width: 120px;
-    min-height: 120px;
-    max-width: 800px;
-    width: 640px;
+    min-height: 360px;
+    width: 600px;
     max-height: 480px;
     overflow: hidden; 
     overflow-y: auto;
@@ -128,9 +126,10 @@ a.currentpage {
     display:none;
 }
 body {
-    font-size: .9em;
+    font-size: .9rem;
     font-family: sans-serif;
 }
+
 
 .resetbutton {
   border: none;

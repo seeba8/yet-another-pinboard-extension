@@ -52,32 +52,28 @@ function clearAPIKey() {
     toggleAPIKeyInputs();
 }
 
-function saveAPIKey() {
+async function saveAPIKey() {
     // Call pinboard to check if the API key is working
     let headers = new Headers({ "Accept": "application/json" });
     let apikey = document.getElementById("apikey").value;
     let init = { method: 'GET', headers };
     let request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" + apikey + "&format=json", init);
-    fetch(request).then(function (response) {
-        if (!response) {
-            //console.log("Error while parsing result");
-            return;
-        }
-        response.json().then(json => {
-            if (json.result == apikey.split(":")[1]) {
-                browser.storage.local.set({
-                    apikey: document.getElementById("apikey").value
-                });
-                //console.log("Saved successfully");
-                document.getElementById("apikey").value = "";
-                toggleAPIKeyInputs();
-            }
-            else {
-                //console.log("Error while parsing result");
-                return;
-            }
-        });
-    });
+    let response = await fetch(request);
+    if (!response) {
+        //console.log("Error while parsing result");
+        return;
+    }
+    let json = await response.json();
+    if (json.result == apikey.split(":")[1]) {
+        browser.storage.local.set({apikey: document.getElementById("apikey").value});
+        //console.log("Saved successfully");
+        document.getElementById("apikey").value = "";
+        toggleAPIKeyInputs();
+    }
+    else {
+        //console.log("Error while parsing result");
+        return;
+    }
 }
 
 function handleOptionChange(e) {

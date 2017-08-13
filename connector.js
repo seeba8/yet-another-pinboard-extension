@@ -34,14 +34,13 @@ var connector = (function () {
     //     });
     // }
 
-    function startUp() {
+    async function startUp() {
         //console.log("starting");
-        getQueue().then(queue => {
-            localQueue = queue.concat(localQueue);
-            if (queue.length > 0 && !hasQueueStarted) {
-                proceedQueue();
-            }
-        });
+        let queue = await getQueue();
+        localQueue = queue.concat(localQueue);
+        if (queue.length > 0 && !hasQueueStarted) {
+            proceedQueue();
+        }
     }
 
     function saveQueue(queue) {
@@ -75,17 +74,14 @@ var connector = (function () {
         return paramStr;
     }
 
-    function getQueue() {
-        return new Promise((resolve, reject) => {
-            browser.storage.local.get("queue").then(token => {
-                if (token.hasOwnProperty("queue") && typeof token.queue === "object") {
-                    resolve(token.queue);
-                }
-                else {
-                    resolve(new Array());
-                }
-            });
-        });
+    async function getQueue() {
+        let token = await browser.storage.local.get("queue");
+        if (token.hasOwnProperty("queue") && typeof token.queue === "object") {
+            return token.queue;
+        }
+        else {
+            return new Array();
+        }
     }
 
     function proceedQueue() {
@@ -123,17 +119,10 @@ var connector = (function () {
             });
     }  
 
-    function sendRequest(item) {
-        return new Promise((resolve, reject) => {
-            // console.log("item to fetch: ", item);
-        // console.log(API_URL[item.type]);
-        browser.storage.local.get(["apikey"]).then(token => {
-            // console.log(API_URL[item.type] + "?auth_token="+ encodeURIComponent(token.apikey) +"&format=json" +
-            //    makeParamString(item.params));
-            fetch(API_URL[item.type] + "?auth_token="+ encodeURIComponent(token.apikey) +"&format=json" +
-                makeParamString(item.params)).then(resp => resolve(resp)).catch(err => reject(err));
-            });
-        });
+    async function sendRequest(item) {
+        let apikey = (await browser.storage.local.get(["apikey"])).apikey;
+        return fetch(API_URL[item.type] + "?auth_token="+ encodeURIComponent(apikey) +"&format=json" +
+            makeParamString(item.params));
     }
 
     function validateResponse(response) {
@@ -149,56 +138,48 @@ var connector = (function () {
         return response.json();
     }
 
-    function handleResultJSON(json) {
-        return new Promise((resolve, reject) => {
-            switch (localQueue[0].type) {
-                
-                case "getLastUpdate":
-                    if (!json.hasOwnProperty("update_time")) {
-                        reject(Error(json));
-                        return;
-                    }
-                    else {
-                        resolve(new Date(json["update_time"]));
-                        return;
-                    }
-                case "addPin":
-                    if (json.result_code != "done") {
-                        reject(Error(json["result_code"]));
-                        return;
-                    }
-                    break;
-                case "suggestTags":
-                    if(typeof json !== "object") {
-                        reject(Error(json));
-                        return;
-                    }
-                    else {
-                        let tags = new Array();
-                        json.forEach((element) => {
-                            if(element.hasOwnProperty("popular")) {
-                                tags = tags.concat(element["popular"]);
-                            }
-                            else if(element.hasOwnProperty("recommended")) {
-                                tags = tags.concat(element["recommended"]);
-                            }
-                        });
-                        resolve(tags);
-                        return;
-                    }
-                default:
-                    // console.log("No special condition");
-                    // console.log(json);
-            }
-            resolve(json);
-        });
+    async function handleResultJSON(json) {
+        switch (localQueue[0].type) {  
+            case "getLastUpdate":
+                if (!json.hasOwnProperty("update_time")) {
+                    throw Error(json);
+                }
+                else {
+                    return new Date(json["update_time"]);
+                }
+            case "addPin":
+                if (json.result_code != "done") {
+                    throw Error(json["result_code"]);
+                }
+                break;
+            case "suggestTags":
+                if(typeof json !== "object") {
+                    throw Error(json);
+                }
+                else {
+                    let tags = new Array();
+                    json.forEach((element) => {
+                        if(element.hasOwnProperty("popular")) {
+                            tags = tags.concat(element["popular"]);
+                        }
+                        else if(element.hasOwnProperty("recommended")) {
+                            tags = tags.concat(element["recommended"]);
+                        }
+                    });
+                    return tags;
+                }
+            default:
+                // console.log("No special condition");
+                // console.log(json);
+        }
+        return json;
     }
 
     function onSuccess(result) {
         intervalAll =MIN_INTERVAL_ALL;
         interval = MIN_INTERVAL;
         let promise = localQueue.shift();
-        saveQueue(localQueue).then();
+        saveQueue(localQueue);
         if (typeof promise.resolve === "function") {
             promise.resolve(result);
         }
