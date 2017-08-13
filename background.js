@@ -16,7 +16,11 @@ let defaultOptions = options = {
 //browser.runtime.onStartup.addListener(handleStartup);
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
 browser.runtime.onStartup.addListener(handleStartup);
+browser.alarms.create("checkUpdate", {
+    periodInMinutes: 5,
 
+});
+browser.alarms.onAlarm.addListener(onCheckUpdate);
 // Update the pins on startup of the browser
 function handleStartup() {
     chrome.runtime.onMessage.addListener(handleMessage); // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
@@ -44,6 +48,12 @@ function handleStartup() {
     browser.contextMenus.onClicked.addListener(handleContextMenuClick);
     loadOptions();
     updatePinData(false);
+}
+
+function onCheckUpdate(alarm) {
+    if(alarm.name === "checkUpdate") {
+        updatePinData(false);
+    }
 }
 
 function handleBookmarkCreated(id, bookmark) {
@@ -143,12 +153,15 @@ async function updatePinVariable() {
 // Should listen to return codes
 async function updatePinData(forceUpdate) {
     let token = await browser.storage.local.get(["lastupdate", "lastsync", "pins"]);
-    if (apikey == "" || (!forceUpdate && !!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 5)) {
+    // Plus 5 at the end for buffer, in order for the alarm to trigger this usually.
+    if (apikey == "" || (!forceUpdate && !!token.lastsync && new Date(token.lastsync) > Date.now() - 1000 * 60 * 5 + 5)) {
         updatePinVariable();
         return;
     }
     let lastUpdate = await connector.getLastUpdate();
-    if (!forceUpdate && !!token.pins && token.pins.length > 0 && !!token.lastupdate && new Date(token.lastupdate) == lastUpdate) {
+    // To compare Dates: https://stackoverflow.com/a/493018
+    if (!forceUpdate && !!token.pins && token.pins.length > 0 && !!token.lastupdate && 
+                new Date(token.lastupdate).getTime() == lastUpdate.getTime()) {
         //console.log("Not syncing, no update available");
         updatePinVariable();
         return;
