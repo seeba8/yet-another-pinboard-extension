@@ -21,6 +21,15 @@
     overflow-y: auto;
 }
 
+#filterToRead{
+    text-decoration: none;
+    color: black;
+}
+
+.bold {
+    font-weight: bold;
+}
+
 #toprow {
     display: grid;
     grid-template-columns: 1fr 3fr 3fr 1fr;
@@ -46,7 +55,6 @@
 
 #optionslink {
    text-align: right;
-   justify-self: end;
 }
 
 #bookmarks li a {
@@ -139,7 +147,7 @@ body {
   cursor: pointer;
   outline:none;
   color: grey;
-  right: .25em;
+  right: 7%;
   top: .2em;
 }
 .search:required:invalid ~ .resetbutton {
@@ -150,7 +158,7 @@ body {
     display: inline-block;
     margin-left: auto;
     margin-right: auto;
-    width: 99%;
+    width: 92%;
 }
 
 .searchform {

@@ -1,6 +1,7 @@
 var bookmarkList = document.getElementById("bookmarks");
 var offset = 0;
 var pins;
+let toReadOnly = false;
 
 document.getElementById("filter").addEventListener("keyup", handleFilterChange);
 document.getElementById("searchform").addEventListener("reset", (e) => {
@@ -9,6 +10,7 @@ document.getElementById("searchform").addEventListener("reset", (e) => {
 });
 document.getElementById("bookmarkcurrent").addEventListener("click", handleBookmarkCurrent);
 document.getElementById("readlatercurrent").addEventListener("click", handleReadLaterCurrent);
+document.getElementById("filterToRead").addEventListener("click", handleFilterToRead);
 
 //document.getElementById("deleteBookmark").addEventListener("click", handleDelete);
 document.getElementById("editform").addEventListener("submit", handleSubmit);
@@ -178,7 +180,7 @@ function addPin(pin, newPin) {
         "pin": pin,
         "isNewPin": newPin
     });
-    displayPins();
+    displayPins(true);
 }
 
 function displayPins() {
@@ -188,7 +190,7 @@ function displayPins() {
     }
     let c = 0;
     for (var [key, pin] of pins) {
-        if (filter == "" || pinContains(pin, filter)) {
+        if ((pin.toread =="yes" || !toReadOnly) && (filter == "" || pinContains(pin, filter))) {
             if (c >= offset && c < offset + 100) {
                 addListItem(pin, key);
             }
@@ -208,6 +210,14 @@ function contains(haystack, needle) {
 
 function handleFilterChange(e) {
     offset = 0;
+    displayPins();
+}
+
+function handleFilterToRead(e) {
+    e.target.classList.toggle("bold");
+    toReadOnly = !toReadOnly;
+    offset = 0;
+    console.log(toReadOnly);
     displayPins();
 }
 
