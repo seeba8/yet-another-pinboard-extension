@@ -1,55 +1,79 @@
-var bookmarkList = document.getElementById("bookmarks");
-var offset = 0;
-var pins;
+namespace PopupPage {
+// Elements
+const bookmarkList = <HTMLUListElement> document.getElementById("bookmarks");
+const filterTextbox = <HTMLInputElement> document.getElementById("filter");
+const searchForm = <HTMLFormElement> document.getElementById("searchform");
+
+const bookmarkCurrentButton = <HTMLLinkElement> document.getElementById("bookmarkcurrent");
+const readLaterCurrentButton = <HTMLLinkElement> document.getElementById("readlatercurrent");
+const filterToReadButton = <HTMLLinkElement> document.getElementById("filterToRead");
+const greyoutDiv = <HTMLDivElement> document.getElementById("greyout");
+const editWrapper = <HTMLDivElement> document.getElementById("editwrapper");
+const optionsButton = <HTMLLinkElement> document.getElementById("optionslink");
+const editForm = <HTMLFormElement> document.getElementById("editform");
+const noAPIKeyDiv = <HTMLDivElement> document.getElementById("noapikey");
+const tagSuggestionsDiv = <HTMLDivElement> document.getElementById("tagsuggestions");
+const prevNext = {
+    div: <HTMLDivElement> document.getElementById("prevnext"),
+    prevPage: <HTMLLinkElement> document.getElementById("prevPage"),
+    nextPage: <HTMLLinkElement> document.getElementById("nextPage"),
+    firstPage: <HTMLLinkElement> document.getElementById("firstPage"),
+    lastPage: <HTMLLinkElement> document.getElementById("lastPage"),
+};
+const editBox = {
+    sharedCheckbox: <HTMLInputElement> document.getElementById("shared"),
+    toReadCheckbox: <HTMLInputElement>  document.getElementById("toread"),
+    URL: <HTMLInputElement> document.getElementById("url"),
+    description:<HTMLInputElement> document.getElementById("description"),
+    tags: <HTMLInputElement> document.getElementById("tags"),
+    extended: <HTMLTextAreaElement> document.getElementById("extended"),
+};
+
+let offset = 0;
+let pins;
 let toReadOnly = false;
 
-document.getElementById("filter").addEventListener("keyup", handleFilterChange);
-document.getElementById("searchform").addEventListener("reset", (e) => {
-    document.getElementById("filter").value = "";
+filterTextbox.addEventListener("keyup", handleFilterChange);
+bookmarkCurrentButton.addEventListener("click", handleBookmarkCurrent);
+readLaterCurrentButton.addEventListener("click", handleReadLaterCurrent);
+filterToReadButton.addEventListener("click", handleFilterToRead);
+editForm.addEventListener("submit", handleSubmit);
+document.getElementById("delete").addEventListener("click", handleDeletePin);
+greyoutDiv.addEventListener("click", (e) => {
+    greyoutDiv.classList.toggle("hidden");
+    editWrapper.classList.toggle("hidden");
+});
+searchForm.addEventListener("reset", (e) => {
+    filterTextbox.value = "";
     handleFilterChange(e);
 });
-document.getElementById("bookmarkcurrent").addEventListener("click", handleBookmarkCurrent);
-document.getElementById("readlatercurrent").addEventListener("click", handleReadLaterCurrent);
-document.getElementById("filterToRead").addEventListener("click", handleFilterToRead);
-
-//document.getElementById("deleteBookmark").addEventListener("click", handleDelete);
-document.getElementById("editform").addEventListener("submit", handleSubmit);
-document.getElementById("greyout").addEventListener("click", (e) => {
-    e.target.classList.toggle("hidden");
-    document.getElementById("editwrapper").classList.toggle("hidden");
+document.querySelectorAll(".optionslink").forEach((element) => {
+    element.addEventListener("click", onOptionsLinkClick);
 });
-
-document.getElementById("optionspage").addEventListener("click", (e) => {
-    browser.runtime.openOptionsPage();
-    window.close();
-});
-document.getElementById("optionslink").addEventListener("click", (e) => {
-    browser.runtime.openOptionsPage();
-    window.close();
-});
-
-Array.from(document.getElementById("prevnext").children).forEach(element => {
+Array.from(prevNext.div.children).forEach(element => {
     element.addEventListener("click", handlePrevNextClick);
 });
 
-document.getElementById("delete").addEventListener("click", handleDeletePin);
-
-browser.storage.local.get(["options"]).then(token => {
-    if (token.options.hasOwnProperty("sharedByDefault") && token.options.sharedByDefault === true) {
-        document.getElementById("shared").checked = true;
-    }
-});
-
-browser.storage.local.get(["lastsync"]).then(token => {
-    document.getElementById("optionslink").title = "Last bookmark sync: " + new Date(token.lastsync);
-});
-
+handleStartup();
 reloadPins();
+
+async function handleStartup() {
+    let token = await browser.storage.local.get(["lastsync", "options"]);
+    if (token.options.hasOwnProperty("sharedByDefault") && token.options.sharedByDefault === true) {
+        editBox.sharedCheckbox.checked = true;
+    }
+    optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);  
+}
+
+function onOptionsLinkClick(e) {
+    browser.runtime.openOptionsPage();
+    window.close();
+}
 
 async function reloadPins() {
     let token = await browser.storage.local.get(["apikey", "pins"]);
     if (!token.apikey || token.apikey == "") {
-        document.getElementById("noapikey").classList.toggle("hidden");
+        noAPIKeyDiv.classList.toggle("hidden");
     }
     pins = new Map(token.pins);
     displayPins();
@@ -57,23 +81,20 @@ async function reloadPins() {
 
 function handleDeletePin(e) {
     e.preventDefault();
-    //if (confirm("Delete?")) { // DOES NOT WORK IN FIREFOX
     browser.runtime.sendMessage({
         "callFunction": "deleteBookmark",
-        "pin": { "url": document.getElementById("url").value }
+        "pin": { "url": editBox.URL.value }
     });
-    pins.delete(document.getElementById("url").value);
+    pins.delete(editBox.URL.value);
     displayPins();
-    document.getElementById("editwrapper").classList.toggle("hidden");
-    document.getElementById("greyout").classList.toggle("hidden");
-   // }
-    
+    editWrapper.classList.toggle("hidden");
+    greyoutDiv.classList.toggle("hidden");    
 }
 
 async function handleReadLaterCurrent(e) {
     e.preventDefault();
-    let tab = await browser.tabs.query({currentWindow: true, active: true});
-    tab = tab[0];
+    let tabs = await browser.tabs.query({currentWindow: true, active: true});
+    let tab = tabs[0];
     let pin = {
         url: tab.url,
         description: tab.title, 
@@ -88,58 +109,57 @@ async function handleBookmarkCurrent(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
     let tab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
-    document.getElementById("description").value = tab.title;
-    document.getElementById("url").value = tab.url;
-    document.getElementById("toread").checked = false;
-    document.getElementById("tags").value = "";
+    editBox.description.value = tab.title;
+    editBox.URL.value = tab.url;
+    editBox.toReadCheckbox.checked = false;
+    editBox.tags.value = "";
     let tagSuggestions= await browser.runtime.sendMessage({
         "callFunction": "getTagSuggestions",
         "url": tab.url
     });
-    let space = document.getElementById("tagsuggestions");
     tagSuggestions.forEach(tag => {
         let t = document.createElement("a");
         t.addEventListener("click", handleAddTag);
         t.appendChild(document.createTextNode(tag));
-        space.appendChild(t);
-        space.appendChild(document.createTextNode(" "));
+        tagSuggestionsDiv.appendChild(t);
+        tagSuggestionsDiv.appendChild(document.createTextNode(" "));
     });
 }
 
 function handleAddTag(e) {
-    document.getElementById("tags").value += " " + e.target.textContent;
+    editBox.tags.value += " " + e.target.textContent;
     e.target.parentElement.removeChild(e.target);
 }
 
 function preparePrevNext(numberPins) {
-    Array.from(document.getElementById("prevnext").children).forEach(element => {
+    Array.from(prevNext.div.children).forEach(element => {
         element.classList.remove("linkdisabled");
         element.classList.remove("currentpage");
     });
     let firstPage = Math.min(Math.max(1, offset / 100 - 1), Math.max(Math.ceil(numberPins / 100) - 4, 1));
     for (let i = 0; i < 5; i++) {
         let curElement = document.getElementById("pageNo" + (i + 1).toString());
-        curElement.firstChild.nodeValue = firstPage + i;
-        curElement.dataset.offset = (firstPage + i - 1) * 100;
-        if (curElement.dataset.offset == offset) {
+        curElement.textContent = String(firstPage + i);
+        curElement.dataset.offset = String((firstPage + i - 1) * 100);
+        if (curElement.dataset.offset === String(offset)) {
             curElement.classList.add("currentpage");
         }
         else if (parseInt(curElement.dataset.offset) > numberPins) {
             curElement.classList.add("linkdisabled");
         }
     }
-    document.getElementById("prevPage").dataset.offset = offset - 100;
-    document.getElementById("nextPage").dataset.offset = offset + 100;
-    document.getElementById("firstPage").dataset.offset = 0;
-    document.getElementById("lastPage").dataset.offset = 100 * Math.floor(numberPins / 100);
+    prevNext.prevPage.dataset.offset = String(offset - 100);
+    prevNext.nextPage.dataset.offset = String(offset + 100);
+    prevNext.firstPage.dataset.offset = String(0);
+    prevNext.lastPage.dataset.offset = String(100 * Math.floor(numberPins / 100));
 
     if (offset == 0) {
-        document.getElementById("firstPage").classList.add("linkdisabled");
-        document.getElementById("prevPage").classList.add("linkdisabled");
+        prevNext.firstPage.classList.add("linkdisabled");
+        prevNext.prevPage.classList.add("linkdisabled");
     }
     if (offset == 100 * Math.floor(numberPins / 100) || numberPins <= 100) {
-        document.getElementById("nextPage").classList.add("linkdisabled");
-        document.getElementById("lastPage").classList.add("linkdisabled");
+        prevNext.lastPage.classList.add("linkdisabled");
+        prevNext.nextPage.classList.add("linkdisabled");
     }
 }
 
@@ -150,19 +170,19 @@ function handlePrevNextClick(e) {
 
 function handleSubmit(e) {
     e.preventDefault();
-    let pin = pins.get(document.getElementById("url").dataset.entryId);
+    let pin = pins.get(editBox.URL.dataset.entryId);
     let newPin = false;
     if (pin === undefined) {
         pin = Object();
-        pin.url = document.getElementById("url").value;
+        pin.url = editBox.URL.value;
         newPin = true;
     }
-    pin.description = document.getElementById("description").value;
+    pin.description = editBox.description.value;
     pin.time = new Date().toISOString();
-    pin.tags = document.getElementById("tags").value;
-    pin.toread = (document.getElementById("toread").checked ? "yes" : "no");
-    pin.shared = (document.getElementById("shared").checked ? "yes" : "no");
-    pin.extended = document.getElementById("extended").value;
+    pin.tags = editBox.tags.value;
+    pin.toread = (editBox.toReadCheckbox.checked ? "yes" : "no");
+    pin.shared = (editBox.sharedCheckbox.checked ? "yes" : "no");
+    pin.extended = editBox.extended.value;
     addPin(pin, newPin);
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
@@ -180,11 +200,11 @@ function addPin(pin, newPin) {
         "pin": pin,
         "isNewPin": newPin
     });
-    displayPins(true);
+    displayPins();
 }
 
 function displayPins() {
-    let filter = document.getElementById("filter").value.toLowerCase();
+    let filter = filterTextbox.value.toLowerCase();
     while (bookmarkList.firstChild) {
         bookmarkList.removeChild(bookmarkList.firstChild);
     }
@@ -223,17 +243,15 @@ function handleFilterToRead(e) {
 function handleEditBookmark(e) {
     e.preventDefault();
     let pin = pins.get(e.target.dataset.entryId);
-    document.getElementById("description").value = pin.description || "";
-    document.getElementById("url").value = pin.url;
-    document.getElementById("tags").value = pin.tags || "";
-    document.getElementById("toread").checked = (pin.toread == "yes");
-    document.getElementById("shared").checked = (pin.shared == "yes");
-    document.getElementById("editwrapper").classList.toggle("hidden");
-    document.getElementById("greyout").classList.toggle("hidden");
-    document.getElementById("url").dataset.entryId = e.target.dataset.entryId;
-    document.getElementById("extended").value = pin.extended || "";
-    //document.getElementById("listdiv").style.maxHeight = "360px";
-    //document.getElementById("deleteBookmark").dataset["entryId"] = e.target.dataset.entryId;
+    editBox.description.value = pin.description || "";
+    editBox.URL.value = pin.url;
+    editBox.tags.value = pin.tags || "";
+    editBox.toReadCheckbox.checked = (pin.toread == "yes");
+    editBox.sharedCheckbox.checked = (pin.shared == "yes");
+    editWrapper.classList.toggle("hidden");
+    greyoutDiv.classList.toggle("hidden");
+    editBox.URL.dataset.entryId = e.target.dataset.entryId;
+    editBox.extended.value = pin.extended || "";
 }
 
 function handleLinkClick(e) {
@@ -242,7 +260,7 @@ function handleLinkClick(e) {
         browser.tabs.create({ url: e.target.href });
     }
     else {
-        browser.tabs.update({ url: e.target.href });
+        browser.tabs.update(undefined,{ url: e.target.href });
     }
     window.close();
 }
@@ -314,4 +332,5 @@ function addNewPinToMap(pin) {
     temp.set(pin.url, pin);
     pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
     // See e.g. https://stackoverflow.com/a/32001750
+}
 }

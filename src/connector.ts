@@ -227,7 +227,7 @@ var connector = (function () {
 
     // Public methods of the connector "class"
     return {
-        getLastUpdate: function () {
+        getLastUpdate: function (): Promise<Date> {
             // console.log("update");
             return new Promise((resolve, reject) => {
                 addToQueue({
@@ -238,8 +238,8 @@ var connector = (function () {
                 });
             });
 
-        },
-        addPin: function (pin) {
+        } ,
+        addPin: function (pin) : Promise<any> {
             //console.log("save", pin);
             if(pin.hasOwnProperty("href")) {
                 pin.url = pin.href;
@@ -253,10 +253,10 @@ var connector = (function () {
                 });
             })
         },
-        getAllPins: function () {
+        getAllPins: function () : Promise<Array<any>>{
             // console.log("getAll");
             return new Promise((resolve, reject) => {
-                setTimeout(proceedGetAllData, Math.max(0, intervalAll - (Date.now() - lastGetAllPins)), {
+                setTimeout(proceedGetAllData, Math.max(0, intervalAll - (Date.now() - lastGetAllPins.getTime())), { // TODO CHECK THIS
                     "type": "getAllPins",
                     "params": {},
                     "resolve": resolve,
