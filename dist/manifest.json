@@ -8,9 +8,9 @@
   "background": {
     "scripts": [
       "webextension-polyfill/browser-polyfill.min.js",
-      "connector.js",
-      "background.js",
-      "omnibox.js"
+      "js/connector.js",
+      "js/background.js",
+      "js/omnibox.js"
     ]
   },
   "omnibox": { 
@@ -33,7 +33,7 @@
     "alarms"
   ],
   "options_ui": {
-    "page": "options/options.html",
+    "page": "html/options.html",
     "chrome_style": true
   },
   "browser_action": {
@@ -44,7 +44,7 @@
         "96": "img/pinboard-96.png"
     },
     "default_title": "Yet Another Pinboard Extension",
-    "default_popup": "popup/popup.html",
+    "default_popup": "html/popup.html",
     "default_area": "navbar"
   }
 }

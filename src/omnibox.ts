@@ -55,7 +55,7 @@ function handleInputEntered(text, disposition) {
     }
     switch (disposition) {
         case "currentTab":
-            browser.tabs.update({ url });
+            browser.tabs.update(undefined, { url });
             break;
         case "newForegroundTab":
             browser.tabs.create({ url });

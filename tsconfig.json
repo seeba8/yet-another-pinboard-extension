@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "target": "es2017",
+        "module": "none",
+        "sourceMap": true,
+        "watch": true,
+        "outDir": "dist/js",
+        // You have to explicitly set @types to get DefinitelyTyped type definitions
+        "typeRoots": ["@types", "node_modules/web-ext-types"]
+    }
+}

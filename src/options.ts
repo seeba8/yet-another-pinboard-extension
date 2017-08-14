@@ -1,39 +1,61 @@
-var options = {};
+namespace optionsPage {
+let options: Options = {};
+declare interface Options {
+    changeActionbarIcon?: boolean;
+    saveBrowserBookmarks?: boolean;
+    sharedByDefault?: boolean;
+}
 // TODO browser.storage.sync
 
-document.getElementById('changeActionbarIcon').addEventListener("change", handleOptionChange);
-document.getElementById('saveBrowserBookmarks').addEventListener("change", handleOptionChange);
-document.getElementById("sharedByDefault").addEventListener("change", handleOptionChange);
-document.getElementById("saveapi").addEventListener("click", saveAPIKey);
-document.getElementById("clearapi").addEventListener("click", clearAPIKey);
-document.getElementById("forcereload").addEventListener("click", forcePinReload);
+//Elements
+const changeActionbarIcon = <HTMLInputElement> document.getElementById('changeActionbarIcon');
+const sharedByDefault = <HTMLInputElement> document.getElementById("sharedByDefault");
+const saveBrowserBookmarks = <HTMLInputElement> document.getElementById("saveBrowserBookmarks");
+const apiKeyInput = <HTMLInputElement> document.getElementById("apikey");
+
+const saveAPIButton = <HTMLButtonElement> document.getElementById("saveapi");
+const clearAPIButton = <HTMLButtonElement> document.getElementById("clearapi");
+const forceReloadButton = <HTMLButtonElement> document.getElementById("forcereload");
+
+//Event listeners
+changeActionbarIcon.addEventListener("change", handleOptionChange);
+saveBrowserBookmarks.addEventListener("change", handleOptionChange);
+sharedByDefault.addEventListener("change", handleOptionChange);
+saveAPIButton.addEventListener("click", saveAPIKey);
+clearAPIButton.addEventListener("click", clearAPIKey);
+forceReloadButton.addEventListener("click", forcePinReload);
 document.querySelectorAll(".shortcuts").forEach((element) => {
     element.addEventListener("change", handleOptionChange);
 });
-browser.storage.local.get("lastsync").then(token => {
-    document.getElementById("forcereload").title = "Last bookmark sync: " + new Date(token.lastsync);
-});
-browser.storage.local.get(["options", "apikey"]).then((token) => {
+
+onLoad();
+
+async function onLoad() {
+    let token = await browser.storage.local.get(["lastsync", "options", "apikey"]);
+    forceReloadButton.title = "Last bookmark sync: " + new Date(token.lastsync);
     options = token.options;
     if(!! token.apikey && token.apikey != "") {
         toggleAPIKeyInputs();
     }
     if (!!options.changeActionbarIcon && options.changeActionbarIcon) {
-        document.getElementById("changeActionbarIcon").checked = true;
+        changeActionbarIcon.checked = true;
     }
     if(!!options.saveBrowserBookmarks && options.saveBrowserBookmarks) {
-        document.getElementById("saveBrowserBookmarks").checked = true;
+        saveBrowserBookmarks.checked = true;
     }
     if(options.hasOwnProperty("sharedByDefault") && options.sharedByDefault) {
-        document.getElementById("sharedByDefault").checked = true;
+        sharedByDefault.checked = true;
     }
 
     Object.keys(options).forEach((k, v) => {
         if (k !== "showBookmarked" && k !== "changeActionbarIcon" && k !== "saveBrowserBookmarks" && k !== "sharedByDefault") {
-            document.querySelector('input[name=' + k + ']').value = options[k];
+            (<HTMLInputElement> document.querySelector('input[name=' + k + ']')).value = options[k];
         }
     });
-});
+
+}
+
+
 
 function forcePinReload() {
     //console.log("forcereload");
@@ -55,7 +77,7 @@ function clearAPIKey() {
 async function saveAPIKey() {
     // Call pinboard to check if the API key is working
     let headers = new Headers({ "Accept": "application/json" });
-    let apikey = document.getElementById("apikey").value;
+    let apikey = apiKeyInput.value;
     let init = { method: 'GET', headers };
     let request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" + apikey + "&format=json", init);
     let response = await fetch(request);
@@ -65,9 +87,9 @@ async function saveAPIKey() {
     }
     let json = await response.json();
     if (json.result == apikey.split(":")[1]) {
-        browser.storage.local.set({apikey: document.getElementById("apikey").value});
+        browser.storage.local.set({apikey: apiKeyInput.value});
         //console.log("Saved successfully");
-        document.getElementById("apikey").value = "";
+        apiKeyInput.value = "";
         toggleAPIKeyInputs();
     }
     else {
@@ -87,4 +109,4 @@ function handleOptionChange(e) {
     let o = { options };
     browser.storage.local.set(o);
 }
-
+}
