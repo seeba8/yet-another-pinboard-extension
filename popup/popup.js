@@ -217,7 +217,6 @@ function handleFilterToRead(e) {
     e.target.classList.toggle("bold");
     toReadOnly = !toReadOnly;
     offset = 0;
-    console.log(toReadOnly);
     displayPins();
 }
 

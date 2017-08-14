@@ -39,6 +39,7 @@ var connector = (function () {
         let queue = await getQueue();
         localQueue = queue.concat(localQueue);
         if (queue.length > 0 && !hasQueueStarted) {
+            cleanQueueDuplicates();
             proceedQueue();
         }
     }
@@ -52,6 +53,7 @@ var connector = (function () {
         localQueue.push(item);
         // console.log("new queue: ", localQueue);
         saveQueue(localQueue);
+        cleanQueueDuplicates();
         if (localQueue.length == 1) {
             // console.log("queue 1");
             if (lastRequest < new Date(Date.now() - MIN_INTERVAL)) {
@@ -84,7 +86,32 @@ var connector = (function () {
         }
     }
 
+    function cleanQueueDuplicates() {
+        let update = false;
+        let getAll = false;
+        let newQueue = Array();
+        for(let item of localQueue) {
+            if(item.type === "getLastUpdate") {
+                if(!update) {
+                    newQueue.push(item);
+                    update = true;
+                }
+            }
+            else if(item.type=== "getAllPins") {
+                if(!getAll) {
+                    newQueue.push(item);
+                    getAll = true;
+                }
+            }
+            else {
+                newQueue.push(item);
+            }
+        }
+        localQueue = newQueue;
+    }
+
     function proceedQueue() {
+        lastRequest = new Date();
         // console.log("Proceeding in queue");
         // console.log(localQueue);
         if (localQueue.length == 0) {
@@ -126,7 +153,6 @@ var connector = (function () {
     }
 
     function validateResponse(response) {
-        lastRequest = new Date();
         //console.log(response);
         if (!response.ok || response.status != 200) {
             throw Error(response.status);
