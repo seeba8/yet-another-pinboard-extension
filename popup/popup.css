@@ -30,6 +30,10 @@
     font-weight: bold;
 }
 
+.unclickable {
+    cursor: default !important;
+}
+
 #toprow {
     display: grid;
     grid-template-columns: 1fr 3fr 3fr 1fr;

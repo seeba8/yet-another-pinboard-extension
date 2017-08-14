@@ -261,29 +261,51 @@ function handleBookmarkRead(e) {
 }
 
 function addListItem(pin, key) {
-    let entry = document.createElement('li');
-    let edit = document.createElement("a");
-    edit.appendChild(document.createTextNode("\u{270E}"));
-    edit.addEventListener("click", handleEditBookmark);
-    edit.dataset.entryId = key;
-    entry.appendChild(edit);
-    let link = document.createElement("a");
-    link.href = pin.url;
-    link.addEventListener("click", handleLinkClick);
-    link.id = key;
-    let textcontent = pin.description == "Twitter" ? (pin.extended != "" ? "(Twitter) " + pin.extended : pin.description) : pin.description;
-    link.appendChild(document.createTextNode(textcontent));
-    link.title = pin.url || "";
-    entry.appendChild(link);
-    let toreadeye = document.createElement("a");
-    toreadeye.appendChild(document.createTextNode("\u{1f441}"));
-    toreadeye.addEventListener("click", handleBookmarkRead);
-    toreadeye.title = "Mark as read";
-    toreadeye.dataset.entryId = key;
-    if(pin.toread == "no") {
-        toreadeye.classList.add("invisible");
+    function addEditSymbol() {
+        let edit = document.createElement("a");
+        edit.title = "Edit";
+        edit.appendChild(document.createTextNode("\u{270E}"));
+        edit.addEventListener("click", handleEditBookmark);
+        edit.dataset.entryId = key;
+        entry.appendChild(edit);
     }
-    entry.appendChild(toreadeye);
+    function addMainLink() {
+        let link = document.createElement("a");
+        link.href = pin.url;
+        link.addEventListener("click", handleLinkClick);
+        link.id = key;
+        let textcontent = pin.description == "Twitter" ? (pin.extended != "" ? "(Twitter) " + pin.extended : pin.description) : pin.description;
+        link.appendChild(document.createTextNode(textcontent));
+        link.title = pin.url || "";
+        entry.appendChild(link);
+    }
+    function addSharedSymbol() {
+        let sharedsymbol = document.createElement("a");
+        sharedsymbol.appendChild(document.createTextNode("\u{1f4e2}"));
+        sharedsymbol.title = "Shared";
+        sharedsymbol.dataset.entryId = key;
+        sharedsymbol.classList.add("unclickable");
+        if(pin.shared == "no") {
+            sharedsymbol.classList.add("invisible");
+        }
+        entry.appendChild(sharedsymbol);
+    }
+    function addToReadSymbol() {
+        let toreadeye = document.createElement("a");
+        toreadeye.appendChild(document.createTextNode("\u{1f441}"));
+        toreadeye.addEventListener("click", handleBookmarkRead);
+        toreadeye.title = "Mark as read";
+        toreadeye.dataset.entryId = key;
+        if(pin.toread == "no") {
+            toreadeye.classList.add("invisible");
+        }
+        entry.appendChild(toreadeye);
+    }
+    let entry = document.createElement('li');
+    addEditSymbol();
+    addMainLink();
+    addSharedSymbol();
+    addToReadSymbol();
     bookmarkList.appendChild(entry);
 }
 
