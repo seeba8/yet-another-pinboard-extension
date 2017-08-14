@@ -111,7 +111,7 @@ async function loadOptions() {
 }
 async function loadApiKey() {
     let res = (await browser.storage.local.get("apikey")).apikey;
-    if (typeof res != "undefined") {
+    if (typeof res !== "undefined") {
         apikey = res;
         if (apikey == "") {
             pins = new Map();
@@ -121,7 +121,9 @@ async function loadApiKey() {
 // Only update pin data when the api key was modified
 function handleStorageChanged(changes, area) {
     if (Object.keys(changes).includes("apikey")) {
-        loadApiKey();
+        loadApiKey().then(() => {
+            updatePinData(true);
+        });
         //console.log("update pin data");
     }
     else if (Object.keys(changes).includes("pins")) {
