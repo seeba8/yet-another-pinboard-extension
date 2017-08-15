@@ -8,9 +8,12 @@
   "background": {
     "scripts": [
       "webextension-polyfill/browser-polyfill.min.js",
+      "js/pins.js",
+      "js/pin.js",
       "js/connector.js",
       "js/background.js",
       "js/omnibox.js"
+      
     ]
   },
   "omnibox": { 

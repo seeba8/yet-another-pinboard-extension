@@ -29,7 +29,7 @@ var PopupPage;
         extended: document.getElementById("extended"),
     };
     let offset = 0;
-    let pins;
+    let pins = new Pins();
     let toReadOnly = false;
     filterTextbox.addEventListener("keyup", handleFilterChange);
     bookmarkCurrentButton.addEventListener("click", handleBookmarkCurrent);
@@ -69,14 +69,14 @@ var PopupPage;
         if (!token.apikey || token.apikey == "") {
             noAPIKeyDiv.classList.toggle("hidden");
         }
-        pins = new Map(token.pins);
+        pins = new Pins(token.pins);
         displayPins();
     }
     function handleDeletePin(e) {
         e.preventDefault();
         browser.runtime.sendMessage({
             "callFunction": "deleteBookmark",
-            "pin": { "url": editBox.URL.value }
+            "pin": pins.get(editBox.URL.value)
         });
         pins.delete(editBox.URL.value);
         displayPins();
@@ -87,12 +87,7 @@ var PopupPage;
         e.preventDefault();
         let tabs = await browser.tabs.query({ currentWindow: true, active: true });
         let tab = tabs[0];
-        let pin = {
-            url: tab.url,
-            description: tab.title,
-            toread: "yes",
-            shared: "no"
-        };
+        let pin = new Pin(tab.url, tab.title, undefined, undefined, undefined, "yes", "no");
         addPin(pin, true);
     }
     async function handleBookmarkCurrent(e) {
@@ -159,8 +154,7 @@ var PopupPage;
         let pin = pins.get(editBox.URL.dataset.entryId);
         let newPin = false;
         if (pin === undefined) {
-            pin = Object();
-            pin.url = editBox.URL.value;
+            pin = new Pin(editBox.URL.value);
             newPin = true;
         }
         pin.description = editBox.description.value;
@@ -174,16 +168,10 @@ var PopupPage;
         document.getElementById("greyout").classList.toggle("hidden");
     }
     function addPin(pin, newPin) {
-        if (newPin) {
-            addNewPinToMap(pin);
-        }
-        else {
-            pins.set(pin.url, pin);
-        }
+        pins.addPin(pin);
         browser.runtime.sendMessage({
             "callFunction": "saveBookmark",
-            "pin": pin,
-            "isNewPin": newPin
+            "pin": pin
         });
         displayPins();
     }
@@ -193,10 +181,10 @@ var PopupPage;
             bookmarkList.removeChild(bookmarkList.firstChild);
         }
         let c = 0;
-        for (var [key, pin] of pins) {
+        for (var pin of pins.forEachReversed()) {
             if ((pin.toread == "yes" || !toReadOnly) && (filter == "" || pinContains(pin, filter))) {
                 if (c >= offset && c < offset + 100) {
-                    addListItem(pin, key);
+                    addListItem(pin, pin.url);
                 }
                 c++;
             }
@@ -301,12 +289,6 @@ var PopupPage;
         addSharedSymbol();
         addToReadSymbol();
         bookmarkList.appendChild(entry);
-    }
-    function addNewPinToMap(pin) {
-        let temp = new Map();
-        temp.set(pin.url, pin);
-        pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
-        // See e.g. https://stackoverflow.com/a/32001750
     }
 })(PopupPage || (PopupPage = {}));
 //# sourceMappingURL=popup.js.map

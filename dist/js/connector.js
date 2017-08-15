@@ -1,3 +1,4 @@
+///<reference path="pin.ts" />
 "use strict";
 var connector = (function () {
     let API_URL = Object.freeze({
@@ -219,9 +220,6 @@ var connector = (function () {
         },
         addPin: function (pin) {
             //console.log("save", pin);
-            if (pin.hasOwnProperty("href")) {
-                pin.url = pin.href;
-            }
             return new Promise((resolve, reject) => {
                 addToQueue({
                     "type": "addPin",
@@ -243,12 +241,6 @@ var connector = (function () {
             });
         },
         deletePin: function (pin) {
-            if (typeof pin === "string") {
-                pin = { "url": pin };
-            }
-            else if (pin.hasOwnProperty("href")) {
-                pin.url = pin.href;
-            }
             return new Promise((resolve, reject) => {
                 addToQueue({
                     "type": "deletePin",

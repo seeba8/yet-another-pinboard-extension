@@ -1,7 +1,7 @@
 {
     "compilerOptions": {
         "target": "es2017",
-        "module": "none",
+        "module": "es2015",
         "sourceMap": true,
         "watch": true,
         "outDir": "dist/js",

@@ -1,5 +1,8 @@
-var pins;
-var apikey = "";
+///<reference path="pins.ts" />
+///<reference path="pin.ts" />
+"use strict";
+let pins = new Pins();
+let apikey = "";
 let defaultOptions = {
     "urlPrefix": "u",
     "tagPrefix": "t",
@@ -20,7 +23,7 @@ browser.alarms.create("checkUpdate", {
 });
 browser.alarms.onAlarm.addListener(onCheckUpdate);
 // Update the pins on startup of the browser
-function handleStartup() {
+async function handleStartup() {
     chrome.runtime.onMessage.addListener(handleMessage); // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
     // That is possibly caused by browser-polyfill
     browser.storage.onChanged.addListener(handleStorageChanged);
@@ -43,11 +46,11 @@ function handleStartup() {
     browser.browserAction.setBadgeBackgroundColor({ color: "#333" });
     browser.contextMenus.onClicked.addListener(handleContextMenuClick);
     loadOptions();
-    updatePinData(false);
+    pins = await Pins.updateList();
 }
-function onCheckUpdate(alarm) {
+async function onCheckUpdate(alarm) {
     if (alarm.name === "checkUpdate") {
-        updatePinData(false);
+        pins = await Pins.updateList();
     }
 }
 function handleBookmarkCreated(id, bookmark) {
@@ -56,38 +59,34 @@ function handleBookmarkCreated(id, bookmark) {
     }
     if (!!bookmark.url && bookmark.url != "") {
         //console.log(bookmark);
-        let pin = {
-            "url": bookmark.url,
-            "description": bookmark.title,
-            "time": new Date().toISOString()
-        };
-        saveBookmark(pin, true);
+        let pin = new Pin(bookmark.url, bookmark.title, undefined, new Date().toISOString());
+        pins.addPin(pin);
+        pin.save();
     }
 }
 async function handleContextMenuClick(info, tab) {
+    let pin;
     switch (info.menuItemId) {
         case "linkAddToToRead":
             let result = await browser.tabs.executeScript(undefined, {
                 allFrames: true,
                 code: "document.activeElement.textContent.trim();"
             });
-            saveBookmark({
-                url: info.linkUrl,
-                description: result[0],
-                extended: "Found on " + info.pageUrl,
-                toread: "yes",
-                shared: "no"
-            }, true);
+            pin = new Pin(info.linkUrl, String(result[0]), undefined, undefined, "Found on " + info.pageUrl, "yes", "no");
+            pins.addPin(pin);
+            pin.save();
+            checkDisplayBookmarked();
             break;
         case "tabAddToToRead":
-            saveBookmark({
-                url: tab.url,
-                description: tab.title,
-                toread: "yes",
-                shared: "no"
-            }, true);
+            pin = new Pin(tab.url, tab.title, undefined, undefined, undefined, "yes", "no");
+            pins.addPin(pin);
+            pin.save();
+            checkDisplayBookmarked();
     }
 }
+/**
+ * Is Executed when the addon is installed or updated
+ */
 async function handleAddonInstalled() {
     let token = await browser.storage.local.get(["options", "lastsync", "lastupdate"]);
     if (!token.hasOwnProperty("options")) {
@@ -114,80 +113,41 @@ async function loadApiKey() {
     if (typeof res !== "undefined") {
         apikey = res;
         if (apikey == "") {
-            pins = new Map();
+            pins = new Pins();
         }
     }
 }
 // Only update pin data when the api key was modified
-function handleStorageChanged(changes, area) {
+async function handleStorageChanged(changes, area) {
     if (Object.keys(changes).includes("apikey")) {
-        loadApiKey().then(() => {
-            updatePinData(true);
-        });
-        //console.log("update pin data");
+        await loadApiKey();
+        pins = await Pins.updateList(true);
     }
     else if (Object.keys(changes).includes("pins")) {
-        updatePinVariable();
+        pins = await Pins.updateFromStorage();
     }
     else if (Object.keys(changes).includes("options")) {
         loadOptions();
     }
 }
-async function updatePinVariable() {
-    let res = (await browser.storage.local.get("pins")).pins;
-    pins = new Map(res);
-}
-// Reloads all bookmarks from pinboard. Should be optimized to get a delta...
-// Should listen to return codes
-async function updatePinData(forceUpdate) {
-    let token = await browser.storage.local.get(["lastupdate", "lastsync", "pins"]);
-    // Plus 5 at the end for buffer, in order for the alarm to trigger this usually.
-    if (apikey == "" || (!forceUpdate && !!token.lastsync && new Date(token.lastsync) > new Date(Date.now() - 1000 * 60 * 5 + 5))) {
-        updatePinVariable();
-        return;
+async function checkDisplayBookmarked(tab = undefined) {
+    // console.log("Checking");
+    function checkExists(tab) {
+        if (!!pins && pins.has(tab.url) && options.changeActionbarIcon) {
+            browser.browserAction.setBadgeText({ text: "\u{2713}", tabId: tab.id });
+        }
+        else {
+            browser.browserAction.setBadgeText({ text: "", tabId: tab.id });
+        }
     }
-    let lastUpdate = await connector.getLastUpdate();
-    // To compare Dates: https://stackoverflow.com/a/493018
-    if (!forceUpdate && !!token.pins && token.pins.length > 0 && !!token.lastupdate &&
-        new Date(token.lastupdate).getTime() == lastUpdate.getTime()) {
-        //console.log("Not syncing, no update available");
-        updatePinVariable();
-        return;
-    }
-    // console.log("Loading pins from scratch!");
-    setTimeout(sendRequestAllPins, 1000 * 3, lastUpdate);
-}
-async function sendRequestAllPins(lastUpdate) {
-    let pinsMap = new Map();
-    let json = await connector.getAllPins();
-    json.forEach((pin) => {
-        pinsMap.set(pin.href, {
-            url: pin.href,
-            description: pin.description,
-            tags: pin.tags,
-            time: pin.time,
-            toread: pin.toread,
-            extended: pin.extended,
-            shared: pin.shared
-        });
-    });
-    browser.storage.local.set({ pins: Array.from(pinsMap.entries()) });
-    pins = new Map(Array.from(pinsMap.entries()));
-    browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
-    browser.storage.local.set({ lastsync: new Date().getTime() });
-    /* catch (e) {
-         // Not valid Json, maybe pinboard is down? Nothing to do.
-         setTimeout(updatePinData,nextErrorTimeout);
-         nextErrorTimeout *= 2;
-         return;
-     }*/
-}
-function checkDisplayBookmarked(url, tabId) {
-    if (!!pins && pins.has(url) && options.changeActionbarIcon) {
-        browser.browserAction.setBadgeText({ text: "\u{2713}", tabId: tabId });
+    if (tab === undefined) {
+        let tabs = await (browser.tabs.query({}));
+        for (let tab of tabs) {
+            checkExists(tab);
+        }
     }
     else {
-        browser.browserAction.setBadgeText({ text: "", tabId: tabId });
+        checkExists(tab);
     }
 }
 function handleTabUpdated(tabId, changeInfo, tab) {
@@ -195,80 +155,48 @@ function handleTabUpdated(tabId, changeInfo, tab) {
         return;
     }
     if (changeInfo.status == "loading") {
-        checkDisplayBookmarked(tab.url, tabId);
+        checkDisplayBookmarked(tab);
     }
 }
-async function handleMessage(request, sender, sendResponse) {
+function handleMessage(request, sender, sendResponse) {
+    //Not async because it needs to return true in order for the message port to stay open
     if (request.callFunction == "checkDisplayBookmarked" && !!request.url) {
-        let tabs = await (browser.tabs.query({ currentWindow: true, active: true }));
-        let tab = tabs[0];
-        checkDisplayBookmarked(request.url, tab.id);
+        browser.tabs.query({ currentWindow: true, active: true }).then(tabs => {
+            let tab = tabs[0];
+            checkDisplayBookmarked();
+        });
         return true;
     }
     else if (request.callFunction == "saveBookmark") {
-        let resp = await saveBookmark(request.pin, request.isNewPin);
-        if (typeof sendResponse == "function") {
+        let pin = Pin.fromObject(request.pin);
+        pins.addPin(pin);
+        checkDisplayBookmarked();
+        pin.save().then(resp => {
             sendResponse(resp);
-        }
+        });
         return true;
     }
     else if (request.callFunction == "forceUpdatePins") {
-        updatePinData(true);
-        if (typeof sendResponse == "function") {
+        Pins.updateList(true).then((p) => {
+            pins = p;
             sendResponse("OK");
-        }
+        });
         return true;
     }
     else if (request.callFunction == "deleteBookmark") {
-        let rsponse = await connector.deletePin(request.pin);
-        if (typeof request.pin === "string") {
-            pins.delete(request.pin);
-        }
-        else {
-            if (request.pin.hasOwnProperty("url")) {
-                pins.delete(request.pin.url);
-            }
-            else {
-                pins.delete(request.pin.url);
-            }
-        }
-        let tabs = await browser.tabs.query({ currentWindow: true, active: true });
-        let tab = tabs[0];
-        checkDisplayBookmarked(request.pin.url, tab.id);
-        browser.storage.local.set({ "pins": Array.from(pins.entries()) });
-    }
-    else if (request.callFunction == "getTagSuggestions") {
-        let suggestions = connector.suggestTags(request.url);
-        //console.log(suggestions);
-        sendResponse(suggestions);
+        let pin = Pin.fromObject(request.pin);
+        let response = pin.delete().then(() => {
+            pins.delete(pin.url);
+            checkDisplayBookmarked();
+            sendResponse("OK");
+        });
         return true;
     }
-}
-function addNewPinToMap(pin) {
-    let temp = new Map();
-    temp.set(pin.url, pin);
-    pins = new Map(function* () { yield* temp; yield* pins; }()); //Adds the new entry to the beginning of the map
-    // See e.g. https://stackoverflow.com/a/32001750
-}
-async function saveBookmark(pin, isNewPin) {
-    let json = await connector.addPin(pin);
-    if (json.result_code == "done") {
-        if (isNewPin) {
-            addNewPinToMap(pin);
-        }
-        else {
-            pins.set(pin.url, pin);
-        }
-        browser.storage.local.set({ "pins": Array.from(pins.entries()) });
-        // Update the button in case the site is bookmarked and the setting is active
-        let tabs = await browser.tabs.query({ currentWindow: true, active: true });
-        let tab = tabs[0];
-        checkDisplayBookmarked(pin.url, tab.id);
-        return "done";
-    }
-    else {
-        //console.log("Error. Reply was not 'done'");
-        throw "Oops";
+    else if (request.callFunction == "getTagSuggestions") {
+        connector.suggestTags(request.url).then(suggestions => {
+            sendResponse(suggestions);
+        });
+        return true;
     }
 }
 //# sourceMappingURL=background.js.map
