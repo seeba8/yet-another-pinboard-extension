@@ -4,7 +4,6 @@
 declare let chrome: any;
 
 let pins = new Pins();
-let apikey = "";
 let defaultOptions: any = {
         "urlPrefix": "u",
         "tagPrefix": "t",
@@ -117,23 +116,11 @@ async function loadOptions() {
     else {
         options = res.options;
     }
-    loadApiKey();
-}
-
-async function loadApiKey() {
-    let res = (await browser.storage.local.get("apikey")).apikey;
-    if (typeof res !== "undefined") {
-        apikey = res;
-        if(apikey == "") {
-            pins = new Pins();
-        }
-    }
 }
 
 // Only update pin data when the api key was modified
 async function handleStorageChanged(changes: browser.storage.ChangeDict, area: browser.storage.StorageName) {
     if (Object.keys(changes).includes("apikey")) {
-        await loadApiKey();
         pins = await Pins.updateList(true);
     }
     else if (Object.keys(changes).includes("pins")) {
