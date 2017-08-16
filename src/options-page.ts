@@ -1,5 +1,5 @@
 namespace optionsPage {
-let options: any = {};
+let options: Options;
 // TODO browser.storage.sync
 
 //Elements
@@ -19,42 +19,39 @@ sharedByDefault.addEventListener("change", handleOptionChange);
 saveAPIButton.addEventListener("click", saveAPIKey);
 clearAPIButton.addEventListener("click", clearAPIKey);
 forceReloadButton.addEventListener("click", forcePinReload);
-document.querySelectorAll(".shortcuts").forEach((element) => {
+document.querySelectorAll(".prefixes").forEach((element) => {
     element.addEventListener("change", handleOptionChange);
 });
 
 onLoad();
 
 async function onLoad() {
-    let token = await browser.storage.local.get(["lastsync", "options", "apikey"]);
+    let token = await browser.storage.local.get(["lastsync", "apikey"]);
     forceReloadButton.title = "Last bookmark sync: " + new Date(token.lastsync);
-    options = token.options;
+    options = await Options.getObject();
     if(!! token.apikey && token.apikey != "") {
         toggleAPIKeyInputs();
     }
-    if (!!options.changeActionbarIcon && options.changeActionbarIcon) {
+    if (options.changeActionbarIcon) {
         changeActionbarIcon.checked = true;
     }
-    if(!!options.saveBrowserBookmarks && options.saveBrowserBookmarks) {
+    if(options.saveBrowserBookmarks) {
         saveBrowserBookmarks.checked = true;
     }
-    if(options.hasOwnProperty("sharedByDefault") && options.sharedByDefault) {
+    if(options.sharedByDefault) {
         sharedByDefault.checked = true;
     }
 
-    Object.keys(options).forEach((k, v) => {
-        if (k !== "showBookmarked" && k !== "changeActionbarIcon" && k !== "saveBrowserBookmarks" && k !== "sharedByDefault") {
-            (<HTMLInputElement> document.querySelector('input[name=' + k + ']')).value = options[k];
-        }
-    });
-
+    for(let [k, v] of options.getPrefixes()) {
+        (<HTMLInputElement> document.getElementById(k)).value = v;
+    }
 }
 
 
 
 function forcePinReload() {
     //console.log("forcereload");
-    browser.runtime.sendMessage({"callFunction": "forceUpdatePins"}).then((response) => {return;});
+    browser.runtime.sendMessage({"callFunction": "forceUpdatePins"});
 }
 
 function toggleAPIKeyInputs() {
@@ -100,8 +97,5 @@ function handleOptionChange(e) {
     else {
         options[e.target.name] = e.target.value;
     }
-
-    let o = { options };
-    browser.storage.local.set(o);
 }
 }

@@ -3,7 +3,7 @@
 "use strict";
 declare let chrome: any;
 
-let pins = new Pins();
+let pins: Pins;
 let options: Options;
 // Listeners
 
@@ -17,7 +17,8 @@ browser.alarms.create("checkUpdate", {
 browser.alarms.onAlarm.addListener(onCheckUpdate);
 // Update the pins on startup of the browser
 async function handleStartup() {
-    options = await Options.createObject();
+    options = await Options.getObject();
+    pins = await Pins.getObject();
     chrome.runtime.onMessage.addListener(handleMessage); // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
                                                          // That is possibly caused by browser-polyfill
     browser.storage.onChanged.addListener(handleStorageChanged);
@@ -87,7 +88,6 @@ async function handleContextMenuClick(info: browser.contextMenus.OnClickData, ta
  * Is Executed when the addon is installed or updated
  */
 async function handleAddonInstalled() {
-    options = await Options.createObject();
     let token = await browser.storage.local.get(["lastsync", "lastupdate"]);
     if(!token.hasOwnProperty("lastsync")) {
         token.lastsync = "";
@@ -103,10 +103,10 @@ async function handleStorageChanged(changes: browser.storage.ChangeDict, area: b
         pins = await Pins.updateList(true);
     }
     else if (Object.keys(changes).includes("pins")) {
-        pins = await Pins.updateFromStorage();
+        pins = await Pins.getObject();
     }
     else if (Object.keys(changes).includes("options")) {
-        options = await Options.createObject();
+        options = await Options.getObject();
     }
 }
 

@@ -67,6 +67,20 @@ class Options {
     private save() {
         browser.storage.local.set({"options":this});
     }
+
+    *getPrefixes(): IterableIterator<[string, string]> {
+        yield ["tagPrefix", this.tagPrefix];
+        yield ["titlePrefix", this.titlePrefix];
+        yield ["urlPrefix", this.urlPrefix];
+        yield ["toReadPrefix", this.toReadPrefix];
+    }
+
+    *getBinaryOptions(): IterableIterator<[string,boolean]> {
+        yield ["showBookmarked", this.showBookmarked];
+        yield ["changeActionbarIcon", this.changeActionbarIcon];
+        yield ["saveBrowserBookmarks", this.saveBrowserBookmarks];
+        yield ["sharedByDefault", this.sharedByDefault];
+    }
     private constructor(urlPrefix: string = "u",
         tagPrefix: string = "t",
         titlePrefix: string = "n",
@@ -86,7 +100,7 @@ class Options {
     }
 
 
-    static async createObject() {
+    static async getObject() {
         let o = (await browser.storage.local.get("options"));
         if (o.options === undefined) {
             return new Options();

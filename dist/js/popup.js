@@ -29,7 +29,7 @@ var PopupPage;
         extended: document.getElementById("extended"),
     };
     let offset = 0;
-    let pins = new Pins();
+    let pin;
     let toReadOnly = false;
     filterTextbox.addEventListener("keyup", handleFilterChange);
     bookmarkCurrentButton.addEventListener("click", handleBookmarkCurrent);
@@ -54,10 +54,9 @@ var PopupPage;
     handleStartup();
     reloadPins();
     async function handleStartup() {
-        let token = await browser.storage.local.get(["lastsync", "options"]);
-        if (token.options.hasOwnProperty("sharedByDefault") && token.options.sharedByDefault === true) {
-            editBox.sharedCheckbox.checked = true;
-        }
+        let token = await browser.storage.local.get(["lastsync"]);
+        let options = await Options.getObject();
+        editBox.sharedCheckbox.checked = options.sharedByDefault;
         optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
     }
     function onOptionsLinkClick(e) {
@@ -65,11 +64,11 @@ var PopupPage;
         window.close();
     }
     async function reloadPins() {
-        let token = await browser.storage.local.get(["apikey", "pins"]);
+        let token = await browser.storage.local.get(["apikey"]);
         if (!token.apikey || token.apikey == "") {
             noAPIKeyDiv.classList.toggle("hidden");
         }
-        pins = new Pins(token.pins);
+        pins = await Pins.getObject();
         displayPins();
     }
     function handleDeletePin(e) {

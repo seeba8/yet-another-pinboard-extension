@@ -1,6 +1,9 @@
 ///<reference path="pin.ts" />
 "use strict";
 class Pins extends Map {
+    constructor(i = undefined) {
+        super(i);
+    }
     set(key, pin) {
         super.set(key, pin);
         return this;
@@ -26,13 +29,13 @@ class Pins extends Map {
         let token = await browser.storage.local.get(["apikey", "lastupdate", "lastsync", "pins"]);
         // Plus 5 at the end for buffer, in order for the alarm to trigger this usually.
         if (token.apikey == "" || (!forceUpdate && !!token.lastsync && new Date(token.lastsync) > new Date(Date.now() - 1000 * 60 * 5 + 5))) {
-            return Pins.updateFromStorage();
+            return Pins.getObject();
         }
         let lastUpdate = await connector.getLastUpdate();
         // To compare Dates: https://stackoverflow.com/a/493018
         if (!forceUpdate && !!token.pins && token.pins.length > 0 && !!token.lastupdate &&
             new Date(token.lastupdate).getTime() == lastUpdate.getTime()) {
-            return Pins.updateFromStorage();
+            return Pins.getObject();
         }
         return Pins.sendRequestAllPins(lastUpdate);
     }
@@ -52,9 +55,14 @@ class Pins extends Map {
         browser.storage.local.set({ lastsync: new Date().getTime() });
         return pins;
     }
-    static async updateFromStorage() {
-        let res = (await browser.storage.local.get("pins")).pins;
-        return new Pins(res);
+    static async getObject() {
+        let res = await browser.storage.local.get("pins");
+        if (res.pins === undefined) {
+            return new Pins();
+        }
+        else {
+            return new Pins(res);
+        }
     }
 }
 //# sourceMappingURL=pins.js.map

@@ -30,7 +30,7 @@ const editBox = {
 };
 
 let offset = 0;
-let pins = new Pins();
+let pin: Pins;
 let toReadOnly = false;
 
 filterTextbox.addEventListener("keyup", handleFilterChange);
@@ -58,10 +58,9 @@ handleStartup();
 reloadPins();
 
 async function handleStartup() {
-    let token = await browser.storage.local.get(["lastsync", "options"]);
-    if (token.options.hasOwnProperty("sharedByDefault") && token.options.sharedByDefault === true) {
-        editBox.sharedCheckbox.checked = true;
-    }
+    let token = await browser.storage.local.get(["lastsync"]);
+    let options = await Options.getObject();
+    editBox.sharedCheckbox.checked = options.sharedByDefault;
     optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);  
 }
 
@@ -71,11 +70,11 @@ function onOptionsLinkClick(e) {
 }
 
 async function reloadPins() {
-    let token = await browser.storage.local.get(["apikey", "pins"]);
+    let token = await browser.storage.local.get(["apikey"]);
     if (!token.apikey || token.apikey == "") {
         noAPIKeyDiv.classList.toggle("hidden");
     }
-    pins = new Pins(token.pins);
+    pins = await Pins.getObject();
     displayPins();
 }
 

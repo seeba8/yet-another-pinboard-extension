@@ -58,6 +58,18 @@ class Options {
     save() {
         browser.storage.local.set({ "options": this });
     }
+    *getPrefixes() {
+        yield ["tagPrefix", this.tagPrefix];
+        yield ["titlePrefix", this.titlePrefix];
+        yield ["urlPrefix", this.urlPrefix];
+        yield ["toReadPrefix", this.toReadPrefix];
+    }
+    *getBinaryOptions() {
+        yield ["showBookmarked", this.showBookmarked];
+        yield ["changeActionbarIcon", this.changeActionbarIcon];
+        yield ["saveBrowserBookmarks", this.saveBrowserBookmarks];
+        yield ["sharedByDefault", this.sharedByDefault];
+    }
     constructor(urlPrefix = "u", tagPrefix = "t", titlePrefix = "n", toReadPrefix = "r", showBookmarked = true, changeActionbarIcon = true, saveBrowserBookmarks = false, sharedByDefault = false) {
         this._urlPrefix = urlPrefix;
         this._tagPrefix = tagPrefix;
@@ -68,7 +80,7 @@ class Options {
         this._sharedbyDefault = sharedByDefault;
         this.save();
     }
-    static async createObject() {
+    static async getObject() {
         let o = (await browser.storage.local.get("options"));
         if (o.options === undefined) {
             return new Options();
