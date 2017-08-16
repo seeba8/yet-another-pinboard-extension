@@ -1,94 +1,81 @@
-var optionsPage;
-(function (optionsPage) {
-    let options = {};
-    // TODO browser.storage.sync
-    //Elements
-    const changeActionbarIcon = document.getElementById('changeActionbarIcon');
-    const sharedByDefault = document.getElementById("sharedByDefault");
-    const saveBrowserBookmarks = document.getElementById("saveBrowserBookmarks");
-    const apiKeyInput = document.getElementById("apikey");
-    const saveAPIButton = document.getElementById("saveapi");
-    const clearAPIButton = document.getElementById("clearapi");
-    const forceReloadButton = document.getElementById("forcereload");
-    //Event listeners
-    changeActionbarIcon.addEventListener("change", handleOptionChange);
-    saveBrowserBookmarks.addEventListener("change", handleOptionChange);
-    sharedByDefault.addEventListener("change", handleOptionChange);
-    saveAPIButton.addEventListener("click", saveAPIKey);
-    clearAPIButton.addEventListener("click", clearAPIKey);
-    forceReloadButton.addEventListener("click", forcePinReload);
-    document.querySelectorAll(".shortcuts").forEach((element) => {
-        element.addEventListener("change", handleOptionChange);
-    });
-    onLoad();
-    async function onLoad() {
-        let token = await browser.storage.local.get(["lastsync", "options", "apikey"]);
-        forceReloadButton.title = "Last bookmark sync: " + new Date(token.lastsync);
-        options = token.options;
-        if (!!token.apikey && token.apikey != "") {
-            toggleAPIKeyInputs();
-        }
-        if (!!options.changeActionbarIcon && options.changeActionbarIcon) {
-            changeActionbarIcon.checked = true;
-        }
-        if (!!options.saveBrowserBookmarks && options.saveBrowserBookmarks) {
-            saveBrowserBookmarks.checked = true;
-        }
-        if (options.hasOwnProperty("sharedByDefault") && options.sharedByDefault) {
-            sharedByDefault.checked = true;
-        }
-        Object.keys(options).forEach((k, v) => {
-            if (k !== "showBookmarked" && k !== "changeActionbarIcon" && k !== "saveBrowserBookmarks" && k !== "sharedByDefault") {
-                document.querySelector('input[name=' + k + ']').value = options[k];
-            }
-        });
+class Options {
+    set tagPrefix(tagPrefix) {
+        this._tagPrefix = tagPrefix;
+        this.save();
     }
-    function forcePinReload() {
-        //console.log("forcereload");
-        browser.runtime.sendMessage({ "callFunction": "forceUpdatePins" }).then((response) => { return; });
+    get tagPrefix() {
+        return this._tagPrefix;
     }
-    function toggleAPIKeyInputs() {
-        document.getElementById("apikey").classList.toggle("hidden");
-        document.getElementById("saveapi").classList.toggle("hidden");
-        document.getElementById("clearapi").classList.toggle("hidden");
-        document.getElementById("forcereload").classList.toggle("hidden");
+    set urlPrefix(urlPrefix) {
+        this._urlPrefix = urlPrefix;
+        this.save();
     }
-    function clearAPIKey() {
-        browser.storage.local.set({ "apikey": "", "pins": [], "lastupdate": "" });
-        toggleAPIKeyInputs();
+    get urlPrefix() {
+        return this._urlPrefix;
     }
-    async function saveAPIKey() {
-        // Call pinboard to check if the API key is working
-        let headers = new Headers({ "Accept": "application/json" });
-        let apikey = apiKeyInput.value;
-        let init = { method: 'GET', headers };
-        let request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" + apikey + "&format=json", init);
-        let response = await fetch(request);
-        if (!response) {
-            //console.log("Error while parsing result");
-            return;
-        }
-        let json = await response.json();
-        if (json.result == apikey.split(":")[1]) {
-            browser.storage.local.set({ apikey: apiKeyInput.value });
-            //console.log("Saved successfully");
-            apiKeyInput.value = "";
-            toggleAPIKeyInputs();
+    set titlePrefix(titlePrefix) {
+        this._titlePrefix = titlePrefix;
+        this.save();
+    }
+    get titlePrefix() {
+        return this._titlePrefix;
+    }
+    set toReadPrefix(toReadPrefix) {
+        this._toReadPrefix = toReadPrefix;
+        this.save();
+    }
+    get toReadPrefix() {
+        return this._toReadPrefix;
+    }
+    set showBookmarked(showBookmarked) {
+        this._showBookmarked = showBookmarked;
+        this.save();
+    }
+    get showBookmarked() {
+        return this._showBookmarked;
+    }
+    set changeActionbarIcon(changeActionbarIcon) {
+        this._changeActionbarIcon = changeActionbarIcon;
+        this.save();
+    }
+    get changeActionbarIcon() {
+        return this._changeActionbarIcon;
+    }
+    set saveBrowserBookmarks(saveBrowserBookmarks) {
+        this._saveBrowserBookmarks = saveBrowserBookmarks;
+        this.save();
+    }
+    get saveBrowserBookmarks() {
+        return this._saveBrowserBookmarks;
+    }
+    set sharedByDefault(sharedbyDefault) {
+        this._sharedbyDefault = sharedbyDefault;
+        this.save();
+    }
+    get sharedByDefault() {
+        return this._sharedbyDefault;
+    }
+    save() {
+        browser.storage.local.set({ "options": this });
+    }
+    constructor(urlPrefix = "u", tagPrefix = "t", titlePrefix = "n", toReadPrefix = "r", showBookmarked = true, changeActionbarIcon = true, saveBrowserBookmarks = false, sharedByDefault = false) {
+        this._urlPrefix = urlPrefix;
+        this._tagPrefix = tagPrefix;
+        this._titlePrefix = titlePrefix;
+        this._toReadPrefix = toReadPrefix;
+        this._showBookmarked = showBookmarked;
+        this._changeActionbarIcon = changeActionbarIcon;
+        this._sharedbyDefault = sharedByDefault;
+        this.save();
+    }
+    static async createObject() {
+        let o = (await browser.storage.local.get("options"));
+        if (o.options === undefined) {
+            return new Options();
         }
         else {
-            //console.log("Error while parsing result");
-            return;
+            return new Options(o.urlPrefix || o._urlPrefix, o.tagPrefix || o._tagPrefix, o.titlePrefix || o._titlePrefix, o.toReadPrefix || o._toReadPrefix, o.showBookmarked || o._showBookmarked, o.changeActionbarIcon || o._changeActionbarIcon, o.saveBrowserBookmarks || o._saveBrowserBookmarks, o.sharedbyDefault || o._saveBrowserBookmarks);
         }
     }
-    function handleOptionChange(e) {
-        if (e.target.type == "checkbox") {
-            options[e.target.name] = e.target.checked;
-        }
-        else {
-            options[e.target.name] = e.target.value;
-        }
-        let o = { options };
-        browser.storage.local.set(o);
-    }
-})(optionsPage || (optionsPage = {}));
+}
 //# sourceMappingURL=options.js.map

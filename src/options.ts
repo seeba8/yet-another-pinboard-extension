@@ -1,107 +1,105 @@
-namespace optionsPage {
-let options: any = {};
-// TODO browser.storage.sync
-
-//Elements
-const changeActionbarIcon = <HTMLInputElement> document.getElementById('changeActionbarIcon');
-const sharedByDefault = <HTMLInputElement> document.getElementById("sharedByDefault");
-const saveBrowserBookmarks = <HTMLInputElement> document.getElementById("saveBrowserBookmarks");
-const apiKeyInput = <HTMLInputElement> document.getElementById("apikey");
-
-const saveAPIButton = <HTMLButtonElement> document.getElementById("saveapi");
-const clearAPIButton = <HTMLButtonElement> document.getElementById("clearapi");
-const forceReloadButton = <HTMLButtonElement> document.getElementById("forcereload");
-
-//Event listeners
-changeActionbarIcon.addEventListener("change", handleOptionChange);
-saveBrowserBookmarks.addEventListener("change", handleOptionChange);
-sharedByDefault.addEventListener("change", handleOptionChange);
-saveAPIButton.addEventListener("click", saveAPIKey);
-clearAPIButton.addEventListener("click", clearAPIKey);
-forceReloadButton.addEventListener("click", forcePinReload);
-document.querySelectorAll(".shortcuts").forEach((element) => {
-    element.addEventListener("change", handleOptionChange);
-});
-
-onLoad();
-
-async function onLoad() {
-    let token = await browser.storage.local.get(["lastsync", "options", "apikey"]);
-    forceReloadButton.title = "Last bookmark sync: " + new Date(token.lastsync);
-    options = token.options;
-    if(!! token.apikey && token.apikey != "") {
-        toggleAPIKeyInputs();
+class Options {
+    private _tagPrefix: string;
+    private _urlPrefix: string;
+    private _titlePrefix: string;
+    private _toReadPrefix: string;
+    private _showBookmarked: boolean;
+    private _changeActionbarIcon: boolean;
+    private _saveBrowserBookmarks: boolean;
+    private _sharedbyDefault: boolean;
+    set tagPrefix (tagPrefix){
+        this._tagPrefix = tagPrefix;
+        this.save();
     }
-    if (!!options.changeActionbarIcon && options.changeActionbarIcon) {
-        changeActionbarIcon.checked = true;
+    get tagPrefix() {
+        return this._tagPrefix;
     }
-    if(!!options.saveBrowserBookmarks && options.saveBrowserBookmarks) {
-        saveBrowserBookmarks.checked = true;
+    set urlPrefix (urlPrefix){
+        this._urlPrefix = urlPrefix;
+        this.save();
     }
-    if(options.hasOwnProperty("sharedByDefault") && options.sharedByDefault) {
-        sharedByDefault.checked = true;
+    get urlPrefix() {
+        return this._urlPrefix;
+    }
+    set titlePrefix(titlePrefix) {
+        this._titlePrefix = titlePrefix;
+        this.save();
+    }
+    get titlePrefix() {
+        return this._titlePrefix;
+    }
+    set toReadPrefix(toReadPrefix) {
+        this._toReadPrefix = toReadPrefix;
+        this.save();
+    }
+    get toReadPrefix() {
+        return this._toReadPrefix;
+    }
+    set showBookmarked(showBookmarked) {
+        this._showBookmarked = showBookmarked;
+        this.save();
+    }
+    get showBookmarked() {
+        return this._showBookmarked;
+    }
+    set changeActionbarIcon(changeActionbarIcon) {
+        this._changeActionbarIcon = changeActionbarIcon;
+        this.save();
+    }
+    get changeActionbarIcon() {
+        return this._changeActionbarIcon;
+    }
+    set saveBrowserBookmarks(saveBrowserBookmarks) {
+        this._saveBrowserBookmarks = saveBrowserBookmarks;
+        this.save();
+    }
+    get saveBrowserBookmarks() {
+        return this._saveBrowserBookmarks;
+    }
+    set sharedByDefault(sharedbyDefault) {
+        this._sharedbyDefault = sharedbyDefault;
+        this.save();
+    }
+    get sharedByDefault() {
+        return this._sharedbyDefault;
     }
 
-    Object.keys(options).forEach((k, v) => {
-        if (k !== "showBookmarked" && k !== "changeActionbarIcon" && k !== "saveBrowserBookmarks" && k !== "sharedByDefault") {
-            (<HTMLInputElement> document.querySelector('input[name=' + k + ']')).value = options[k];
+    private save() {
+        browser.storage.local.set({"options":this});
+    }
+    private constructor(urlPrefix: string = "u",
+        tagPrefix: string = "t",
+        titlePrefix: string = "n",
+        toReadPrefix: string = "r",
+        showBookmarked: boolean = true,
+        changeActionbarIcon: boolean = true,
+        saveBrowserBookmarks: boolean = false,
+        sharedByDefault: boolean = false) {
+            this._urlPrefix = urlPrefix;
+            this._tagPrefix = tagPrefix;
+            this._titlePrefix = titlePrefix;
+            this._toReadPrefix = toReadPrefix;
+            this._showBookmarked = showBookmarked;
+            this._changeActionbarIcon = changeActionbarIcon;
+            this._sharedbyDefault = sharedByDefault;
+            this.save();
+    }
+
+
+    static async createObject() {
+        let o = (await browser.storage.local.get("options"));
+        if (o.options === undefined) {
+            return new Options();
         }
-    });
-
-}
-
-
-
-function forcePinReload() {
-    //console.log("forcereload");
-    browser.runtime.sendMessage({"callFunction": "forceUpdatePins"}).then((response) => {return;});
-}
-
-function toggleAPIKeyInputs() {
-    document.getElementById("apikey").classList.toggle("hidden");
-    document.getElementById("saveapi").classList.toggle("hidden");
-    document.getElementById("clearapi").classList.toggle("hidden");
-    document.getElementById("forcereload").classList.toggle("hidden");
-}
-
-function clearAPIKey() {
-    browser.storage.local.set({"apikey" : "", "pins": [], "lastupdate": ""});
-    toggleAPIKeyInputs();
-}
-
-async function saveAPIKey() {
-    // Call pinboard to check if the API key is working
-    let headers = new Headers({ "Accept": "application/json" });
-    let apikey = apiKeyInput.value;
-    let init = { method: 'GET', headers };
-    let request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" + apikey + "&format=json", init);
-    let response = await fetch(request);
-    if (!response) {
-        //console.log("Error while parsing result");
-        return;
+        else {
+            return new Options(o.urlPrefix || o._urlPrefix, 
+                o.tagPrefix|| o._tagPrefix, 
+                o.titlePrefix || o._titlePrefix, 
+                o.toReadPrefix || o._toReadPrefix, 
+                o.showBookmarked || o._showBookmarked, 
+                o.changeActionbarIcon || o._changeActionbarIcon, 
+                o.saveBrowserBookmarks || o._saveBrowserBookmarks, 
+                o.sharedbyDefault || o._saveBrowserBookmarks);
+        }
     }
-    let json = await response.json();
-    if (json.result == apikey.split(":")[1]) {
-        browser.storage.local.set({apikey: apiKeyInput.value});
-        //console.log("Saved successfully");
-        apiKeyInput.value = "";
-        toggleAPIKeyInputs();
-    }
-    else {
-        //console.log("Error while parsing result");
-        return;
-    }
-}
-
-function handleOptionChange(e) {
-    if (e.target.type == "checkbox") {
-        options[e.target.name] = e.target.checked;
-    }
-    else {
-        options[e.target.name] = e.target.value;
-    }
-
-    let o = { options };
-    browser.storage.local.set(o);
-}
 }
