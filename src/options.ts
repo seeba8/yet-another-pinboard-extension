@@ -1,10 +1,5 @@
 namespace optionsPage {
-let options: Options = {};
-declare interface Options {
-    changeActionbarIcon?: boolean;
-    saveBrowserBookmarks?: boolean;
-    sharedByDefault?: boolean;
-}
+let options: any = {};
 // TODO browser.storage.sync
 
 //Elements

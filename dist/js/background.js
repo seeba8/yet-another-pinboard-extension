@@ -2,18 +2,7 @@
 ///<reference path="pin.ts" />
 "use strict";
 let pins = new Pins();
-let apikey = "";
-let defaultOptions = {
-    "urlPrefix": "u",
-    "tagPrefix": "t",
-    "titlePrefix": "n",
-    "toReadPrefix": "r",
-    "showBookmarked": true,
-    "changeActionbarIcon": true,
-    "saveBrowserBookmarks": false,
-    "sharedByDefault": false
-};
-let options = defaultOptions;
+let options;
 // Listeners
 //browser.runtime.onStartup.addListener(handleStartup);
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
@@ -24,6 +13,7 @@ browser.alarms.create("checkUpdate", {
 browser.alarms.onAlarm.addListener(onCheckUpdate);
 // Update the pins on startup of the browser
 async function handleStartup() {
+    options = await Options.createObject();
     chrome.runtime.onMessage.addListener(handleMessage); // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
     // That is possibly caused by browser-polyfill
     browser.storage.onChanged.addListener(handleStorageChanged);
@@ -45,7 +35,6 @@ async function handleStartup() {
     });
     browser.browserAction.setBadgeBackgroundColor({ color: "#333" });
     browser.contextMenus.onClicked.addListener(handleContextMenuClick);
-    loadOptions();
     pins = await Pins.updateList();
 }
 async function onCheckUpdate(alarm) {
@@ -88,46 +77,25 @@ async function handleContextMenuClick(info, tab) {
  * Is Executed when the addon is installed or updated
  */
 async function handleAddonInstalled() {
-    let token = await browser.storage.local.get(["options", "lastsync", "lastupdate"]);
-    if (!token.hasOwnProperty("options")) {
-        token.options = defaultOptions;
-        options = defaultOptions;
+    options = await Options.createObject();
+    let token = await browser.storage.local.get(["lastsync", "lastupdate"]);
+    if (!token.hasOwnProperty("lastsync")) {
         token.lastsync = "";
         token.lastupdate = "";
         browser.storage.local.set(token);
     }
     handleStartup();
 }
-async function loadOptions() {
-    let res = await browser.storage.local.get("options");
-    if (!res.options) {
-        options = defaultOptions;
-    }
-    else {
-        options = res.options;
-    }
-    loadApiKey();
-}
-async function loadApiKey() {
-    let res = (await browser.storage.local.get("apikey")).apikey;
-    if (typeof res !== "undefined") {
-        apikey = res;
-        if (apikey == "") {
-            pins = new Pins();
-        }
-    }
-}
 // Only update pin data when the api key was modified
 async function handleStorageChanged(changes, area) {
     if (Object.keys(changes).includes("apikey")) {
-        await loadApiKey();
         pins = await Pins.updateList(true);
     }
     else if (Object.keys(changes).includes("pins")) {
         pins = await Pins.updateFromStorage();
     }
     else if (Object.keys(changes).includes("options")) {
-        loadOptions();
+        options = await Options.createObject();
     }
 }
 async function checkDisplayBookmarked(tab = undefined) {
