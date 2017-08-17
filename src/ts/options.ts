@@ -1,12 +1,20 @@
 class Options {
-    set tagPrefix(tagPrefix) {
+    private _tagPrefix: string;
+    private _urlPrefix: string;
+    private _titlePrefix: string;
+    private _toReadPrefix: string;
+    private _showBookmarked: boolean;
+    private _changeActionbarIcon: boolean;
+    private _saveBrowserBookmarks: boolean;
+    private _sharedbyDefault: boolean;
+    set tagPrefix(tagPrefix){
         this._tagPrefix = tagPrefix;
         this.save();
     }
     get tagPrefix() {
         return this._tagPrefix;
     }
-    set urlPrefix(urlPrefix) {
+    set urlPrefix(urlPrefix){
         this._urlPrefix = urlPrefix;
         this.save();
     }
@@ -55,39 +63,56 @@ class Options {
     get sharedByDefault() {
         return this._sharedbyDefault;
     }
-    save() {
-        browser.storage.local.set({ "options": this });
+
+    private save() {
+        browser.storage.local.set({options: this});
     }
-    *getPrefixes() {
+
+    public *getPrefixes(): IterableIterator<[string, string]> {
         yield ["tagPrefix", this.tagPrefix];
         yield ["titlePrefix", this.titlePrefix];
         yield ["urlPrefix", this.urlPrefix];
         yield ["toReadPrefix", this.toReadPrefix];
     }
-    *getBinaryOptions() {
+
+    public *getBinaryOptions(): IterableIterator<[string, boolean]> {
         yield ["showBookmarked", this.showBookmarked];
         yield ["changeActionbarIcon", this.changeActionbarIcon];
         yield ["saveBrowserBookmarks", this.saveBrowserBookmarks];
         yield ["sharedByDefault", this.sharedByDefault];
     }
-    constructor(urlPrefix = "u", tagPrefix = "t", titlePrefix = "n", toReadPrefix = "r", showBookmarked = true, changeActionbarIcon = true, saveBrowserBookmarks = false, sharedByDefault = false) {
-        this._urlPrefix = urlPrefix;
-        this._tagPrefix = tagPrefix;
-        this._titlePrefix = titlePrefix;
-        this._toReadPrefix = toReadPrefix;
-        this._showBookmarked = showBookmarked;
-        this._changeActionbarIcon = changeActionbarIcon;
-        this._sharedbyDefault = sharedByDefault;
-        this.save();
+    private constructor(urlPrefix: string = "u",
+                        tagPrefix: string = "t",
+                        titlePrefix: string = "n",
+                        toReadPrefix: string = "r",
+                        showBookmarked: boolean = true,
+                        changeActionbarIcon: boolean = true,
+                        saveBrowserBookmarks: boolean = false,
+                        sharedByDefault: boolean = false) {
+            this._urlPrefix = urlPrefix;
+            this._tagPrefix = tagPrefix;
+            this._titlePrefix = titlePrefix;
+            this._toReadPrefix = toReadPrefix;
+            this._showBookmarked = showBookmarked;
+            this._changeActionbarIcon = changeActionbarIcon;
+            this._sharedbyDefault = sharedByDefault;
+            this.save();
     }
-    static async getObject() {
-        let o = (await browser.storage.local.get("options"));
+
+    public static async getObject() {
+        const o = (await browser.storage.local.get("options"));
         if (o.options === undefined) {
             return new Options();
         }
         else {
-            return new Options(o.urlPrefix || o._urlPrefix, o.tagPrefix || o._tagPrefix, o.titlePrefix || o._titlePrefix, o.toReadPrefix || o._toReadPrefix, o.showBookmarked || o._showBookmarked, o.changeActionbarIcon || o._changeActionbarIcon, o.saveBrowserBookmarks || o._saveBrowserBookmarks, o.sharedbyDefault || o._saveBrowserBookmarks);
+            return new Options(o.urlPrefix || o._urlPrefix,
+                o.tagPrefix || o._tagPrefix,
+                o.titlePrefix || o._titlePrefix,
+                o.toReadPrefix || o._toReadPrefix,
+                o.showBookmarked || o._showBookmarked,
+                o.changeActionbarIcon || o._changeActionbarIcon,
+                o.saveBrowserBookmarks || o._saveBrowserBookmarks,
+                o.sharedbyDefault || o._saveBrowserBookmarks);
         }
     }
 }
-//# sourceMappingURL=options.js.map

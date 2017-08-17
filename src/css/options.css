@@ -1,0 +1,17 @@
+.wrapper {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    grid-row-gap: 1em;  
+}
+body{
+    font-family: sans-serif;
+}
+
+.checkboxes {
+    /* In Firefox Dev Edition 55.0b3, this is necessary, otherwise the checkbox is not shown. */
+    display: inherit;
+}
+
+.hidden {
+    display: none;
+}

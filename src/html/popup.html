@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <link rel="stylesheet" type="text/css" href="../css/popup.css">
+  <script src="../webextension-polyfill/browser-polyfill.min.js"></script>
+</head>
+
+<body>
+  <div id="toprow">
+    <div><a id="pinboardlink" href="https://pinboard.in" target="_new">Pinboard</a></div>
+    <div><a href="#" class="centerbuttons" id="readlatercurrent">Read later</a></div>
+    <div><a href="#" class="centerbuttons" id="bookmarkcurrent">Pin current page</a></div>
+    <div><a href="#" class="optionslink" id="optionslink">Options</a></div>
+  </div>
+  <form class="searchform" id="searchform">
+    <input type="text" id="filter" placeholder="Search" class="search" required />
+    <button type="reset" class="resetbutton">X</button>
+    <a href="#" id="filterToRead"title="Show only to read">&#x1f441;</a>
+  </form>
+  <div id="prevnext">
+    <a href="#" id="firstPage">&laquo;</a>
+    <a href="#" id="prevPage">&lt;</a>
+    <a href="#" id="pageNo1">1</a>
+    <a href="#" id="pageNo2">2</a>
+    <a href="#" id="pageNo3">3</a>
+    <a href="#" id="pageNo4">4</a>
+    <a href="#" id="pageNo5">5</a>
+    <a href="#" id="nextPage">&gt;</a>
+    <a href="#" id="lastPage">&raquo;</a>
+
+  </div>
+  <div id="listdiv">
+
+    <ul id="bookmarks">
+
+    </ul>
+  </div>
+  <div id="greyout" class="hidden"></div>
+  <div id="noapikey" class="hidden">
+    <h1>Your API key is missing.</h1>
+    <p>Go to the <a class="optionslink" id="optionspage" href="#">options</a> to set your API key.</p>
+  </div>
+
+  <div id="editcontainer">
+    <div id="editwrapper" class="hidden">
+      <form id="editform">
+        <div>
+          <div>
+            <label for="description">Title</label>
+          </div>
+          <div>
+            <input maxlength="255" type="text" id="description" />
+          </div>
+        </div>
+        <div>
+          <div>
+            <label for="url">URL</label>
+          </div>
+          <div>
+            <input type="text" id="url" readonly="readonly" />
+          </div>
+        </div>
+        <div>
+          <div>
+            <label for="extended">Description</label>
+          </div>
+          <div>
+            <textarea maxlength="65536" id="extended"></textarea>
+          </div>
+        </div>
+        <div>
+          <div>
+            <label for="tags">Tags</label>
+            <div id="tagsuggestions">
+            </div>
+          </div>
+          <div>
+            <input type="text" id="tags" />
+          </div>
+        </div>
+        <div>
+          <label for="toread">To read </label>
+          <input type="checkbox" id="toread" name="toread" checked="checked" value="To read" />
+          <label for="shared">Shared </label>
+          <input type="checkbox" id="shared" name="shared" value="Shared" />
+          <!--<button id="deleteBookmark" >Delete</button>-->
+          <button type="submit">Save</button>
+          <button id="delete" class="delete">Delete</button>
+        </div>
+      </form>
+    </div>
+  </div>
+  <script src="../js/pin.js"></script>
+  <script src="../js/pins.js"></script>
+  <script src="./js/options.js"></script>
+  <script src="../js/popup.js"></script>
+</body>
+
+</html>

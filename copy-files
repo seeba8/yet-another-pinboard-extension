@@ -1,0 +1,1 @@
+cp ./node-modules/webextension-polyfill/dist/*.min.js* ./dist/js/;

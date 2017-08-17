@@ -1,0 +1,40 @@
+{
+  "name": "yet-another-pinboard-extension",
+  "version": "1.2.6",
+  "description": "Browser extension for pinboard (including omnibar search and actionbar button popup)",
+  "main": "/dist/manifest.json",
+  "dependencies": {
+    "web-ext-types": "^0.3.1",
+    "webextension-polyfill": "^0.1.1"
+  },
+  "devDependencies": {
+    "tslint": "^5.6.0",
+    "typescript": "^2.4.2",
+    "web-ext-types": "^0.3.1"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "copytodist": "rmdir /S /Q .\\dist & mkdir .\\dist\\js\\webextension-polyfill & mkdir .\\dist\\html && mkdir .\\dist\\css & mkdir .\\dist\\img & copy .\\node_modules\\webextension-polyfill\\dist\\*.min.js* .\\dist\\js\\webextension-polyfill & copy .\\src\\img\\*.* .\\dist\\img & copy .\\src\\html\\*.* .\\dist\\html & copy .\\src\\css\\*.* .\\dist\\css & copy .\\src\\manifest.json .\\dist\\manifest.json" ,
+    "lint": "tslint --project tsconfig.json --fix",
+    "tsc": "tsc",
+    "copyandbuild": "npm run copytodist && npm run lint && npm run tsc",
+    "build": "npm run lint && npm run tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seeba8/yet-another-pinboard-extension.git"
+  },
+  "keywords": [
+    "browser",
+    "extension",
+    "pinboard",
+    "firefox",
+    "chrome"
+  ],
+  "author": "seeba8",
+  "license": "GPL-3.0",
+  "bugs": {
+    "url": "https://github.com/seeba8/yet-another-pinboard-extension/issues"
+  },
+  "homepage": "https://github.com/seeba8/yet-another-pinboard-extension#readme"
+}

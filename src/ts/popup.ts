@@ -1,32 +1,32 @@
 namespace PopupPage {
 // Elements
-const bookmarkList = <HTMLUListElement> document.getElementById("bookmarks");
-const filterTextbox = <HTMLInputElement> document.getElementById("filter");
-const searchForm = <HTMLFormElement> document.getElementById("searchform");
+const bookmarkList = document.getElementById("bookmarks") as HTMLUListElement;
+const filterTextbox = document.getElementById("filter") as HTMLInputElement;
+const searchForm = document.getElementById("searchform") as HTMLFormElement;
 
-const bookmarkCurrentButton = <HTMLLinkElement> document.getElementById("bookmarkcurrent");
-const readLaterCurrentButton = <HTMLLinkElement> document.getElementById("readlatercurrent");
-const filterToReadButton = <HTMLLinkElement> document.getElementById("filterToRead");
-const greyoutDiv = <HTMLDivElement> document.getElementById("greyout");
-const editWrapper = <HTMLDivElement> document.getElementById("editwrapper");
-const optionsButton = <HTMLLinkElement> document.getElementById("optionslink");
-const editForm = <HTMLFormElement> document.getElementById("editform");
-const noAPIKeyDiv = <HTMLDivElement> document.getElementById("noapikey");
-const tagSuggestionsDiv = <HTMLDivElement> document.getElementById("tagsuggestions");
+const bookmarkCurrentButton = document.getElementById("bookmarkcurrent") as HTMLLinkElement;
+const readLaterCurrentButton = document.getElementById("readlatercurrent") as HTMLLinkElement;
+const filterToReadButton = document.getElementById("filterToRead") as HTMLLinkElement;
+const greyoutDiv = document.getElementById("greyout") as HTMLDivElement;
+const editWrapper = document.getElementById("editwrapper") as HTMLDivElement;
+const optionsButton = document.getElementById("optionslink") as HTMLLinkElement;
+const editForm = document.getElementById("editform") as HTMLFormElement;
+const noAPIKeyDiv = document.getElementById("noapikey") as HTMLDivElement;
+const tagSuggestionsDiv = document.getElementById("tagsuggestions") as HTMLDivElement;
 const prevNext = {
-    div: <HTMLDivElement> document.getElementById("prevnext"),
-    prevPage: <HTMLLinkElement> document.getElementById("prevPage"),
-    nextPage: <HTMLLinkElement> document.getElementById("nextPage"),
-    firstPage: <HTMLLinkElement> document.getElementById("firstPage"),
-    lastPage: <HTMLLinkElement> document.getElementById("lastPage"),
+    div: document.getElementById("prevnext") as HTMLDivElement,
+    prevPage: document.getElementById("prevPage") as HTMLLinkElement,
+    nextPage: document.getElementById("nextPage") as HTMLLinkElement,
+    firstPage: document.getElementById("firstPage") as HTMLLinkElement,
+    lastPage: document.getElementById("lastPage") as HTMLLinkElement,
 };
 const editBox = {
-    sharedCheckbox: <HTMLInputElement> document.getElementById("shared"),
-    toReadCheckbox: <HTMLInputElement>  document.getElementById("toread"),
-    URL: <HTMLInputElement> document.getElementById("url"),
-    description:<HTMLInputElement> document.getElementById("description"),
-    tags: <HTMLInputElement> document.getElementById("tags"),
-    extended: <HTMLTextAreaElement> document.getElementById("extended"),
+    sharedCheckbox: document.getElementById("shared") as HTMLInputElement,
+    toReadCheckbox: document.getElementById("toread") as HTMLInputElement,
+    URL: document.getElementById("url") as HTMLInputElement,
+    description: document.getElementById("description") as HTMLInputElement,
+    tags: document.getElementById("tags") as HTMLInputElement,
+    extended: document.getElementById("extended") as HTMLTextAreaElement,
 };
 
 let offset = 0;
@@ -50,7 +50,7 @@ searchForm.addEventListener("reset", (e) => {
 document.querySelectorAll(".optionslink").forEach((element) => {
     element.addEventListener("click", onOptionsLinkClick);
 });
-Array.from(prevNext.div.children).forEach(element => {
+Array.from(prevNext.div.children).forEach((element) => {
     element.addEventListener("click", handlePrevNextClick);
 });
 
@@ -58,10 +58,10 @@ handleStartup();
 reloadPins();
 
 async function handleStartup() {
-    let token = await browser.storage.local.get(["lastsync"]);
-    let options = await Options.getObject();
+    const token = await browser.storage.local.get(["lastsync"]);
+    const options = await Options.getObject();
     editBox.sharedCheckbox.checked = options.sharedByDefault;
-    optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);  
+    optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
 }
 
 function onOptionsLinkClick(e) {
@@ -70,7 +70,7 @@ function onOptionsLinkClick(e) {
 }
 
 async function reloadPins() {
-    let token = await browser.storage.local.get(["apikey"]);
+    const token = await browser.storage.local.get(["apikey"]);
     if (!token.apikey || token.apikey == "") {
         noAPIKeyDiv.classList.toggle("hidden");
     }
@@ -81,20 +81,20 @@ async function reloadPins() {
 function handleDeletePin(e) {
     e.preventDefault();
     browser.runtime.sendMessage({
-        "callFunction": "deleteBookmark",
-        "pin":pins.get(editBox.URL.value)
+        callFunction: "deleteBookmark",
+        pin: pins.get(editBox.URL.value),
     });
     pins.delete(editBox.URL.value);
     displayPins();
     editWrapper.classList.toggle("hidden");
-    greyoutDiv.classList.toggle("hidden");    
+    greyoutDiv.classList.toggle("hidden");
 }
 
 async function handleReadLaterCurrent(e) {
     e.preventDefault();
-    let tabs = await browser.tabs.query({currentWindow: true, active: true});
-    let tab = tabs[0];
-    let pin = new Pin(tab.url, tab.title,undefined,undefined,undefined,"yes","no");
+    const tabs = await browser.tabs.query({currentWindow: true, active: true});
+    const tab = tabs[0];
+    const pin = new Pin(tab.url, tab.title, undefined, undefined, undefined, "yes", "no");
     addPin(pin, true);
 }
 
@@ -102,17 +102,17 @@ async function handleBookmarkCurrent(e) {
     e.preventDefault();
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
-    let tab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
+    const tab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
     editBox.description.value = tab.title;
     editBox.URL.value = tab.url;
     editBox.toReadCheckbox.checked = false;
     editBox.tags.value = "";
-    let tagSuggestions= await browser.runtime.sendMessage({
-        "callFunction": "getTagSuggestions",
-        "url": tab.url
+    const tagSuggestions = await browser.runtime.sendMessage({
+        callFunction: "getTagSuggestions",
+        url: tab.url,
     });
-    tagSuggestions.forEach(tag => {
-        let t = document.createElement("a");
+    tagSuggestions.forEach((tag) => {
+        const t = document.createElement("a");
         t.addEventListener("click", handleAddTag);
         t.appendChild(document.createTextNode(tag));
         tagSuggestionsDiv.appendChild(t);
@@ -126,13 +126,13 @@ function handleAddTag(e) {
 }
 
 function preparePrevNext(numberPins) {
-    Array.from(prevNext.div.children).forEach(element => {
+    Array.from(prevNext.div.children).forEach((element) => {
         element.classList.remove("linkdisabled");
         element.classList.remove("currentpage");
     });
-    let firstPage = Math.min(Math.max(1, offset / 100 - 1), Math.max(Math.ceil(numberPins / 100) - 4, 1));
+    const firstPage = Math.min(Math.max(1, offset / 100 - 1), Math.max(Math.ceil(numberPins / 100) - 4, 1));
     for (let i = 0; i < 5; i++) {
-        let curElement = document.getElementById("pageNo" + (i + 1).toString());
+        const curElement = document.getElementById("pageNo" + (i + 1).toString());
         curElement.textContent = String(firstPage + i);
         curElement.dataset.offset = String((firstPage + i - 1) * 100);
         if (curElement.dataset.offset === String(offset)) {
@@ -158,7 +158,7 @@ function preparePrevNext(numberPins) {
 }
 
 function handlePrevNextClick(e) {
-    offset = parseInt(e.target.dataset["offset"]);
+    offset = parseInt(e.target.dataset.offset);
     displayPins();
 }
 
@@ -184,20 +184,20 @@ function handleSubmit(e) {
 function addPin(pin, newPin) {
     pins.addPin(pin);
     browser.runtime.sendMessage({
-        "callFunction": "saveBookmark",
-        "pin": pin
+        callFunction: "saveBookmark",
+        pin: pin,
     });
     displayPins();
 }
 
 function displayPins() {
-    let filter = filterTextbox.value.toLowerCase();
+    const filter = filterTextbox.value.toLowerCase();
     while (bookmarkList.firstChild) {
         bookmarkList.removeChild(bookmarkList.firstChild);
     }
     let c = 0;
-    for (var pin of pins.forEachReversed()) {
-        if ((pin.toread =="yes" || !toReadOnly) && (filter == "" || pinContains(pin, filter))) {
+    for (const pin of pins.forEachReversed()) {
+        if ((pin.toread == "yes" || !toReadOnly) && (filter == "" || pinContains(pin, filter))) {
             if (c >= offset && c < offset + 100) {
                 addListItem(pin, pin.url);
             }
@@ -229,7 +229,7 @@ function handleFilterToRead(e) {
 
 function handleEditBookmark(e) {
     e.preventDefault();
-    let pin = pins.get(e.target.dataset.entryId);
+    const pin = pins.get(e.target.dataset.entryId);
     editBox.description.value = pin.description || "";
     editBox.URL.value = pin.url;
     editBox.tags.value = pin.tags || "";
@@ -247,19 +247,19 @@ function handleLinkClick(e) {
         browser.tabs.create({ url: e.target.href });
     }
     else {
-        browser.tabs.update(undefined,{ url: e.target.href });
+        browser.tabs.update(undefined, { url: e.target.href });
     }
     window.close();
 }
 
 function handleBookmarkRead(e) {
     e.preventDefault();
-    let pin = pins.get(e.target.dataset.entryId);
+    const pin = pins.get(e.target.dataset.entryId);
     pin.toread = "no";
     browser.runtime.sendMessage({
-        "callFunction": "saveBookmark",
-        "pin": pin,
-        "isNewPin": false
+        callFunction: "saveBookmark",
+        pin: pin,
+        isNewPin: false,
     }).then((callback) => {
     });
     e.target.classList.toggle("invisible");
@@ -267,7 +267,7 @@ function handleBookmarkRead(e) {
 
 function addListItem(pin, key) {
     function addEditSymbol() {
-        let edit = document.createElement("a");
+        const edit = document.createElement("a");
         edit.title = "Edit";
         edit.appendChild(document.createTextNode("\u{270E}"));
         edit.addEventListener("click", handleEditBookmark);
@@ -275,38 +275,38 @@ function addListItem(pin, key) {
         entry.appendChild(edit);
     }
     function addMainLink() {
-        let link = document.createElement("a");
+        const link = document.createElement("a");
         link.href = pin.url;
         link.addEventListener("click", handleLinkClick);
         link.id = key;
-        let textcontent = pin.description == "Twitter" ? (pin.extended != "" ? "(Twitter) " + pin.extended : pin.description) : pin.description;
+        const textcontent = pin.description == "Twitter" ? (pin.extended != "" ? "(Twitter) " + pin.extended : pin.description) : pin.description;
         link.appendChild(document.createTextNode(textcontent));
         link.title = pin.url || "";
         entry.appendChild(link);
     }
     function addSharedSymbol() {
-        let sharedsymbol = document.createElement("a");
+        const sharedsymbol = document.createElement("a");
         sharedsymbol.appendChild(document.createTextNode("\u{1f4e2}"));
         sharedsymbol.title = "Shared";
         sharedsymbol.dataset.entryId = key;
         sharedsymbol.classList.add("unclickable");
-        if(pin.shared == "no") {
+        if (pin.shared == "no") {
             sharedsymbol.classList.add("invisible");
         }
         entry.appendChild(sharedsymbol);
     }
     function addToReadSymbol() {
-        let toreadeye = document.createElement("a");
+        const toreadeye = document.createElement("a");
         toreadeye.appendChild(document.createTextNode("\u{1f441}"));
         toreadeye.addEventListener("click", handleBookmarkRead);
         toreadeye.title = "Mark as read";
         toreadeye.dataset.entryId = key;
-        if(pin.toread == "no") {
+        if (pin.toread == "no") {
             toreadeye.classList.add("invisible");
         }
         entry.appendChild(toreadeye);
     }
-    let entry = document.createElement('li');
+    const entry = document.createElement("li");
     addEditSymbol();
     addMainLink();
     addSharedSymbol();

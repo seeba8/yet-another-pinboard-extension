@@ -3,14 +3,14 @@ let options: Options;
 // TODO browser.storage.sync
 
 //Elements
-const changeActionbarIcon = <HTMLInputElement> document.getElementById('changeActionbarIcon');
-const sharedByDefault = <HTMLInputElement> document.getElementById("sharedByDefault");
-const saveBrowserBookmarks = <HTMLInputElement> document.getElementById("saveBrowserBookmarks");
-const apiKeyInput = <HTMLInputElement> document.getElementById("apikey");
+const changeActionbarIcon = document.getElementById("changeActionbarIcon") as HTMLInputElement;
+const sharedByDefault = document.getElementById("sharedByDefault") as HTMLInputElement;
+const saveBrowserBookmarks = document.getElementById("saveBrowserBookmarks") as HTMLInputElement;
+const apiKeyInput = document.getElementById("apikey") as HTMLInputElement;
 
-const saveAPIButton = <HTMLButtonElement> document.getElementById("saveapi");
-const clearAPIButton = <HTMLButtonElement> document.getElementById("clearapi");
-const forceReloadButton = <HTMLButtonElement> document.getElementById("forcereload");
+const saveAPIButton = document.getElementById("saveapi") as HTMLButtonElement;
+const clearAPIButton = document.getElementById("clearapi") as HTMLButtonElement;
+const forceReloadButton = document.getElementById("forcereload") as HTMLButtonElement;
 
 //Event listeners
 changeActionbarIcon.addEventListener("change", handleOptionChange);
@@ -26,32 +26,30 @@ document.querySelectorAll(".prefixes").forEach((element) => {
 onLoad();
 
 async function onLoad() {
-    let token = await browser.storage.local.get(["lastsync", "apikey"]);
+    const token = await browser.storage.local.get(["lastsync", "apikey"]);
     forceReloadButton.title = "Last bookmark sync: " + new Date(token.lastsync);
     options = await Options.getObject();
-    if(!! token.apikey && token.apikey != "") {
+    if (!! token.apikey && token.apikey != "") {
         toggleAPIKeyInputs();
     }
     if (options.changeActionbarIcon) {
         changeActionbarIcon.checked = true;
     }
-    if(options.saveBrowserBookmarks) {
+    if (options.saveBrowserBookmarks) {
         saveBrowserBookmarks.checked = true;
     }
-    if(options.sharedByDefault) {
+    if (options.sharedByDefault) {
         sharedByDefault.checked = true;
     }
 
-    for(let [k, v] of options.getPrefixes()) {
-        (<HTMLInputElement> document.getElementById(k)).value = v;
+    for (const [k, v] of options.getPrefixes()) {
+        (document.getElementById(k) as HTMLInputElement).value = v;
     }
 }
 
-
-
 function forcePinReload() {
     //console.log("forcereload");
-    browser.runtime.sendMessage({"callFunction": "forceUpdatePins"});
+    browser.runtime.sendMessage({callFunction: "forceUpdatePins"});
 }
 
 function toggleAPIKeyInputs() {
@@ -62,22 +60,22 @@ function toggleAPIKeyInputs() {
 }
 
 function clearAPIKey() {
-    browser.storage.local.set({"apikey" : "", "pins": [], "lastupdate": ""});
+    browser.storage.local.set({apikey : "", pins: [], lastupdate: ""});
     toggleAPIKeyInputs();
 }
 
 async function saveAPIKey() {
     // Call pinboard to check if the API key is working
-    let headers = new Headers({ "Accept": "application/json" });
-    let apikey = apiKeyInput.value;
-    let init = { method: 'GET', headers };
-    let request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" + apikey + "&format=json", init);
-    let response = await fetch(request);
+    const headers = new Headers({ Accept: "application/json" });
+    const apikey = apiKeyInput.value;
+    const init = { method: "GET", headers };
+    const request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" + apikey + "&format=json", init);
+    const response = await fetch(request);
     if (!response) {
         //console.log("Error while parsing result");
         return;
     }
-    let json = await response.json();
+    const json = await response.json();
     if (json.result == apikey.split(":")[1]) {
         browser.storage.local.set({apikey: apiKeyInput.value});
         //console.log("Saved successfully");

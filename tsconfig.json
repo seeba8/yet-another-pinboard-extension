@@ -4,6 +4,7 @@
         "module": "es2015",
         "sourceMap": true,
         "watch": true,
+        "sourceRoot": "src/ts",
         "outDir": "dist/js",
         // You have to explicitly set @types to get DefinitelyTyped type definitions
         "typeRoots": ["@types", "node_modules/web-ext-types"]

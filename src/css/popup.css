@@ -1,0 +1,183 @@
+#bookmarks {
+    list-style-type: none;
+    padding-left: 0;
+    margin-left: -0.5em;
+    display:table;
+    border-spacing: 0.5em 0;
+    border-collapse: separate;
+}
+#bookmarks li {
+    display: table-row;
+}
+.invisible {
+    visibility: hidden;
+}
+
+#listdiv {
+    min-height: 360px;
+    width: 600px;
+    max-height: 480px;
+    overflow: hidden; 
+    overflow-y: auto;
+}
+
+#filterToRead{
+    text-decoration: none;
+    color: black;
+}
+
+.bold {
+    font-weight: bold;
+}
+
+.unclickable {
+    cursor: default !important;
+}
+
+#toprow {
+    display: grid;
+    grid-template-columns: 1fr 3fr 3fr 1fr;
+    grid-column-gap: 1.5em;
+    margin-bottom: .5em;
+}
+
+#toprow a, #toprow a:visited {
+    text-decoration: none;
+    color: inherit;
+    padding: .25em;
+    display: block;
+}
+
+#toprow a:hover {
+   background-color: #eee;
+}
+
+.centerbuttons {
+    text-align: center;
+
+}
+
+#optionslink {
+   text-align: right;
+}
+
+#bookmarks li a {
+    display: table-cell;
+    cursor: pointer;
+}
+
+#editwrapper input[type=text] {
+    width: 100%;
+}
+
+#editcontainer {
+    display:flex;
+    align-items: center;
+    justify-content: center;
+}
+#editwrapper {
+    margin: auto;
+    top:30%;
+    position:fixed;
+    width: 60%;
+    background-color: white;
+    border: 2px solid grey;
+    z-index:5;
+    opacity:1;
+    padding:1em;
+}
+#editwrapper input[readonly="readonly"], #editwrapper input[readonly] {
+    color:grey;
+}
+
+#editwrapper input[type="checkbox"] {
+    display: inline;
+    
+}
+
+label {
+    user-select: none;
+    -moz-user-select: none;
+}
+
+#editwrapper button {
+    margin-top: 1em;
+    margin-left: 1em;
+    margin-right: 1em;
+}
+a.linkdisabled {
+    pointer-events: none;
+    color: grey;
+    text-decoration: none;
+}
+a.currentpage {
+    pointer-events: none;
+    color: grey;
+    font-weight: bold;
+    text-decoration: none;
+}
+#prevnext{
+    text-align: center;
+    margin-top: 1em;
+}
+#greyout {
+    background-color: white;
+    opacity: 0.8;
+    position: fixed;
+    top: 0;
+    left: 0;    
+    width: 100%;
+    height: 100%;
+}
+
+#noapikey {
+    text-align: center;
+}
+
+.hidden {
+    display:none;
+}
+body {
+    font-size: .9rem;
+    font-family: sans-serif;
+}
+
+
+.resetbutton {
+  border: none;
+  background: transparent;
+  display: inline-block;
+  position: absolute;
+  cursor: pointer;
+  outline:none;
+  color: grey;
+  right: 7%;
+  top: .2em;
+}
+.search:required:invalid ~ .resetbutton {
+    display: none;
+}
+
+#filter {
+    display: inline-block;
+    margin-left: auto;
+    margin-right: auto;
+    width: 92%;
+}
+
+.searchform {
+    position: relative;
+}
+
+.delete {
+    color: red;
+}
+#extended {
+   width: 100%;
+   height: 5em;
+   font-family: sans-serif;
+}
+
+#tagsuggestions a {
+    cursor: pointer;
+}

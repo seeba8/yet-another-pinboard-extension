@@ -33,11 +33,11 @@ function handleInputChanged(text, addSuggestions) {
     if (hasPrefix) {
         text = text.slice(text.indexOf(" ") + 1);
     }
-    let selectedPins = [];
-    for (var [key, pin] of pins) {
+    const selectedPins = [];
+    for (const [key, pin] of pins) {
         searchArea.forEach((filter) => {
             if (pin[filter].toLowerCase().includes(text)) {
-                if (!toRead || pin["toread"] == "yes") {
+                if (!toRead || pin.toread == "yes") {
                     selectedPins.push(pin);
                 }
             }
@@ -69,19 +69,19 @@ function handleInputEntered(text, disposition) {
 
 //Create the array with the searchbar suggestions
 function createSuggestions(pins, searchtext) {
-    return new Promise(resolve => {
-        let suggestions = []
-        let suggestionsOnEmptyResults = [{
+    return new Promise((resolve) => {
+        const suggestions = []
+        const suggestionsOnEmptyResults = [{
             content: "https://pinboard.in/search/?query=" + encodeURIComponent(searchtext),
-            description: "No results found, go to Pinboard search"
+            description: "No results found, go to Pinboard search",
         }];
         if (!pins || pins.size == 0) {
             return resolve(suggestionsOnEmptyResults);
         }
-        pins.forEach(function (pin) {
+        pins.forEach(function(pin) {
             suggestions.push({
                 content: pin.url,
-                description: pin.description
+                description: pin.description,
             });
         });
         return resolve(suggestions);

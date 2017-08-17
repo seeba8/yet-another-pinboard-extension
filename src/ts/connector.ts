@@ -1,31 +1,30 @@
 ///<reference path="pin.ts" />
 "use strict";
-var connector = (function () {
-    let API_URL = Object.freeze({
-        getLastUpdate: "https://api.pinboard.in/v1/posts/update",
+let connector = (function() {
+    const API_URL = Object.freeze({
         addPin: "https://api.pinboard.in/v1/posts/add",
-        getAllPins: "https://api.pinboard.in/v1/posts/all",
-        getAPIToken: "https://api.pinboard.in/v1/user/api_token",
         deletePin: "https://api.pinboard.in/v1/posts/delete",
-        suggestTags: "https://api.pinboard.in/v1/posts/suggest"
+        getAPIToken: "https://api.pinboard.in/v1/user/api_token",
+        getAllPins: "https://api.pinboard.in/v1/posts/all",
+        getLastUpdate: "https://api.pinboard.in/v1/posts/update",
+        suggestTags: "https://api.pinboard.in/v1/posts/suggest",
     });
 
-    let lastUpdate = 0;
+    const lastUpdate = 0;
     const MIN_INTERVAL = 3 * 1000;
     const MIN_INTERVAL_ALL = 5 * 60 * 1000;
     let interval = MIN_INTERVAL;
     let intervalAll = MIN_INTERVAL_ALL;
     let localQueue = Array();
-    let lastGetAllPins = new Date(0);
+    const lastGetAllPins = new Date(0);
     let lastRequest = new Date(0);
 
     // Needed for the initial startUp(). In case a new request comes in really quick,
     // this de-duplicates the proceedQueue call.
-    let hasQueueStarted = false; 
+    let hasQueueStarted = false;
     startUp();
 
-
-    //let queue = new Array();
+    // let queue = new Array();
     // Array.prototype.queue = function (item) {
     //     this.push(item);
     //     browser.storage.local.set({"queue": this}).then(() => {
@@ -36,8 +35,8 @@ var connector = (function () {
     // }
 
     async function startUp() {
-        //console.log("starting");
-        let queue = await getQueue();
+        // console.log("starting");
+        const queue = await getQueue();
         localQueue = queue.concat(localQueue);
         if (queue.length > 0 && !hasQueueStarted) {
             cleanQueueDuplicates();
@@ -46,7 +45,7 @@ var connector = (function () {
     }
 
     function saveQueue(queue) {
-        return browser.storage.local.set({ "queue": queue });
+        return browser.storage.local.set({ queue });
     }
 
     function addToQueue(item) {
@@ -71,14 +70,14 @@ var connector = (function () {
             return "";
         }
         let paramStr = "";
-        for (let prop in params) {
+        for (const prop in params) {
             paramStr += "&" + encodeURIComponent(prop) + "=" + encodeURIComponent(params[prop]);
         }
         return paramStr;
     }
 
     async function getQueue() {
-        let token = await browser.storage.local.get("queue");
+        const token = await browser.storage.local.get("queue");
         if (token.hasOwnProperty("queue") && typeof token.queue === "object") {
             return token.queue;
         }
@@ -90,16 +89,16 @@ var connector = (function () {
     function cleanQueueDuplicates() {
         let update = false;
         let getAll = false;
-        let newQueue = Array();
-        for(let item of localQueue) {
-            if(item.type === "getLastUpdate") {
-                if(!update) {
+        const newQueue = Array();
+        for (const item of localQueue) {
+            if (item.type === "getLastUpdate") {
+                if (!update) {
                     newQueue.push(item);
                     update = true;
                 }
             }
-            else if(item.type=== "getAllPins") {
-                if(!getAll) {
+            else if (item.type === "getAllPins") {
+                if (!getAll) {
                     newQueue.push(item);
                     getAll = true;
                 }
@@ -132,7 +131,7 @@ var connector = (function () {
         sendRequest(item)
             .then(validateResponse)
             .then(parseJSON)
-            .then(json => {
+            .then((json) => {
                 if (typeof json !== "object" || (json.length == 1 && typeof json[0] !== "object")) {
                     item.reject(Error(json));
                     return;
@@ -145,16 +144,16 @@ var connector = (function () {
                 intervalAll *= 2;
                 setTimeout(proceedGetAllData, intervalAll, item);
             });
-    }  
+    }
 
     async function sendRequest(item) {
-        let apikey = (await browser.storage.local.get(["apikey"])).apikey;
-        return fetch(API_URL[item.type] + "?auth_token="+ encodeURIComponent(apikey) +"&format=json" +
+        const apikey = (await browser.storage.local.get(["apikey"])).apikey;
+        return fetch(API_URL[item.type] + "?auth_token=" + encodeURIComponent(apikey) + "&format=json" +
             makeParamString(item.params));
     }
 
     function validateResponse(response) {
-        //console.log(response);
+        // console.log(response);
         if (!response.ok || response.status != 200) {
             throw Error(response.status);
         }
@@ -166,31 +165,31 @@ var connector = (function () {
     }
 
     async function handleResultJSON(json) {
-        switch (localQueue[0].type) {  
+        switch (localQueue[0].type) {
             case "getLastUpdate":
                 if (!json.hasOwnProperty("update_time")) {
                     throw Error(json);
                 }
                 else {
-                    return new Date(json["update_time"]);
+                    return new Date(json.update_time);
                 }
             case "addPin":
                 if (json.result_code != "done") {
-                    throw Error(json["result_code"]);
+                    throw Error(json.result_code);
                 }
                 break;
             case "suggestTags":
-                if(typeof json !== "object") {
+                if (typeof json !== "object") {
                     throw Error(json);
                 }
                 else {
                     let tags = new Array();
                     json.forEach((element) => {
-                        if(element.hasOwnProperty("popular")) {
-                            tags = tags.concat(element["popular"]);
+                        if (element.hasOwnProperty("popular")) {
+                            tags = tags.concat(element.popular);
                         }
-                        else if(element.hasOwnProperty("recommended")) {
-                            tags = tags.concat(element["recommended"]);
+                        else if (element.hasOwnProperty("recommended")) {
+                            tags = tags.concat(element.recommended);
                         }
                     });
                     return tags;
@@ -203,9 +202,9 @@ var connector = (function () {
     }
 
     function onSuccess(result) {
-        intervalAll =MIN_INTERVAL_ALL;
+        intervalAll = MIN_INTERVAL_ALL;
         interval = MIN_INTERVAL;
-        let promise = localQueue.shift();
+        const promise = localQueue.shift();
         saveQueue(localQueue);
         if (typeof promise.resolve === "function") {
             promise.resolve(result);
@@ -219,71 +218,71 @@ var connector = (function () {
     }
 
     function onError(error) {
-        //console.log("There was an error:\n", error);
+        // console.log("There was an error:\n", error);
         interval *= 2;
         setTimeout(proceedQueue, interval);
-        // Possible: 
+        // Possible:
         // queue.shift().reject(error);
     }
 
     // Public methods of the connector "class"
     return {
-        getLastUpdate: function (): Promise<Date> {
+        getLastUpdate(): Promise<Date> {
             // console.log("update");
             return new Promise((resolve, reject) => {
                 addToQueue({
-                    "type": "getLastUpdate",
-                    "params": {},
-                    "resolve": resolve,
-                    "reject": reject
+                    type: "getLastUpdate",
+                    params: {},
+                    resolve,
+                    reject,
                 });
             });
 
         } ,
-        addPin: function (pin: Pin) : Promise<any> {
-            //console.log("save", pin);
+        addPin(pin: Pin): Promise<any> {
+            // console.log("save", pin);
             return new Promise((resolve, reject) => {
                 addToQueue({
-                    "type": "addPin",
-                    "params": pin,
-                    "resolve": resolve,
-                    "reject": reject
+                    type: "addPin",
+                    params: pin,
+                    resolve,
+                    reject,
                 });
             })
         },
-        getAllPins: function () : Promise<Array<any>>{
+        getAllPins(): Promise<any[]>{
             // console.log("getAll");
             return new Promise((resolve, reject) => {
                 setTimeout(proceedGetAllData, Math.max(0, intervalAll - (Date.now() - lastGetAllPins.getTime())), { // TODO CHECK THIS
-                    "type": "getAllPins",
-                    "params": {},
-                    "resolve": resolve,
-                    "reject": reject
+                    type: "getAllPins",
+                    params: {},
+                    resolve,
+                    reject,
                 });
             });
         },
-        deletePin: function (pin: Pin) {
+        deletePin(pin: Pin) {
             return new Promise((resolve, reject) => {
                 addToQueue({
-                    "type": "deletePin",
-                    "params": pin,
-                    "resolve": resolve,
-                    "reject": reject
+                    type: "deletePin",
+                    params: pin,
+                    resolve,
+                    reject,
                 });
             });
         },
-        suggestTags: function (url) : Promise<Array<string>>{     
+        suggestTags(url): Promise<string[]>{
             return new Promise((resolve, reject) => {
-                if(typeof url === "string") {
-                    url = {"href": url};
+                if (typeof url === "string") {
+                    url = {href: url};
                 }
                 addToQueue({
-                    "type": "suggestTags",
-                    "params": url,
-                    "resolve": resolve,
-                    "reject": reject
+                    type: "suggestTags",
+                    params: url,
+                    resolve,
+                    reject,
                 });
             });
-        }
+        },
     };
 })();

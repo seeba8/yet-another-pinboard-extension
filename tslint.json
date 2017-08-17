@@ -1,0 +1,21 @@
+{
+    "defaultSeverity": "error",
+    "extends": [
+        "tslint:recommended"
+    ],
+    "jsRules": {},
+    "rules": {
+        "curly": true,
+        "eofline": true,
+        "linebreak-style": [
+            "LF"
+        ],
+        "indent": [
+            4
+        ],
+        "semicolon": [
+            "always"
+        ]
+    },
+    "rulesDirectory": []
+}

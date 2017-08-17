@@ -4,12 +4,29 @@
     "version": "2.0.0",
     "tasks": [
         {
+            "taskName": "copy",
+            "type": "shell",
+            "command": "cp *.js dist/",
+            "problemMatcher": []
+        },
+        {
             "type": "typescript",
+            "label": "compile ts",
             "tsconfig": "tsconfig.json",
-            "group": {
-                "kind": "build",
-                "isDefault": true
-            }
+            "problemMatcher": ["$tsc"]
+        },
+        {
+            "type": "shell",
+            "taskName": "lint",
+            "command": "tslint --project tsconfig.json --fix",
+            "problemMatcher": ["$tslint5"]
+        },
+        {
+            "type": "shell",
+            "command": "echo 'OK'",
+            "taskName": "BUILD",
+            "dependsOn": ["copy", "lint", "compile ts"],
+            "problemMatcher": []
         }
     ]
 }
