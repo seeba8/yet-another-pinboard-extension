@@ -14,8 +14,8 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "copytodist": "rmdir /S /Q .\\dist & mkdir .\\dist\\js\\webextension-polyfill & mkdir .\\dist\\html && mkdir .\\dist\\css & mkdir .\\dist\\img & copy .\\node_modules\\webextension-polyfill\\dist\\*.min.js* .\\dist\\js\\webextension-polyfill & copy .\\src\\img\\*.* .\\dist\\img & copy .\\src\\html\\*.* .\\dist\\html & copy .\\src\\css\\*.* .\\dist\\css & copy .\\src\\manifest.json .\\dist\\manifest.json" ,
-    "lint": "tslint --project tsconfig.json --fix",
+    "copytodist": "rmdir /S /Q .\\dist & mkdir .\\dist\\vendor\\webextension-polyfill & mkdir .\\dist\\js & mkdir .\\dist\\html && mkdir .\\dist\\css & mkdir .\\dist\\img & copy .\\node_modules\\webextension-polyfill\\dist\\*.min.js* .\\dist\\vendor\\webextension-polyfill & copy .\\src\\img\\*.* .\\dist\\img & copy .\\src\\html\\*.* .\\dist\\html & copy .\\src\\css\\*.* .\\dist\\css & copy .\\src\\manifest.json .\\dist\\manifest.json" ,
+    "lint": "tslint --fix --project tsconfig.json",
     "tsc": "tsc",
     "copyandbuild": "npm run copytodist && npm run lint && npm run tsc",
     "build": "npm run lint && npm run tsc"

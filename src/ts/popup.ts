@@ -15,22 +15,22 @@ const noAPIKeyDiv = document.getElementById("noapikey") as HTMLDivElement;
 const tagSuggestionsDiv = document.getElementById("tagsuggestions") as HTMLDivElement;
 const prevNext = {
     div: document.getElementById("prevnext") as HTMLDivElement,
-    prevPage: document.getElementById("prevPage") as HTMLLinkElement,
-    nextPage: document.getElementById("nextPage") as HTMLLinkElement,
     firstPage: document.getElementById("firstPage") as HTMLLinkElement,
     lastPage: document.getElementById("lastPage") as HTMLLinkElement,
+    nextPage: document.getElementById("nextPage") as HTMLLinkElement,
+    prevPage: document.getElementById("prevPage") as HTMLLinkElement,
 };
 const editBox = {
-    sharedCheckbox: document.getElementById("shared") as HTMLInputElement,
-    toReadCheckbox: document.getElementById("toread") as HTMLInputElement,
     URL: document.getElementById("url") as HTMLInputElement,
     description: document.getElementById("description") as HTMLInputElement,
-    tags: document.getElementById("tags") as HTMLInputElement,
     extended: document.getElementById("extended") as HTMLTextAreaElement,
+    sharedCheckbox: document.getElementById("shared") as HTMLInputElement,
+    tags: document.getElementById("tags") as HTMLInputElement,
+    toReadCheckbox: document.getElementById("toread") as HTMLInputElement,
 };
 
 let offset = 0;
-let pin: Pins;
+export let pins: Pins;
 let toReadOnly = false;
 
 filterTextbox.addEventListener("keyup", handleFilterChange);
@@ -71,7 +71,7 @@ function onOptionsLinkClick(e) {
 
 async function reloadPins() {
     const token = await browser.storage.local.get(["apikey"]);
-    if (!token.apikey || token.apikey == "") {
+    if (!token.apikey || token.apikey === "") {
         noAPIKeyDiv.classList.toggle("hidden");
     }
     pins = await Pins.getObject();
@@ -137,8 +137,7 @@ function preparePrevNext(numberPins) {
         curElement.dataset.offset = String((firstPage + i - 1) * 100);
         if (curElement.dataset.offset === String(offset)) {
             curElement.classList.add("currentpage");
-        }
-        else if (parseInt(curElement.dataset.offset) > numberPins) {
+        } else if (parseInt(curElement.dataset.offset, 10) > numberPins) {
             curElement.classList.add("linkdisabled");
         }
     }
@@ -147,18 +146,18 @@ function preparePrevNext(numberPins) {
     prevNext.firstPage.dataset.offset = String(0);
     prevNext.lastPage.dataset.offset = String(100 * Math.floor(numberPins / 100));
 
-    if (offset == 0) {
+    if (offset === 0) {
         prevNext.firstPage.classList.add("linkdisabled");
         prevNext.prevPage.classList.add("linkdisabled");
     }
-    if (offset == 100 * Math.floor(numberPins / 100) || numberPins <= 100) {
+    if (offset === 100 * Math.floor(numberPins / 100) || numberPins <= 100) {
         prevNext.lastPage.classList.add("linkdisabled");
         prevNext.nextPage.classList.add("linkdisabled");
     }
 }
 
 function handlePrevNextClick(e) {
-    offset = parseInt(e.target.dataset.offset);
+    offset = parseInt(e.target.dataset.offset, 10);
     displayPins();
 }
 
@@ -185,7 +184,7 @@ function addPin(pin, newPin) {
     pins.addPin(pin);
     browser.runtime.sendMessage({
         callFunction: "saveBookmark",
-        pin: pin,
+        pin,
     });
     displayPins();
 }
@@ -197,7 +196,7 @@ function displayPins() {
     }
     let c = 0;
     for (const pin of pins.forEachReversed()) {
-        if ((pin.toread == "yes" || !toReadOnly) && (filter == "" || pinContains(pin, filter))) {
+        if ((pin.toread === "yes" || !toReadOnly) && (filter === "" || pinContains(pin, filter))) {
             if (c >= offset && c < offset + 100) {
                 addListItem(pin, pin.url);
             }
@@ -208,7 +207,8 @@ function displayPins() {
 }
 
 function pinContains(pin, searchText) {
-    return (contains(pin.description, searchText) || contains(pin.url, searchText) || contains(pin.tags, searchText) || contains(pin.extended, searchText));
+    return (contains(pin.description, searchText) || contains(pin.url, searchText) ||
+        contains(pin.tags, searchText) || contains(pin.extended, searchText));
 }
 
 function contains(haystack, needle) {
@@ -233,8 +233,8 @@ function handleEditBookmark(e) {
     editBox.description.value = pin.description || "";
     editBox.URL.value = pin.url;
     editBox.tags.value = pin.tags || "";
-    editBox.toReadCheckbox.checked = (pin.toread == "yes");
-    editBox.sharedCheckbox.checked = (pin.shared == "yes");
+    editBox.toReadCheckbox.checked = (pin.toread === "yes");
+    editBox.sharedCheckbox.checked = (pin.shared === "yes");
     editWrapper.classList.toggle("hidden");
     greyoutDiv.classList.toggle("hidden");
     editBox.URL.dataset.entryId = e.target.dataset.entryId;
@@ -243,10 +243,9 @@ function handleEditBookmark(e) {
 
 function handleLinkClick(e) {
     e.preventDefault();
-    if (e.button == 1 || e.ctrlKey) {
+    if (e.button === 1 || e.ctrlKey) {
         browser.tabs.create({ url: e.target.href });
-    }
-    else {
+    } else {
         browser.tabs.update(undefined, { url: e.target.href });
     }
     window.close();
@@ -258,9 +257,8 @@ function handleBookmarkRead(e) {
     pin.toread = "no";
     browser.runtime.sendMessage({
         callFunction: "saveBookmark",
-        pin: pin,
         isNewPin: false,
-    }).then((callback) => {
+        pin,
     });
     e.target.classList.toggle("invisible");
 }
@@ -279,7 +277,8 @@ function addListItem(pin, key) {
         link.href = pin.url;
         link.addEventListener("click", handleLinkClick);
         link.id = key;
-        const textcontent = pin.description == "Twitter" ? (pin.extended != "" ? "(Twitter) " + pin.extended : pin.description) : pin.description;
+        const textcontent = pin.description === "Twitter" ?
+            (pin.extended !== "" ? "(Twitter) " + pin.extended : pin.description) : pin.description;
         link.appendChild(document.createTextNode(textcontent));
         link.title = pin.url || "";
         entry.appendChild(link);
@@ -290,7 +289,7 @@ function addListItem(pin, key) {
         sharedsymbol.title = "Shared";
         sharedsymbol.dataset.entryId = key;
         sharedsymbol.classList.add("unclickable");
-        if (pin.shared == "no") {
+        if (pin.shared === "no") {
             sharedsymbol.classList.add("invisible");
         }
         entry.appendChild(sharedsymbol);
@@ -301,7 +300,7 @@ function addListItem(pin, key) {
         toreadeye.addEventListener("click", handleBookmarkRead);
         toreadeye.title = "Mark as read";
         toreadeye.dataset.entryId = key;
-        if (pin.toread == "no") {
+        if (pin.toread === "no") {
             toreadeye.classList.add("invisible");
         }
         entry.appendChild(toreadeye);

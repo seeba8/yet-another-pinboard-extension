@@ -7,7 +7,7 @@ let pins: Pins;
 let options: Options;
 // Listeners
 
-//browser.runtime.onStartup.addListener(handleStartup);
+// browser.runtime.onStartup.addListener(handleStartup);
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
 browser.runtime.onStartup.addListener(handleStartup);
 browser.alarms.create("checkUpdate", {
@@ -18,9 +18,9 @@ browser.alarms.onAlarm.addListener(onCheckUpdate);
 // Update the pins on startup of the browser
 async function handleStartup() {
     options = await Options.getObject();
-    pins = await Pins.getObject();
-    chrome.runtime.onMessage.addListener(handleMessage); // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
-                                                         // That is possibly caused by browser-polyfill
+    chrome.runtime.onMessage.addListener(handleMessage);
+    // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
+    // That is possibly caused by browser-polyfill
     browser.storage.onChanged.addListener(handleStorageChanged);
     browser.tabs.onUpdated.addListener(handleTabUpdated);
     browser.bookmarks.onCreated.addListener(handleBookmarkCreated);
@@ -31,14 +31,14 @@ async function handleStartup() {
     });
 
     browser.contextMenus.create({
+        contexts: ["link"],
         id: "linkAddToToRead",
         title: "Add to To Read",
-        contexts: ["link"],
     });
     browser.contextMenus.create({
+        contexts: ["browser_action", "page"], // chrome can't do context type "tab" yet as of July 2017
         id: "tabAddToToRead",
         title: "Add page to To Read",
-        contexts: ["browser_action", "page"], // chrome can't do context type "tab" yet as of July 2017
     });
     browser.browserAction.setBadgeBackgroundColor({color: "#333"});
     browser.contextMenus.onClicked.addListener(handleContextMenuClick);
@@ -55,8 +55,8 @@ function handleBookmarkCreated(id: string, bookmark: browser.bookmarks.BookmarkT
     if (!options.saveBrowserBookmarks) {
         return;
     }
-    if (!!bookmark.url && bookmark.url != "") {
-        //console.log(bookmark);
+    if (!!bookmark.url && bookmark.url !== "") {
+        // console.log(bookmark);
         const pin = new Pin(bookmark.url, bookmark.title, undefined, new Date().toISOString());
         pins.addPin(pin);
         pin.save();
@@ -71,7 +71,8 @@ async function handleContextMenuClick(info: browser.contextMenus.OnClickData, ta
                 allFrames: true,
                 code: "document.activeElement.textContent.trim();",
             });
-            pin = new Pin(info.linkUrl, String(result[0]), undefined, undefined, "Found on " + info.pageUrl, "yes", "no");
+            pin = new Pin(info.linkUrl, String(result[0]), undefined, undefined,
+                "Found on " + info.pageUrl, "yes", "no");
             pins.addPin(pin);
             pin.save();
             checkDisplayBookmarked();
@@ -101,34 +102,30 @@ async function handleAddonInstalled() {
 async function handleStorageChanged(changes: browser.storage.ChangeDict, area: browser.storage.StorageName) {
     if (Object.keys(changes).includes("apikey")) {
         pins = await Pins.updateList(true);
-    }
-    else if (Object.keys(changes).includes("pins")) {
+    } else if (Object.keys(changes).includes("pins")) {
         pins = await Pins.getObject();
-    }
-    else if (Object.keys(changes).includes("options")) {
+    } else if (Object.keys(changes).includes("options")) {
         options = await Options.getObject();
     }
 }
 
-async function checkDisplayBookmarked(tab: browser.tabs.Tab = undefined) {
+async function checkDisplayBookmarked(tab?: browser.tabs.Tab) {
     // console.log("Checking");
-    function checkExists(tab: browser.tabs.Tab) {
-        if (!!pins && pins.has(tab.url) && options.changeActionbarIcon) {
-            browser.browserAction.setBadgeText({text: "\u{2713}", tabId: tab.id});
-        }
-        else {
-            browser.browserAction.setBadgeText({text: "", tabId: tab.id});
+    function checkExists(t: browser.tabs.Tab) {
+        if (!!pins && pins.has(t.url) && options.changeActionbarIcon) {
+            browser.browserAction.setBadgeText({text: "\u{2713}", tabId: t.id});
+        } else {
+            browser.browserAction.setBadgeText({text: "", tabId: t.id});
         }
     }
 
     if (tab === undefined) {
         const tabs = await (browser.tabs.query({}));
-        for (const tab of tabs) {
-            checkExists(tab);
+        for (const t of tabs) {
+            checkExists(t);
         }
-    }
-    else {
-        checkExists(tab)
+    } else {
+        checkExists(tab);
     }
 }
 
@@ -136,21 +133,20 @@ function handleTabUpdated(tabId: number, changeInfo: any, tab: browser.tabs.Tab)
     if (!options.changeActionbarIcon) {
         return;
     }
-    if (changeInfo.status == "loading") {
+    if (changeInfo.status === "loading") {
         checkDisplayBookmarked(tab);
     }
 }
 
 function handleMessage(request: any, sender: browser.runtime.MessageSender, sendResponse: any) {
-    //Not async because it needs to return true in order for the message port to stay open
-    if (request.callFunction == "checkDisplayBookmarked" && !!request.url) {
+    // Not async because it needs to return true in order for the message port to stay open
+    if (request.callFunction === "checkDisplayBookmarked" && !!request.url) {
         browser.tabs.query({ currentWindow: true, active: true }).then((tabs) => {
             const tab = tabs[0];
             checkDisplayBookmarked();
         });
         return true;
-    }
-    else if (request.callFunction == "saveBookmark") {
+    }  else if (request.callFunction === "saveBookmark") {
         const pin = Pin.fromObject(request.pin);
         pins.addPin(pin);
         checkDisplayBookmarked();
@@ -158,15 +154,13 @@ function handleMessage(request: any, sender: browser.runtime.MessageSender, send
         sendResponse(resp);
         });
         return true;
-    }
-    else if (request.callFunction == "forceUpdatePins") {
+    } else if (request.callFunction === "forceUpdatePins") {
         Pins.updateList(true).then((p) => {
             pins = p;
             sendResponse("OK");
         });
         return true;
-    }
-    else if (request.callFunction == "deleteBookmark") {
+    } else if (request.callFunction === "deleteBookmark") {
         const pin = Pin.fromObject(request.pin);
         const response = pin.delete().then(() => {
             pins.delete(pin.url);
@@ -174,8 +168,7 @@ function handleMessage(request: any, sender: browser.runtime.MessageSender, send
             sendResponse("OK");
         });
         return true;
-    }
-    else if (request.callFunction == "getTagSuggestions") {
+    } else if (request.callFunction === "getTagSuggestions") {
         connector.suggestTags(request.url).then((suggestions) => {
             sendResponse(suggestions);
         });

@@ -1,6 +1,6 @@
 ///<reference path="pin.ts" />
 "use strict";
-let connector = (function() {
+let connector = (() => {
     const API_URL = Object.freeze({
         addPin: "https://api.pinboard.in/v1/posts/add",
         deletePin: "https://api.pinboard.in/v1/posts/delete",
@@ -54,12 +54,11 @@ let connector = (function() {
         // console.log("new queue: ", localQueue);
         saveQueue(localQueue);
         cleanQueueDuplicates();
-        if (localQueue.length == 1) {
+        if (localQueue.length === 1) {
             // console.log("queue 1");
             if (lastRequest < new Date(Date.now() - MIN_INTERVAL)) {
                 proceedQueue();
-            }
-            else {
+            } else {
                 setTimeout(proceedQueue, interval);
             }
         }
@@ -71,7 +70,10 @@ let connector = (function() {
         }
         let paramStr = "";
         for (const prop in params) {
-            paramStr += "&" + encodeURIComponent(prop) + "=" + encodeURIComponent(params[prop]);
+            // Needs to be for .. in, I don't quite undertsand why
+            if (params.hasOwnProperty(prop)) {
+                paramStr += "&" + encodeURIComponent(prop) + "=" + encodeURIComponent(params[prop]);
+            }
         }
         return paramStr;
     }
@@ -80,8 +82,7 @@ let connector = (function() {
         const token = await browser.storage.local.get("queue");
         if (token.hasOwnProperty("queue") && typeof token.queue === "object") {
             return token.queue;
-        }
-        else {
+        } else {
             return new Array();
         }
     }
@@ -96,14 +97,12 @@ let connector = (function() {
                     newQueue.push(item);
                     update = true;
                 }
-            }
-            else if (item.type === "getAllPins") {
+            } else if (item.type === "getAllPins") {
                 if (!getAll) {
                     newQueue.push(item);
                     getAll = true;
                 }
-            }
-            else {
+            } else {
                 newQueue.push(item);
             }
         }
@@ -114,7 +113,7 @@ let connector = (function() {
         lastRequest = new Date();
         // console.log("Proceeding in queue");
         // console.log(localQueue);
-        if (localQueue.length == 0) {
+        if (localQueue.length === 0) {
             // console.log("length 0");
             return;
         }
@@ -132,11 +131,10 @@ let connector = (function() {
             .then(validateResponse)
             .then(parseJSON)
             .then((json) => {
-                if (typeof json !== "object" || (json.length == 1 && typeof json[0] !== "object")) {
+                if (typeof json !== "object" || (json.length === 1 && typeof json[0] !== "object")) {
                     item.reject(Error(json));
                     return;
-                }
-                else {
+                } else {
                     item.resolve(json);
                 }
             })
@@ -154,7 +152,7 @@ let connector = (function() {
 
     function validateResponse(response) {
         // console.log(response);
-        if (!response.ok || response.status != 200) {
+        if (!response.ok || response.status !== 200) {
             throw Error(response.status);
         }
         return response;
@@ -169,26 +167,23 @@ let connector = (function() {
             case "getLastUpdate":
                 if (!json.hasOwnProperty("update_time")) {
                     throw Error(json);
-                }
-                else {
+                } else {
                     return new Date(json.update_time);
                 }
             case "addPin":
-                if (json.result_code != "done") {
+                if (json.result_code !== "done") {
                     throw Error(json.result_code);
                 }
                 break;
             case "suggestTags":
                 if (typeof json !== "object") {
                     throw Error(json);
-                }
-                else {
+                } else {
                     let tags = new Array();
                     json.forEach((element) => {
                         if (element.hasOwnProperty("popular")) {
                             tags = tags.concat(element.popular);
-                        }
-                        else if (element.hasOwnProperty("recommended")) {
+                        } else if (element.hasOwnProperty("recommended")) {
                             tags = tags.concat(element.recommended);
                         }
                     });
@@ -208,8 +203,7 @@ let connector = (function() {
         saveQueue(localQueue);
         if (typeof promise.resolve === "function") {
             promise.resolve(result);
-        }
-        else {
+        } else {
             // console.log(typeof promise.resolve);
         }
         if (localQueue.length > 0) {
@@ -231,10 +225,10 @@ let connector = (function() {
             // console.log("update");
             return new Promise((resolve, reject) => {
                 addToQueue({
-                    type: "getLastUpdate",
                     params: {},
-                    resolve,
                     reject,
+                    resolve,
+                    type: "getLastUpdate",
                 });
             });
 
@@ -243,44 +237,45 @@ let connector = (function() {
             // console.log("save", pin);
             return new Promise((resolve, reject) => {
                 addToQueue({
-                    type: "addPin",
                     params: pin,
-                    resolve,
                     reject,
+                    resolve,
+                    type: "addPin",
                 });
             })
         },
-        getAllPins(): Promise<any[]>{
+        getAllPins(): Promise<any[]> {
             // console.log("getAll");
             return new Promise((resolve, reject) => {
-                setTimeout(proceedGetAllData, Math.max(0, intervalAll - (Date.now() - lastGetAllPins.getTime())), { // TODO CHECK THIS
-                    type: "getAllPins",
+                setTimeout(proceedGetAllData, Math.max(0, intervalAll -
+                    (Date.now() - lastGetAllPins.getTime())), { // TODO CHECK THIS
                     params: {},
-                    resolve,
                     reject,
+                    resolve,
+                    type: "getAllPins",
                 });
             });
         },
         deletePin(pin: Pin) {
             return new Promise((resolve, reject) => {
                 addToQueue({
-                    type: "deletePin",
                     params: pin,
-                    resolve,
                     reject,
+                    resolve,
+                    type: "deletePin",
                 });
             });
         },
-        suggestTags(url): Promise<string[]>{
+        suggestTags(url): Promise<string[]> {
             return new Promise((resolve, reject) => {
                 if (typeof url === "string") {
                     url = {href: url};
                 }
                 addToQueue({
-                    type: "suggestTags",
                     params: url,
-                    resolve,
                     reject,
+                    resolve,
+                    type: "suggestTags",
                 });
             });
         },

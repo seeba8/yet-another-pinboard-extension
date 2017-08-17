@@ -3,7 +3,7 @@
         "target": "es2017",
         "module": "es2015",
         "sourceMap": true,
-        "watch": true,
+        "watch": false,
         "sourceRoot": "src/ts",
         "outDir": "dist/js",
         // You have to explicitly set @types to get DefinitelyTyped type definitions

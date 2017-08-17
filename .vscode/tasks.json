@@ -13,20 +13,42 @@
             "type": "typescript",
             "label": "compile ts",
             "tsconfig": "tsconfig.json",
-            "problemMatcher": ["$tsc"]
+            "problemMatcher": [
+                "$tsc"
+            ]
         },
         {
             "type": "shell",
             "taskName": "lint",
             "command": "tslint --project tsconfig.json --fix",
-            "problemMatcher": ["$tslint5"]
+            "problemMatcher": [
+                "$tslint5"
+            ]
         },
         {
             "type": "shell",
             "command": "echo 'OK'",
             "taskName": "BUILD",
-            "dependsOn": ["copy", "lint", "compile ts"],
+            "dependsOn": [
+                "copy",
+                "lint",
+                "compile ts"
+            ],
             "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "lint",
+            "problemMatcher": [
+                "$tslint5"
+            ]
+        },
+        {
+            "type": "npm",
+            "script": "build",
+            "problemMatcher": [
+                "$tsc"
+            ]
         }
     ]
 }

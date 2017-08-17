@@ -2,17 +2,16 @@ namespace optionsPage {
 let options: Options;
 // TODO browser.storage.sync
 
-//Elements
+// Elements
 const changeActionbarIcon = document.getElementById("changeActionbarIcon") as HTMLInputElement;
 const sharedByDefault = document.getElementById("sharedByDefault") as HTMLInputElement;
 const saveBrowserBookmarks = document.getElementById("saveBrowserBookmarks") as HTMLInputElement;
 const apiKeyInput = document.getElementById("apikey") as HTMLInputElement;
-
 const saveAPIButton = document.getElementById("saveapi") as HTMLButtonElement;
 const clearAPIButton = document.getElementById("clearapi") as HTMLButtonElement;
 const forceReloadButton = document.getElementById("forcereload") as HTMLButtonElement;
 
-//Event listeners
+// Event listeners
 changeActionbarIcon.addEventListener("change", handleOptionChange);
 saveBrowserBookmarks.addEventListener("change", handleOptionChange);
 sharedByDefault.addEventListener("change", handleOptionChange);
@@ -29,7 +28,7 @@ async function onLoad() {
     const token = await browser.storage.local.get(["lastsync", "apikey"]);
     forceReloadButton.title = "Last bookmark sync: " + new Date(token.lastsync);
     options = await Options.getObject();
-    if (!! token.apikey && token.apikey != "") {
+    if (!! token.apikey && token.apikey !== "") {
         toggleAPIKeyInputs();
     }
     if (options.changeActionbarIcon) {
@@ -48,7 +47,7 @@ async function onLoad() {
 }
 
 function forcePinReload() {
-    //console.log("forcereload");
+    // console.log("forcereload");
     browser.runtime.sendMessage({callFunction: "forceUpdatePins"});
 }
 
@@ -69,30 +68,29 @@ async function saveAPIKey() {
     const headers = new Headers({ Accept: "application/json" });
     const apikey = apiKeyInput.value;
     const init = { method: "GET", headers };
-    const request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" + apikey + "&format=json", init);
+    const request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" +
+    apikey + "&format=json", init);
     const response = await fetch(request);
     if (!response) {
-        //console.log("Error while parsing result");
+        // console.log("Error while parsing result");
         return;
     }
     const json = await response.json();
-    if (json.result == apikey.split(":")[1]) {
+    if (json.result === apikey.split(":")[1]) {
         browser.storage.local.set({apikey: apiKeyInput.value});
-        //console.log("Saved successfully");
+        // console.log("Saved successfully");
         apiKeyInput.value = "";
         toggleAPIKeyInputs();
-    }
-    else {
-        //console.log("Error while parsing result");
+    } else {
+        // console.log("Error while parsing result");
         return;
     }
 }
 
 function handleOptionChange(e) {
-    if (e.target.type == "checkbox") {
+    if (e.target.type === "checkbox") {
         options[e.target.name] = e.target.checked;
-    }
-    else {
+    } else {
         options[e.target.name] = e.target.value;
     }
 }

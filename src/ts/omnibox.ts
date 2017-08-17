@@ -14,16 +14,13 @@ function handleInputChanged(text, addSuggestions) {
     if (text.startsWith(options.tagPrefix + " ")) {
         searchArea.push("tags");
         hasPrefix = true;
-    }
-    else if (text.startsWith(options.urlPrefix + " ")) {
+    } else if (text.startsWith(options.urlPrefix + " ")) {
         searchArea.push("url");
         hasPrefix = true;
-    }
-    else if (text.startsWith(options.titlePrefix + " ")) {
+    } else if (text.startsWith(options.titlePrefix + " ")) {
         searchArea.push("description");
         hasPrefix = true;
-    }
-    else {
+    } else {
         searchArea = ["tags", "url", "description", "extended"];
     }
     if (text.startsWith(options.toReadPrefix + " ")) {
@@ -37,7 +34,7 @@ function handleInputChanged(text, addSuggestions) {
     for (const [key, pin] of pins) {
         searchArea.forEach((filter) => {
             if (pin[filter].toLowerCase().includes(text)) {
-                if (!toRead || pin.toread == "yes") {
+                if (!toRead || pin.toread === "yes") {
                     selectedPins.push(pin);
                 }
             }
@@ -50,8 +47,7 @@ function handleInputChanged(text, addSuggestions) {
 function handleInputEntered(text, disposition) {
     let url = text;
     const regex = /^(http:\/\/|https:\/\/|ftp:|mailto:|file:|javascript:|feed:).+$/iu;
-    let m;
-    if ((m = regex.exec(text)) === null) {
+    if (regex.exec(text) === null) {
         url = "https:\/\/pinboard.in/search/?query=" + encodeURIComponent(url) + "&mine=Search+Mine";
     }
     switch (disposition) {
@@ -67,7 +63,7 @@ function handleInputEntered(text, disposition) {
     }
 }
 
-//Create the array with the searchbar suggestions
+// Create the array with the searchbar suggestions
 function createSuggestions(pins, searchtext) {
     return new Promise((resolve) => {
         const suggestions = []
@@ -75,10 +71,10 @@ function createSuggestions(pins, searchtext) {
             content: "https://pinboard.in/search/?query=" + encodeURIComponent(searchtext),
             description: "No results found, go to Pinboard search",
         }];
-        if (!pins || pins.size == 0) {
+        if (!pins || pins.size === 0) {
             return resolve(suggestionsOnEmptyResults);
         }
-        pins.forEach(function(pin) {
+        pins.forEach((pin) => {
             suggestions.push({
                 content: pin.url,
                 description: pin.description,
