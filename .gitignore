@@ -3,4 +3,3 @@ web-ext-artifacts/
 *.zip
 node_modules/
 !node_modules/webextension-polyfill
-dist/
