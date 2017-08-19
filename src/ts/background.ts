@@ -5,17 +5,15 @@ declare let chrome: any;
 
 let pins: Pins;
 let options: Options;
-// Listeners
 
-// browser.runtime.onStartup.addListener(handleStartup);
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
 browser.runtime.onStartup.addListener(handleStartup);
+browser.alarms.onAlarm.addListener(onCheckUpdate);
+
 browser.alarms.create("checkUpdate", {
     periodInMinutes: 5,
-
 });
-browser.alarms.onAlarm.addListener(onCheckUpdate);
-// Update the pins on startup of the browser
+
 async function handleStartup() {
     options = await Options.getObject();
     chrome.runtime.onMessage.addListener(handleMessage);
@@ -29,7 +27,6 @@ async function handleStartup() {
     browser.omnibox.setDefaultSuggestion({
         description: `Search your pinboard bookmarks`,
     });
-
     browser.contextMenus.create({
         contexts: ["link"],
         id: "linkAddToToRead",
@@ -85,20 +82,10 @@ async function handleContextMenuClick(info: browser.contextMenus.OnClickData, ta
     }
 }
 
-/**
- * Is Executed when the addon is installed or updated
- */
 async function handleAddonInstalled() {
-    const token = await browser.storage.local.get(["lastsync", "lastupdate"]);
-    if (!token.hasOwnProperty("lastsync")) {
-        token.lastsync = "";
-        token.lastupdate = "";
-        browser.storage.local.set(token);
-    }
     handleStartup();
 }
 
-// Only update pin data when the api key was modified
 async function handleStorageChanged(changes: browser.storage.ChangeDict, area: browser.storage.StorageName) {
     if (Object.keys(changes).includes("apikey")) {
         pins = await Pins.updateList(true);
@@ -110,7 +97,6 @@ async function handleStorageChanged(changes: browser.storage.ChangeDict, area: b
 }
 
 async function checkDisplayBookmarked(tab?: browser.tabs.Tab) {
-    // console.log("Checking");
     function checkExists(t: browser.tabs.Tab) {
         if (!!pins && pins.has(t.url) && options.changeActionbarIcon) {
             browser.browserAction.setBadgeText({text: "\u{2713}", tabId: t.id});

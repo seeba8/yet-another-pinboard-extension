@@ -1,17 +1,24 @@
 ///<reference path="pin.ts" />
 "use strict";
 class Pins extends Map<string, Pin> {
-    public static async updateList(forceUpdate: boolean = false) {
-        const token = await browser.storage.local.get(["apikey", "lastupdate", "lastsync", "pins"]);
+    public static async updateList(forceUpdate: boolean = false): Promise<Pins> {
+        const token = await browser.storage.local.get(["apikey", "pins"]);
         // Plus 5 at the end for buffer, in order for the alarm to trigger this usually.
-        if (token.apikey === "" || (!forceUpdate && !!token.lastsync &&
-            new Date(token.lastsync) > new Date(Date.now() - 1000 * 60 * 5 + 5))) {
+        if (!token.hasOwnProperty("apikey") || token.apikey === "") {
+            return new Pins();
+        }
+        const lastSync = await this.getStoredLastSync();
+        if (!forceUpdate && lastSync.getTime() > new Date(Date.now() - 1000 * 60 * 5 + 5).getTime()) {
+            // Not forced and last sync less than 5 minutes ago, therefore we just get the stored object
             return Pins.getObject();
         }
         const lastUpdate = await connector.getLastUpdate();
+        const storedLastUpdate = await this.getStoredLastUpdate();
         // To compare Dates: https://stackoverflow.com/a/493018
-        if (!forceUpdate && !!token.pins && token.pins.length > 0 && !!token.lastupdate &&
-                    new Date(token.lastupdate).getTime() === lastUpdate.getTime()) {
+        if (!forceUpdate && token.hasOwnProperty("pins") && token.pins.length > 0 &&
+            storedLastUpdate.getTime() === lastUpdate.getTime()) {
+            // Pinboard's last update is the same as the one stored, and the pins Array is non-empty
+            // therefore we just get the stored object
             return Pins.getObject();
 
         }
@@ -49,6 +56,22 @@ class Pins extends Map<string, Pin> {
         } else {
             return new Pins(res.pins);
         }
+    }
+
+    private static async getStoredLastUpdate() {
+        const token = await browser.storage.local.get("lastupdate");
+        if (token.hasOwnProperty("lastupdate")) {
+            return new Date(token.lastupdate);
+        }
+        return new Date(0);
+    }
+
+    private static async getStoredLastSync() {
+        const token = await browser.storage.local.get("lastsync");
+        if (token.hasOwnProperty("lastsync")) {
+            return new Date(token.lastsync);
+        }
+        return new Date(0);
     }
 
     private constructor(i?: any) {
