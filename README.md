@@ -17,6 +17,27 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 * The API key can be found on https://pinboard.in/settings/password.
 * You can search through your bookmarks, create new ones and edit old ones via the button in the Action Menu (add it to the bar if it is not there)
 
+### To build
+* Install npm/node and run npm install
+* Alternatively, manually install these packages:
+  * webextension-polyfill (necessary to be included)
+  * web-ext-types (typescript declarations for web extensions)
+  * tslint (optionally, to use standardised formatting)
+  * typescript (to cross-compile .ts to .js)
+* run the scripts outlined in package.json or:
+  * create folder structure below
+  * copy html and css in their folders
+  * copy browser-polyfill.min.js in the vendor/webextension-polyfill folder
+  * (run `tslint`)
+  * run `tsc` (typescript compiler)
+```
+  dist
+    +-- hml
+    +-- css
+    +-- js
+    +-- vendor
+    |   +-- webextension-polyfill
+  ```
 ### Thanks
 Thanks to [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool addon and for the bug motivating me to look into WebExtensions.
 
