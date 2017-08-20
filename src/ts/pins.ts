@@ -54,7 +54,11 @@ class Pins extends Map<string, Pin> {
         if (res.pins === undefined) {
             return new Pins();
         } else {
-            return new Pins(res.pins);
+            const pins = new Pins();
+            for (const p of res.pins) {
+                pins.set(p[0], Pin.fromObject(p[1]));
+            }
+            return pins;
         }
     }
 

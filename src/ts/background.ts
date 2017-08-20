@@ -137,7 +137,7 @@ function handleMessage(request: any, sender: browser.runtime.MessageSender, send
         pins.addPin(pin);
         checkDisplayBookmarked();
         pin.save().then((resp) => {
-        sendResponse(resp);
+            sendResponse(resp);
         });
         return true;
     } else if (request.callFunction === "forceUpdatePins") {

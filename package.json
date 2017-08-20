@@ -13,7 +13,7 @@
   },
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "copytodist": "rmdir /S /Q .\\dist & mkdir .\\dist\\vendor\\webextension-polyfill & mkdir .\\dist\\js & mkdir .\\dist\\html && mkdir .\\dist\\css & mkdir .\\dist\\img & copy .\\node_modules\\webextension-polyfill\\dist\\*.min.js* .\\dist\\vendor\\webextension-polyfill & copy .\\src\\img\\*.* .\\dist\\img & copy .\\src\\html\\*.* .\\dist\\html & copy .\\src\\css\\*.* .\\dist\\css & copy .\\src\\manifest.json .\\dist\\manifest.json" ,
+    "copytodist": "mkdir .\\dist\\vendor\\webextension-polyfill & mkdir .\\dist\\js & mkdir .\\dist\\html && mkdir .\\dist\\css & mkdir .\\dist\\img & copy /y .\\node_modules\\webextension-polyfill\\dist\\*.min.js* .\\dist\\vendor\\webextension-polyfill & copy /y .\\src\\img\\*.* .\\dist\\img & copy /y .\\src\\html\\*.* .\\dist\\html & copy /y .\\src\\css\\*.* .\\dist\\css & copy /y .\\src\\manifest.json .\\dist\\manifest.json" ,
     "lint": "tslint --fix --project tsconfig.json",
     "tsc": "tsc",
     "copyandbuild": "npm run copytodist && npm run lint && npm run tsc",
@@ -35,5 +35,5 @@
   "bugs": {
     "url": "https://github.com/seeba8/yet-another-pinboard-extension/issues"
   },
-  "homepage": "https://github.com/seeba8/yet-another-pinboard-extension#readme"
+  "homepage": "https://github.com/seeba8/yet-another-pinboard-extension"
 }

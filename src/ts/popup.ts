@@ -257,7 +257,6 @@ function handleBookmarkRead(e) {
     pin.toread = "no";
     browser.runtime.sendMessage({
         callFunction: "saveBookmark",
-        isNewPin: false,
         pin,
     });
     e.target.classList.toggle("invisible");
