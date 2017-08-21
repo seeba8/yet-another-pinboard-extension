@@ -295,7 +295,7 @@ function addListItem(pin, key) {
     }
     function addToReadSymbol() {
         const toreadeye = document.createElement("a");
-        toreadeye.appendChild(document.createTextNode("\u{1f441}"));
+        toreadeye.appendChild(document.createTextNode("\u2609"));
         toreadeye.addEventListener("click", handleBookmarkRead);
         toreadeye.title = "Mark as read";
         toreadeye.dataset.entryId = key;

@@ -16,18 +16,18 @@
   </div>
   <form class="searchform" id="searchform">
     <input type="text" id="filter" placeholder="Search" class="search" required />
-    <button type="reset" class="resetbutton">X</button>
-    <a href="#" id="filterToRead"title="Show only to read">&#x1f441;</a>
+    <button type="reset" class="resetbutton">&#x2715;</button>
+    <a href="#" id="filterToRead"title="Show only to read">&#x2609;</a>
   </form>
   <div id="prevnext">
     <a href="#" id="firstPage">&laquo;</a>
-    <a href="#" id="prevPage">&lt;</a>
+    <a href="#" id="prevPage">&lsaquo;</a>
     <a href="#" id="pageNo1">1</a>
     <a href="#" id="pageNo2">2</a>
     <a href="#" id="pageNo3">3</a>
     <a href="#" id="pageNo4">4</a>
     <a href="#" id="pageNo5">5</a>
-    <a href="#" id="nextPage">&gt;</a>
+    <a href="#" id="nextPage">&rsaquo;</a>
     <a href="#" id="lastPage">&raquo;</a>
 
   </div>
@@ -51,7 +51,7 @@
             <label for="description">Title</label>
           </div>
           <div>
-            <input maxlength="255" type="text" id="description" />
+            <input maxlength="255" type="text" id="description" class="editinput"/>
           </div>
         </div>
         <div>
@@ -59,7 +59,7 @@
             <label for="url">URL</label>
           </div>
           <div>
-            <input type="text" id="url" readonly="readonly" />
+            <input type="url" id="url" class="editinput"/>
           </div>
         </div>
         <div>
@@ -67,7 +67,7 @@
             <label for="extended">Description</label>
           </div>
           <div>
-            <textarea maxlength="65536" id="extended"></textarea>
+            <textarea maxlength="65536" id="extended" class="editinput"></textarea>
           </div>
         </div>
         <div>
@@ -77,12 +77,12 @@
             </div>
           </div>
           <div>
-            <input type="text" id="tags" />
+            <input type="text" id="tags" class="editinput"/>
           </div>
         </div>
         <div>
           <label for="toread">To read </label>
-          <input type="checkbox" id="toread" name="toread" checked="checked" value="To read" />
+          <input type="checkbox" id="toread" name="toread" checked="checked" value="To Read" />
           <label for="shared">Shared </label>
           <input type="checkbox" id="shared" name="shared" value="Shared" />
           <!--<button id="deleteBookmark" >Delete</button>-->

@@ -66,8 +66,13 @@
     cursor: pointer;
 }
 
-#editwrapper input[type=text] {
-    width: 100%;
+#editwrapper .editinput {
+    width: 95%;
+    margin-bottom: 10px;
+}
+
+#editwrapper textarea {
+    resize: none;
 }
 
 #editcontainer {
@@ -76,23 +81,21 @@
     justify-content: center;
 }
 #editwrapper {
+    font-size: .8rem;
     margin: auto;
     top:30%;
     position:fixed;
     width: 60%;
     background-color: white;
-    border: 2px solid grey;
+    border: 1px solid grey;
+    border-radius: 5px;
     z-index:5;
     opacity:1;
-    padding:1em;
-}
-#editwrapper input[readonly="readonly"], #editwrapper input[readonly] {
-    color:grey;
+    padding:1.5em;
 }
 
 #editwrapper input[type="checkbox"] {
     display: inline;
-    
 }
 
 label {
@@ -180,4 +183,9 @@ body {
 
 #tagsuggestions a {
     cursor: pointer;
+}
+
+a {
+    text-decoration: none;
+    color: #11a;
 }
