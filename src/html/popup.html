@@ -17,7 +17,7 @@
   <form class="searchform" id="searchform">
     <input type="text" id="filter" placeholder="Search" class="search" required />
     <button type="reset" class="resetbutton">&#x2715;</button>
-    <a href="#" id="filterToRead"title="Show only to read">&#x2609;</a>
+    <a href="#" id="filterToRead"title="Show only to read">&#x1f441;</a>
   </form>
   <div id="prevnext">
     <a href="#" id="firstPage">&laquo;</a>
@@ -59,7 +59,8 @@
             <label for="url">URL</label>
           </div>
           <div>
-            <input type="url" id="url" class="editinput"/>
+            <input type="url" id="url" class="editinput" readonly="readonly" title="Read-only. To change, create a new bookmark instead"/>
+            <!-- Readonly, because if we change it, it creates a new bookmark-->
           </div>
         </div>
         <div>

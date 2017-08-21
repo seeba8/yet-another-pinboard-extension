@@ -88,7 +88,6 @@
     width: 60%;
     background-color: white;
     border: 1px solid grey;
-    border-radius: 5px;
     z-index:5;
     opacity:1;
     padding:1.5em;
@@ -96,6 +95,10 @@
 
 #editwrapper input[type="checkbox"] {
     display: inline;
+}
+
+#editwrapper #url {
+    color: grey;
 }
 
 label {
@@ -187,5 +190,4 @@ body {
 
 a {
     text-decoration: none;
-    color: #11a;
 }

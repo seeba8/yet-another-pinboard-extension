@@ -49,6 +49,11 @@
             "problemMatcher": [
                 "$tsc"
             ]
+        },
+        {
+            "type": "npm",
+            "script": "copytodist",
+            "problemMatcher": []
         }
     ]
 }
