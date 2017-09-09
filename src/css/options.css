@@ -13,5 +13,11 @@ body{
 }
 
 .hidden {
-    display: none;
+    display: none !important;
+}
+#errorsymbol {
+    display: inline;
+    color: red;
+    font-weight: bold;
+    font-size: 1.5em;
 }

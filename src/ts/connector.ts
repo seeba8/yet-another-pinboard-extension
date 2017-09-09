@@ -4,8 +4,8 @@ let connector = (() => {
     const API_URL = Object.freeze({
         addPin: "https://api.pinboard.in/v1/posts/add",
         deletePin: "https://api.pinboard.in/v1/posts/delete",
-        getAPIToken: "https://api.pinboard.in/v1/user/api_token",
         getAllPins: "https://api.pinboard.in/v1/posts/all",
+        // getAuthToken: "https://api.pinboard.in/v1/user/auth_token",
         getLastUpdate: "https://api.pinboard.in/v1/posts/update",
         suggestTags: "https://api.pinboard.in/v1/posts/suggest",
     });
@@ -15,7 +15,8 @@ let connector = (() => {
     const MIN_INTERVAL_ALL = 5 * 60 * 1000;
     let interval = MIN_INTERVAL;
     let intervalAll = MIN_INTERVAL_ALL;
-    let localQueue = Array();
+    let localQueue = Array<{params: any, reject: (message: any) => void,
+                            resolve: (message: any) => void, type: string}>();
     const lastGetAllPins = new Date(0);
     let lastRequest = new Date(0);
 
@@ -35,7 +36,6 @@ let connector = (() => {
     // }
 
     async function startUp() {
-        // console.log("starting");
         const queue = await getQueue();
         localQueue = queue.concat(localQueue);
         if (queue.length > 0 && !hasQueueStarted) {
@@ -51,11 +51,9 @@ let connector = (() => {
     function addToQueue(item) {
         hasQueueStarted = true;
         localQueue.push(item);
-        // console.log("new queue: ", localQueue);
         saveQueue(localQueue);
         cleanQueueDuplicates();
         if (localQueue.length === 1) {
-            // console.log("queue 1");
             if (lastRequest < new Date(Date.now() - MIN_INTERVAL)) {
                 proceedQueue();
             } else {
@@ -111,13 +109,9 @@ let connector = (() => {
 
     function proceedQueue() {
         lastRequest = new Date();
-        // console.log("Proceeding in queue");
-        // console.log(localQueue);
         if (localQueue.length === 0) {
-            // console.log("length 0");
             return;
         }
-        // console.log("sending request");
         sendRequest(localQueue[0])
             .then(validateResponse)
             .then(parseJSON)
@@ -151,9 +145,8 @@ let connector = (() => {
     }
 
     function validateResponse(response) {
-        // console.log(response);
         if (!response.ok || response.status !== 200) {
-            throw Error(response.status);
+            throw Error(String(response.status) + " " + response.statusText);
         }
         return response;
     }
@@ -189,22 +182,20 @@ let connector = (() => {
                     });
                     return tags;
                 }
-            default:
-                // console.log("No special condition");
-                // console.log(json);
         }
         return json;
     }
 
     function onSuccess(result) {
+        browser.browserAction.setBadgeBackgroundColor({color: "#333"});
+        browser.browserAction.setBadgeText({text: ""});
+        browser.browserAction.setTitle({title: "Yet Another Pinboard Extension"});
         intervalAll = MIN_INTERVAL_ALL;
         interval = MIN_INTERVAL;
         const promise = localQueue.shift();
         saveQueue(localQueue);
         if (typeof promise.resolve === "function") {
             promise.resolve(result);
-        } else {
-            // console.log(typeof promise.resolve);
         }
         if (localQueue.length > 0) {
             setTimeout(proceedQueue, interval);
@@ -212,8 +203,10 @@ let connector = (() => {
     }
 
     function onError(error) {
-        // console.log("There was an error:\n", error);
         interval *= 2;
+        browser.browserAction.setBadgeBackgroundColor({color: "#f00"});
+        browser.browserAction.setBadgeText({text: "X"});
+        browser.browserAction.setTitle({title: String(error)});
         setTimeout(proceedQueue, interval);
         // Possible:
         // queue.shift().reject(error);
@@ -222,7 +215,6 @@ let connector = (() => {
     // Public methods of the connector "class"
     return {
         getLastUpdate(): Promise<Date> {
-            // console.log("update");
             return new Promise((resolve, reject) => {
                 addToQueue({
                     params: {},
@@ -234,7 +226,6 @@ let connector = (() => {
 
         } ,
         addPin(pin: Pin): Promise<any> {
-            // console.log("save", pin);
             return new Promise((resolve, reject) => {
                 addToQueue({
                     params: pin,
@@ -245,7 +236,6 @@ let connector = (() => {
             })
         },
         getAllPins(): Promise<any[]> {
-            // console.log("getAll");
             return new Promise((resolve, reject) => {
                 setTimeout(proceedGetAllData, Math.max(0, intervalAll -
                     (Date.now() - lastGetAllPins.getTime())), { // TODO CHECK THIS

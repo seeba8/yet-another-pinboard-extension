@@ -53,7 +53,6 @@ function handleBookmarkCreated(id: string, bookmark: browser.bookmarks.BookmarkT
         return;
     }
     if (!!bookmark.url && bookmark.url !== "") {
-        // console.log(bookmark);
         const pin = new Pin(bookmark.url, bookmark.title, undefined, new Date().toISOString());
         pins.addPin(pin);
         pin.save();
@@ -159,5 +158,23 @@ function handleMessage(request: any, sender: browser.runtime.MessageSender, send
             sendResponse(suggestions);
         });
         return true;
+    } else if (request.callFunction === "showErrorBadge") {
+        showErrorBadge(request.error);
+
+    } else if (request.callFunction === "hideErrorBadge") {
+        hideErrorBadge();
     }
+}
+
+function showErrorBadge(message: string) {
+    browser.browserAction.setBadgeBackgroundColor({color: "#f00"});
+    browser.browserAction.setBadgeText({text: "X"});
+    browser.browserAction.setTitle({title: message});
+}
+
+function hideErrorBadge() {
+    browser.browserAction.setBadgeBackgroundColor({color: "#333"});
+    browser.browserAction.setBadgeText({text: ""});
+    browser.browserAction.setTitle({title: "Yet Another Pinboard Extension"});
+    checkDisplayBookmarked();
 }

@@ -10,6 +10,7 @@ const apiKeyInput = document.getElementById("apikey") as HTMLInputElement;
 const saveAPIButton = document.getElementById("saveapi") as HTMLButtonElement;
 const clearAPIButton = document.getElementById("clearapi") as HTMLButtonElement;
 const forceReloadButton = document.getElementById("forcereload") as HTMLButtonElement;
+const errorSymbol = document.getElementById("errorsymbol") as HTMLDivElement;
 
 // Event listeners
 changeActionbarIcon.addEventListener("change", handleOptionChange);
@@ -47,7 +48,6 @@ async function onLoad() {
 }
 
 function forcePinReload() {
-    // console.log("forcereload");
     browser.runtime.sendMessage({callFunction: "forceUpdatePins"});
 }
 
@@ -71,18 +71,19 @@ async function saveAPIKey() {
     const request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" +
     apikey + "&format=json", init);
     const response = await fetch(request);
-    if (!response) {
-        // console.log("Error while parsing result");
+    if (!response || response.status !== 200) {
+        apiKeyInput.value = "";
+        errorSymbol.classList.remove("hidden");
+        errorSymbol.title = response.statusText;
         return;
     }
     const json = await response.json();
     if (json.result === apikey.split(":")[1]) {
         browser.storage.local.set({apikey: apiKeyInput.value});
-        // console.log("Saved successfully");
         apiKeyInput.value = "";
         toggleAPIKeyInputs();
+        errorSymbol.classList.add("hidden");
     } else {
-        // console.log("Error while parsing result");
         return;
     }
 }

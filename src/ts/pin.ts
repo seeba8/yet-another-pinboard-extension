@@ -31,7 +31,6 @@ class Pin {
     }
 
     public save() {
-        // console.log("saving");
         return connector.addPin(this);
     }
 
