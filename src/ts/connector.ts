@@ -133,7 +133,7 @@ let connector = (() => {
                 }
             })
             .catch((error) => {
-                intervalAll *= 2;
+                // intervalAll *= 2; // Removing the doubling as it might cause issues (growing too quickly)
                 setTimeout(proceedGetAllData, intervalAll, item);
             });
     }
@@ -203,7 +203,7 @@ let connector = (() => {
     }
 
     function onError(error) {
-        interval *= 2;
+        interval = Math.max(interval * 2, 1000 * 60 * 10);
         browser.browserAction.setBadgeBackgroundColor({color: "#f00"});
         browser.browserAction.setBadgeText({text: "X"});
         browser.browserAction.setTitle({title: String(error)});
