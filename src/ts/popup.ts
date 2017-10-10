@@ -32,6 +32,7 @@ const editBox = {
 let offset = 0;
 export let pins: Pins;
 let toReadOnly = false;
+export let options: Options;
 
 filterTextbox.addEventListener("keyup", handleFilterChange);
 bookmarkCurrentButton.addEventListener("click", handleBookmarkCurrent);
@@ -83,7 +84,7 @@ async function getDPI() {
 
 async function handleStartup() {
     const token = await browser.storage.local.get(["lastsync"]);
-    const options = await Options.getObject();
+    options = await Options.getObject();
     editBox.sharedCheckbox.checked = options.sharedByDefault;
     optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
 }
@@ -118,7 +119,8 @@ async function handleReadLaterCurrent(e) {
     e.preventDefault();
     const tabs = await browser.tabs.query({currentWindow: true, active: true});
     const tab = tabs[0];
-    const pin = new Pin(tab.url, tab.title, undefined, undefined, undefined, "yes", "no");
+    const title = executeTitleRegex(tab.title);
+    const pin = new Pin(tab.url, title, undefined, undefined, undefined, "yes", "no");
     addPin(pin, true);
 }
 
@@ -263,6 +265,17 @@ function handleEditBookmark(e) {
     greyoutDiv.classList.toggle("hidden");
     editBox.URL.dataset.entryId = e.target.dataset.entryId;
     editBox.extended.value = pin.extended || "";
+}
+
+function executeTitleRegex(title: string): string {
+    const titleRegex = new RegExp(options.titleRegex).exec(title);
+    if (titleRegex === null || titleRegex.length === 0) {
+        return title;
+    } else if (titleRegex.length === 1) {
+        return titleRegex[0];
+    } else {
+        return titleRegex[1];
+    }
 }
 
 function handleLinkClick(e) {

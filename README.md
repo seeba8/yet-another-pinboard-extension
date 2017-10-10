@@ -41,8 +41,18 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 ### Thanks
 * To [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool addon and for the bug motivating me to look into WebExtensions.
 * To [weinshel](https://github.com/weinshel) for the [commit](https://github.com/seeba8/yet-another-pinboard-extension/commit/3a2c969389d40c357646d0ce97a4425a737c31c6) in his fork which I took the liberty of [bringing into my version](https://github.com/seeba8/yet-another-pinboard-extension/commit/d285bf935facea7a397bab503256e24f1a45c257)
+* To [alerque](https://github.com/alerque) for your suggestion in #25 to add regex parsing
 
 ### Changelog (incomplete)
+
+#### v1.2.6 - v1.2.9:
+* Adds the option to run a regex on the tab title (might be useful when using an addon to modify the tab title). Thanks @alerque for the suggestion (see #25)!
+* Adds css scaling on the popup for firefox when using two screens with different DPI (see issue #3)
+* Updates the timeout increase to introduce a maximum timeout of 10 minutes
+* Adds badges to the button to show when a connection issue occurs
+* Fixes a bug causing high CPU load when addon options are missing
+* Misc. stuff, check the commits if you are interested, nothing worth mentioning
+
 #### v1.2.1 - v1.2.5:
 * Adds symbol in popup for shared bookmarks
 * Adds filter in popup for bookmarks flagged as "to read"

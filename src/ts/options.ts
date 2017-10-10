@@ -1,20 +1,22 @@
 /* tslint variable-name: 0 */
 class Options {
     public static async getObject() {
-        const o = (await browser.storage.local.get("options"));
+        const o = await browser.storage.local.get("options");
         if (o.options === undefined) {
             const x = new Options();
             x.save();
             return x;
         } else {
-            return new Options(o.urlPrefix || o._urlPrefix,
-                o.tagPrefix || o._tagPrefix,
-                o.titlePrefix || o._titlePrefix,
-                o.toReadPrefix || o._toReadPrefix,
-                o.showBookmarked || o._showBookmarked,
-                o.changeActionbarIcon || o._changeActionbarIcon,
-                o.saveBrowserBookmarks || o._saveBrowserBookmarks,
-                o.sharedbyDefault || o._saveBrowserBookmarks);
+            const options = o.options;
+            return new Options( options._urlPrefix,
+                                options._tagPrefix,
+                                options._titlePrefix,
+                                options._toReadPrefix,
+                                options._showBookmarked,
+                                options._changeActionbarIcon,
+                                options._saveBrowserBookmarks,
+                                options._saveBrowserBookmarks,
+                                options._titleRegex);
         }
     }
     /* tslint:disable */
@@ -26,6 +28,7 @@ class Options {
     private _changeActionbarIcon: boolean;
     private _saveBrowserBookmarks: boolean;
     private _sharedbyDefault: boolean;
+    private _titleRegex: string;
     /* tslint:enable */
 
     private constructor(urlPrefix: string = "u",
@@ -35,7 +38,8 @@ class Options {
                         showBookmarked: boolean = true,
                         changeActionbarIcon: boolean = true,
                         saveBrowserBookmarks: boolean = false,
-                        sharedByDefault: boolean = false) {
+                        sharedByDefault: boolean = false,
+                        titleRegex: string = ".*") {
     this._urlPrefix = urlPrefix;
     this._tagPrefix = tagPrefix;
     this._titlePrefix = titlePrefix;
@@ -43,14 +47,15 @@ class Options {
     this._showBookmarked = showBookmarked;
     this._changeActionbarIcon = changeActionbarIcon;
     this._sharedbyDefault = sharedByDefault;
-
+    this._titleRegex = titleRegex;
 }
 
-    public *getPrefixes(): IterableIterator<[string, string]> {
+    public *getStringOptions(): IterableIterator<[string, string]> {
         yield ["tagPrefix", this.tagPrefix];
         yield ["titlePrefix", this.titlePrefix];
         yield ["urlPrefix", this.urlPrefix];
         yield ["toReadPrefix", this.toReadPrefix];
+        yield ["titleRegex", this.titleRegex];
     }
 
     public *getBinaryOptions(): IterableIterator<[string, boolean]> {
@@ -115,6 +120,21 @@ class Options {
     }
     get sharedByDefault() {
         return this._sharedbyDefault;
+    }
+    set titleRegex(titleRegex) {
+        if (titleRegex === "") {
+            titleRegex = ".*";
+        }
+        try {
+            const r = new RegExp(titleRegex);
+            this._titleRegex = titleRegex;
+            this.save();
+        } catch (e) {
+            // do nothing, keep the old, valid Regex
+        }
+    }
+    get titleRegex() {
+        return this._titleRegex;
     }
 
     private save() {

@@ -11,6 +11,10 @@ const saveAPIButton = document.getElementById("saveapi") as HTMLButtonElement;
 const clearAPIButton = document.getElementById("clearapi") as HTMLButtonElement;
 const forceReloadButton = document.getElementById("forcereload") as HTMLButtonElement;
 const errorSymbol = document.getElementById("errorsymbol") as HTMLDivElement;
+const titleRegex = document.getElementById("titleRegex") as HTMLInputElement;
+const regexPreview = document.getElementById("regexPreview") as HTMLUListElement;
+const toggleAdvanced = document.getElementById("toggleAdvanced") as HTMLButtonElement;
+const advancedOptions = document.getElementById("advancedOptions") as HTMLDivElement;
 
 // Event listeners
 changeActionbarIcon.addEventListener("change", handleOptionChange);
@@ -19,8 +23,25 @@ sharedByDefault.addEventListener("change", handleOptionChange);
 saveAPIButton.addEventListener("click", saveAPIKey);
 clearAPIButton.addEventListener("click", clearAPIKey);
 forceReloadButton.addEventListener("click", forcePinReload);
+titleRegex.addEventListener("input", onTitleRegexChange);
+titleRegex.addEventListener("focus", (e) => {
+    regexPreview.classList.remove("hidden");
+    onTitleRegexChange(e);
+});
+titleRegex.addEventListener("blur", (e) => {
+    if (titleRegex.value === "") {
+        titleRegex.value = ".*";
+    }
+    regexPreview.classList.add("hidden");
+    handleOptionChange(e);
+})
 document.querySelectorAll(".prefixes").forEach((element) => {
     element.addEventListener("change", handleOptionChange);
+});
+toggleAdvanced.addEventListener("click", (e) => {
+    advancedOptions.classList.toggle("hidden");
+    toggleAdvanced.textContent = (toggleAdvanced.textContent.startsWith("Show") ? "Hide" : "Show")
+            + " advanced options";
 });
 
 onLoad();
@@ -42,9 +63,17 @@ async function onLoad() {
         sharedByDefault.checked = true;
     }
 
-    for (const [k, v] of options.getPrefixes()) {
+    for (const [k, v] of options.getStringOptions()) {
         (document.getElementById(k) as HTMLInputElement).value = v;
     }
+
+    browser.tabs.query({}).then((tabs: browser.tabs.Tab[]) => {
+        for (const tab of tabs) {
+            const li = document.createElement("li") as HTMLLIElement;
+            li.textContent = tab.title;
+            regexPreview.appendChild(li);
+        }
+    });
 }
 
 function forcePinReload() {
@@ -93,6 +122,39 @@ function handleOptionChange(e) {
         options[e.target.name] = e.target.checked;
     } else {
         options[e.target.name] = e.target.value;
+    }
+}
+
+function onTitleRegexChange(e: Event) {
+    let regex: RegExp;
+    try {
+        regex = new RegExp((e.target as HTMLInputElement).value);
+    } catch (error) {
+
+        for (const child of Array.from(regexPreview.children) as HTMLLIElement[]) {
+            child.textContent = child.textContent;
+        }
+        titleRegex.title = String(error);
+        titleRegex.classList.add("wronginput");
+        return;
+    }
+    titleRegex.classList.remove("wronginput");
+    titleRegex.title = "";
+    for (const child of Array.from(regexPreview.children) as HTMLLIElement[]) {
+        const res = regex.exec(child.textContent);
+        if (res === null) {
+            child.textContent = child.textContent;
+            continue;
+        }
+        // If we have more than one match (thus, a capture group), look at the first capture group
+        const match: string = (res.length > 1 ? res[1] : res[0]);
+        const matchElement = document.createElement("span");
+        matchElement.classList.add("match");
+        matchElement.textContent = match;
+        const full = child.textContent;
+        child.textContent = full.substring(0, full.indexOf(match));
+        child.appendChild(matchElement);
+        child.appendChild(document.createTextNode(full.substring(full.indexOf(match) + match.length)));
     }
 }
 }

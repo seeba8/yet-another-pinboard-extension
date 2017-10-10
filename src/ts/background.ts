@@ -74,7 +74,8 @@ async function handleContextMenuClick(info: browser.contextMenus.OnClickData, ta
             checkDisplayBookmarked();
             break;
         case "tabAddToToRead":
-            pin = new Pin(tab.url, tab.title, undefined, undefined, undefined, "yes", "no");
+            const title = executeTitleRegex(tab.title);
+            pin = new Pin(tab.url, title, undefined, undefined, undefined, "yes", "no");
             pins.addPin(pin);
             pin.save();
             checkDisplayBookmarked();
@@ -177,4 +178,15 @@ function hideErrorBadge() {
     browser.browserAction.setBadgeText({text: ""});
     browser.browserAction.setTitle({title: "Yet Another Pinboard Extension"});
     checkDisplayBookmarked();
+}
+
+function executeTitleRegex(title: string): string {
+    const titleRegex = new RegExp(options.titleRegex).exec(title);
+    if (titleRegex === null || titleRegex.length === 0) {
+        return title;
+    } else if (titleRegex.length === 1) {
+        return titleRegex[0];
+    } else {
+        return titleRegex[1];
+    }
 }

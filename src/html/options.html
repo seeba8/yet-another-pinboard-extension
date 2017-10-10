@@ -13,7 +13,8 @@
     <div>
       <label for="apikey">Pinboard API Key</label>
       <br/>
-      <span>The key can be found <a target="_blank" href="https://pinboard.in/settings/password">here</a>.</span>
+      <span>The key can be found
+        <a target="_blank" href="https://pinboard.in/settings/password">here</a>.</span>
     </div>
     <div>
       <input type="password" id="apikey" />
@@ -44,7 +45,7 @@
       <label for="toReadPrefix">Shortcut to show only bookmarks tagged as "to read"</label>
     </div>
     <div>
-      <input type="text" class="prefixes" id="toReadPrefix" name="toReadPrefix" maxlength="1" pattern="\S"/>
+      <input type="text" class="prefixes" id="toReadPrefix" name="toReadPrefix" maxlength="1" pattern="\S" />
     </div>
     <div>
       <label for="tagPrefix">Shortcut to seach tags</label>
@@ -63,6 +64,35 @@
     </div>
     <div>
       <input type="text" class="prefixes" id="titlePrefix" name="titlePrefix" maxlength="1" pattern="\S" />
+    </div>
+    <div class="fullwidth">
+      <button id="toggleAdvanced">Show advanced options</button>
+    </div>
+    <div id="advancedOptions" class="fullwidth wrapper hidden advancedoptions">
+      <div>
+        <label for="titleRegex">Regex to apply to tab titles</label>
+        <span>
+          <br />This is applied when saving a tab as read later. This is useful when using an extension such as TitleURL to modify
+          tab titles. If capturing groups exist, the first capturing group is used.
+          If the match is empty, it uses the full title as a fallback solution.
+          <br /> Example:
+        </span>
+        <ul>
+          <li>
+            <pre>.*</pre> matches the entire title</li>
+          <li>
+            <pre>.*(?=\s\|.*$)</pre> matches everything before
+            <pre>" |"</pre>
+          </li>
+        </ul>
+        <span>This uses default javascript
+          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">RegExp</a>. 
+          For more info, search it in your favourite search engine.</span>
+      </div>
+      <div>
+        <input type="text" id="titleRegex" name="titleRegex" />
+        <ul id="regexPreview" class="hidden"></ul>
+      </div>
     </div>
   </div>
   <script src="../js/options.js"></script>
