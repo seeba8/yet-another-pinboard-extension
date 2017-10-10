@@ -3,7 +3,9 @@ class Options {
     public static async getObject() {
         const o = (await browser.storage.local.get("options"));
         if (o.options === undefined) {
-            return new Options();
+            const x = new Options();
+            x.save();
+            return x;
         } else {
             return new Options(o.urlPrefix || o._urlPrefix,
                 o.tagPrefix || o._tagPrefix,
@@ -41,7 +43,7 @@ class Options {
     this._showBookmarked = showBookmarked;
     this._changeActionbarIcon = changeActionbarIcon;
     this._sharedbyDefault = sharedByDefault;
-    this.save();
+
 }
 
     public *getPrefixes(): IterableIterator<[string, string]> {
