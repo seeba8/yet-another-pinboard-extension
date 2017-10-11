@@ -15,7 +15,7 @@ class Options {
                                 options._showBookmarked,
                                 options._changeActionbarIcon,
                                 options._saveBrowserBookmarks,
-                                options._saveBrowserBookmarks,
+                                options._sharedbyDefault,
                                 options._titleRegex);
         }
     }
