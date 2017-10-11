@@ -129,7 +129,7 @@ async function handleBookmarkCurrent(e) {
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
     const tab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
-    editBox.description.value = tab.title;
+    editBox.description.value = executeTitleRegex(tab.title);
     editBox.URL.value = tab.url;
     editBox.toReadCheckbox.checked = false;
     editBox.tags.value = "";
