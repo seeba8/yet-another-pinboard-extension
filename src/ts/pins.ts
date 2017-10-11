@@ -12,7 +12,7 @@ class Pins extends Map<string, Pin> {
             // Not forced and last sync less than 5 minutes ago, therefore we just get the stored object
             return Pins.getObject();
         }
-        const lastUpdate = await connector.getLastUpdate();
+        const lastUpdate = await Connector.getLastUpdate();
         const storedLastUpdate = await this.getStoredLastUpdate();
         // To compare Dates: https://stackoverflow.com/a/493018
         if (!forceUpdate && token.hasOwnProperty("pins") && token.pins.length > 0 &&
@@ -31,7 +31,7 @@ class Pins extends Map<string, Pin> {
      */
     public static async sendRequestAllPins(lastUpdate) {
         const pins = new Pins();
-        const json = await connector.getAllPins();
+        const json = await Connector.getAllPins();
         json.reverse().forEach((pin) => {
             pins.set(pin.href, new Pin(
                 // pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url

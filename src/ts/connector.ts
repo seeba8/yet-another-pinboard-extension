@@ -1,6 +1,6 @@
 ///<reference path="pin.ts" />
 "use strict";
-let connector = (() => {
+namespace Connector {
     const API_URL = Object.freeze({
         addPin: "https://api.pinboard.in/v1/posts/add",
         deletePin: "https://api.pinboard.in/v1/posts/delete",
@@ -187,9 +187,7 @@ let connector = (() => {
     }
 
     function onSuccess(result) {
-        browser.browserAction.setBadgeBackgroundColor({color: "#333"});
-        browser.browserAction.setBadgeText({text: ""});
-        browser.browserAction.setTitle({title: "Yet Another Pinboard Extension"});
+        SharedFunctions.hideErrorBadge();
         intervalAll = MIN_INTERVAL_ALL;
         interval = MIN_INTERVAL;
         const promise = localQueue.shift();
@@ -204,70 +202,67 @@ let connector = (() => {
 
     function onError(error) {
         interval = Math.max(interval * 2, 1000 * 60 * 10);
-        browser.browserAction.setBadgeBackgroundColor({color: "#f00"});
-        browser.browserAction.setBadgeText({text: "X"});
-        browser.browserAction.setTitle({title: String(error)});
+        SharedFunctions.showErrorBadge(String(error));
         setTimeout(proceedQueue, interval);
         // Possible:
         // queue.shift().reject(error);
     }
 
     // Public methods of the connector "class"
-    return {
-        getLastUpdate(): Promise<Date> {
-            return new Promise((resolve, reject) => {
-                addToQueue({
-                    params: {},
-                    reject,
-                    resolve,
-                    type: "getLastUpdate",
-                });
-            });
 
-        } ,
-        addPin(pin: Pin): Promise<any> {
-            return new Promise((resolve, reject) => {
-                addToQueue({
-                    params: pin,
-                    reject,
-                    resolve,
-                    type: "addPin",
-                });
-            })
-        },
-        getAllPins(): Promise<any[]> {
-            return new Promise((resolve, reject) => {
-                setTimeout(proceedGetAllData, Math.max(0, intervalAll -
-                    (Date.now() - lastGetAllPins.getTime())), { // TODO CHECK THIS
-                    params: {},
-                    reject,
-                    resolve,
-                    type: "getAllPins",
-                });
+    export function getLastUpdate(): Promise<Date> {
+        return new Promise((resolve, reject) => {
+            addToQueue({
+                params: {},
+                reject,
+                resolve,
+                type: "getLastUpdate",
             });
-        },
-        deletePin(pin: Pin) {
-            return new Promise((resolve, reject) => {
-                addToQueue({
-                    params: pin,
-                    reject,
-                    resolve,
-                    type: "deletePin",
-                });
+        });
+
+    }
+    export function addPin(pin: Pin): Promise<any> {
+        return new Promise((resolve, reject) => {
+            addToQueue({
+                params: pin,
+                reject,
+                resolve,
+                type: "addPin",
             });
-        },
-        suggestTags(url): Promise<string[]> {
-            return new Promise((resolve, reject) => {
-                if (typeof url === "string") {
-                    url = {href: url};
-                }
-                addToQueue({
-                    params: url,
-                    reject,
-                    resolve,
-                    type: "suggestTags",
-                });
+        })
+    }
+    export function getAllPins(): Promise<any[]> {
+        return new Promise((resolve, reject) => {
+            setTimeout(proceedGetAllData, Math.max(0, intervalAll -
+                (Date.now() - lastGetAllPins.getTime())), { // TODO CHECK THIS
+                params: {},
+                reject,
+                resolve,
+                type: "getAllPins",
             });
-        },
-    };
-})();
+        });
+    }
+    export function deletePin(pin: Pin) {
+        return new Promise((resolve, reject) => {
+            addToQueue({
+                params: pin,
+                reject,
+                resolve,
+                type: "deletePin",
+            });
+        });
+    }
+    export function suggestTags(url: string|{url: string}): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            if (typeof url === "string") {
+                url = {url};
+            }
+            addToQueue({
+                params: url,
+                reject,
+                resolve,
+                type: "suggestTags",
+            });
+        });
+    }
+}

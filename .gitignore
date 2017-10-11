@@ -1,6 +1,7 @@
-web-ext-artifacts/
+/web-ext-artifacts/
 .web-extension-id
 *.zip
-node_modules/
-!node_modules/webextension-polyfill
-dist/
+node_modules/*
+!/node_modules/webextension-polyfill/
+!/node_modules/web-ext-types/
+/dist/

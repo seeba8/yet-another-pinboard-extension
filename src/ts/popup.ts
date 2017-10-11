@@ -97,7 +97,7 @@ function onOptionsLinkClick(e) {
 async function reloadPins() {
     const token = await browser.storage.local.get(["apikey"]);
     if (!token.apikey || token.apikey === "") {
-        noAPIKeyDiv.classList.toggle("hidden");
+        noAPIKeyDiv.classList.remove("hidden");
     }
     pins = await Pins.getObject();
     displayPins();
@@ -119,17 +119,22 @@ async function handleReadLaterCurrent(e) {
     e.preventDefault();
     const tabs = await browser.tabs.query({currentWindow: true, active: true});
     const tab = tabs[0];
-    const title = executeTitleRegex(tab.title);
+    const title = SharedFunctions.executeTitleRegex(tab.title, options.titleRegex);
     const pin = new Pin(tab.url, title, undefined, undefined, undefined, "yes", "no");
-    addPin(pin, true);
+    addPin(pin);
 }
 
 async function handleBookmarkCurrent(e) {
+    function handleAddTag(ev) {
+        editBox.tags.value += " " + ev.target.textContent;
+        ev.target.parentElement.removeChild(ev.target);
+    }
+
     e.preventDefault();
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
     const tab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
-    editBox.description.value = executeTitleRegex(tab.title);
+    editBox.description.value = SharedFunctions.executeTitleRegex(tab.title, options.titleRegex);
     editBox.URL.value = tab.url;
     editBox.toReadCheckbox.checked = false;
     editBox.tags.value = "";
@@ -144,11 +149,6 @@ async function handleBookmarkCurrent(e) {
         tagSuggestionsDiv.appendChild(t);
         tagSuggestionsDiv.appendChild(document.createTextNode(" "));
     });
-}
-
-function handleAddTag(e) {
-    editBox.tags.value += " " + e.target.textContent;
-    e.target.parentElement.removeChild(e.target);
 }
 
 function preparePrevNext(numberPins) {
@@ -201,12 +201,12 @@ function handleSubmit(e) {
     pin.toread = (editBox.toReadCheckbox.checked ? "yes" : "no");
     pin.shared = (editBox.sharedCheckbox.checked ? "yes" : "no");
     pin.extended = editBox.extended.value;
-    addPin(pin, newPin);
+    addPin(pin);
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
 }
 
-function addPin(pin, newPin) {
+function addPin(pin: Pin) {
     pins.addPin(pin);
     browser.runtime.sendMessage({
         callFunction: "saveBookmark",
@@ -232,13 +232,13 @@ function displayPins() {
     preparePrevNext(c);
 }
 
-function pinContains(pin, searchText) {
+function pinContains(pin: Pin, searchText: string) {
+    function contains(haystack: string, needle: string) {
+        return haystack.toLowerCase().indexOf(needle.toLowerCase()) > -1;
+    }
+
     return (contains(pin.description, searchText) || contains(pin.url, searchText) ||
         contains(pin.tags, searchText) || contains(pin.extended, searchText));
-}
-
-function contains(haystack, needle) {
-    return haystack.toLowerCase().indexOf(needle.toLowerCase()) > -1;
 }
 
 function handleFilterChange(e) {
@@ -265,17 +265,6 @@ function handleEditBookmark(e) {
     greyoutDiv.classList.toggle("hidden");
     editBox.URL.dataset.entryId = e.target.dataset.entryId;
     editBox.extended.value = pin.extended || "";
-}
-
-function executeTitleRegex(title: string): string {
-    const titleRegex = new RegExp(options.titleRegex).exec(title);
-    if (titleRegex === null || titleRegex.length === 0) {
-        return title;
-    } else if (titleRegex.length === 1) {
-        return titleRegex[0];
-    } else {
-        return titleRegex[1];
-    }
 }
 
 function handleLinkClick(e) {

@@ -27,11 +27,11 @@ class Pin {
     }
 
     public delete() {
-        return connector.deletePin(this);
+        return Connector.deletePin(this);
     }
 
     public save() {
-        return connector.addPin(this);
+        return Connector.addPin(this);
     }
 
     public update(description: string = "", tags: string = "", time: string = "",

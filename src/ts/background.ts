@@ -1,8 +1,10 @@
 ///<reference path="pins.ts" />
 ///<reference path="pin.ts" />
+///<reference path="options.ts" />
+///<reference path="connector.ts" />
+///<reference path="shared-functions.ts" />
 "use strict";
 declare let chrome: any;
-
 let pins: Pins;
 let options: Options;
 
@@ -74,7 +76,7 @@ async function handleContextMenuClick(info: browser.contextMenus.OnClickData, ta
             checkDisplayBookmarked();
             break;
         case "tabAddToToRead":
-            const title = executeTitleRegex(tab.title);
+            const title = SharedFunctions.executeTitleRegex(tab.title, options.titleRegex);
             pin = new Pin(tab.url, title, undefined, undefined, undefined, "yes", "no");
             pins.addPin(pin);
             pin.save();
@@ -91,6 +93,7 @@ async function handleStorageChanged(changes: browser.storage.ChangeDict, area: b
         pins = await Pins.updateList(true);
     } else if (Object.keys(changes).includes("pins")) {
         pins = await Pins.getObject();
+        checkDisplayBookmarked();
     } else if (Object.keys(changes).includes("options")) {
         options = await Options.getObject();
     }
@@ -155,38 +158,14 @@ function handleMessage(request: any, sender: browser.runtime.MessageSender, send
         });
         return true;
     } else if (request.callFunction === "getTagSuggestions") {
-        connector.suggestTags(request.url).then((suggestions) => {
+        Connector.suggestTags(request.url).then((suggestions) => {
             sendResponse(suggestions);
         });
         return true;
     } else if (request.callFunction === "showErrorBadge") {
-        showErrorBadge(request.error);
+        SharedFunctions.showErrorBadge(request.error);
 
     } else if (request.callFunction === "hideErrorBadge") {
-        hideErrorBadge();
-    }
-}
-
-function showErrorBadge(message: string) {
-    browser.browserAction.setBadgeBackgroundColor({color: "#f00"});
-    browser.browserAction.setBadgeText({text: "X"});
-    browser.browserAction.setTitle({title: message});
-}
-
-function hideErrorBadge() {
-    browser.browserAction.setBadgeBackgroundColor({color: "#333"});
-    browser.browserAction.setBadgeText({text: ""});
-    browser.browserAction.setTitle({title: "Yet Another Pinboard Extension"});
-    checkDisplayBookmarked();
-}
-
-function executeTitleRegex(title: string): string {
-    const titleRegex = new RegExp(options.titleRegex).exec(title);
-    if (titleRegex === null || titleRegex.length === 0) {
-        return title;
-    } else if (titleRegex.length === 1) {
-        return titleRegex[0];
-    } else {
-        return titleRegex[1];
+        SharedFunctions.hideErrorBadge();
     }
 }
