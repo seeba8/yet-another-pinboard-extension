@@ -18,9 +18,11 @@ browser.alarms.create("checkUpdate", {
 
 async function handleStartup() {
     options = await Options.getObject();
-    chrome.runtime.onMessage.addListener(handleMessage);
+    browser.runtime.onMessage.addListener(handleMessage);
     // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
     // That is possibly caused by browser-polyfill
+    // October 2017: It works with browser.runtime, if a promise is returned
+    // from the listener instaed of using sendResponse
     browser.storage.onChanged.addListener(handleStorageChanged);
     browser.tabs.onUpdated.addListener(handleTabUpdated);
     browser.bookmarks.onCreated.addListener(handleBookmarkCreated);
@@ -127,44 +129,38 @@ function handleTabUpdated(tabId: number, changeInfo: any, tab: browser.tabs.Tab)
     }
 }
 
-function handleMessage(request: any, sender: browser.runtime.MessageSender, sendResponse: any) {
+function handleMessage(request: any, sender: browser.runtime.MessageSender) {
     // Not async because it needs to return true in order for the message port to stay open
     if (request.callFunction === "checkDisplayBookmarked" && !!request.url) {
-        browser.tabs.query({ currentWindow: true, active: true }).then((tabs) => {
+        return browser.tabs.query({ currentWindow: true, active: true }).then((tabs) => {
             const tab = tabs[0];
             checkDisplayBookmarked();
         });
-        return true;
     }  else if (request.callFunction === "saveBookmark") {
         const pin = Pin.fromObject(request.pin);
         pins.addPin(pin);
         checkDisplayBookmarked();
-        pin.save().then((resp) => {
-            sendResponse(resp);
-        });
-        return true;
+        return pin.save();
     } else if (request.callFunction === "forceUpdatePins") {
-        Pins.updateList(true).then((p) => {
-            pins = p;
-            sendResponse("OK");
+        return new Promise((resolve, reject) => {
+            Pins.updateList(true).then((p) => {
+                pins = p;
+                resolve("OK");
+            });
         });
-        return true;
     } else if (request.callFunction === "deleteBookmark") {
         const pin = Pin.fromObject(request.pin);
-        const response = pin.delete().then(() => {
-            pins.delete(pin.url);
-            checkDisplayBookmarked();
-            sendResponse("OK");
+        return new Promise((resolve, reject) => {
+            const response = pin.delete().then(() => {
+                pins.delete(pin.url);
+                checkDisplayBookmarked();
+                resolve("OK");
+            });
         });
-        return true;
     } else if (request.callFunction === "getTagSuggestions") {
-        Connector.suggestTags(request.url).then((suggestions) => {
-            sendResponse(suggestions);
-        });
-        return true;
+        return Connector.suggestTags(request.url);
     } else if (request.callFunction === "showErrorBadge") {
         SharedFunctions.showErrorBadge(request.error);
-
     } else if (request.callFunction === "hideErrorBadge") {
         SharedFunctions.hideErrorBadge();
     }
