@@ -1,4 +1,12 @@
-/* tslint variable-name: 0 */
+declare interface IStyle {
+    textColor: string,
+    backgroundColor: string,
+    disabledColor: string,
+    linkColor: string,
+    visitedColor: string,
+    type: "dark"|"default"|"custom"
+}
+
 class Options {
     public static async getObject() {
         const o = await browser.storage.local.get("options");
@@ -16,7 +24,8 @@ class Options {
                                 options._changeActionbarIcon,
                                 options._saveBrowserBookmarks,
                                 options._sharedbyDefault,
-                                options._titleRegex);
+                                options._titleRegex,
+                                options._style);
         }
     }
     /* tslint:disable */
@@ -29,6 +38,25 @@ class Options {
     private _saveBrowserBookmarks: boolean;
     private _sharedbyDefault: boolean;
     private _titleRegex: string;
+    private _style: IStyle;
+    
+    private static defaultStyle: IStyle = {
+        textColor: "#000000",
+        backgroundColor: "#ffffff",
+        visitedColor: "#551A8B",
+        linkColor: "#0000EE",
+        disabledColor: "#808080",
+        type: "default",
+    };
+    private static darkStyle: IStyle = {
+        textColor: "#eeeeee",
+        backgroundColor: "#111111",
+        visitedColor: "#6a5480",
+        linkColor: "#5555ff",
+        disabledColor: "#808080",
+        type: "dark",
+    };
+
     /* tslint:enable */
 
     private constructor(urlPrefix: string = "u",
@@ -39,7 +67,8 @@ class Options {
                         changeActionbarIcon: boolean = true,
                         saveBrowserBookmarks: boolean = false,
                         sharedByDefault: boolean = false,
-                        titleRegex: string = ".*") {
+                        titleRegex: string = ".*",
+                        style: IStyle = Options.defaultStyle) {
     this._urlPrefix = urlPrefix;
     this._tagPrefix = tagPrefix;
     this._titlePrefix = titlePrefix;
@@ -48,6 +77,7 @@ class Options {
     this._changeActionbarIcon = changeActionbarIcon;
     this._sharedbyDefault = sharedByDefault;
     this._titleRegex = titleRegex;
+    this._style = style;
 }
 
     public *getStringOptions(): IterableIterator<[string, string]> {
@@ -135,6 +165,23 @@ class Options {
     }
     get titleRegex() {
         return this._titleRegex;
+    }
+    set style(style) {
+        this._style = style;
+        this.save();
+    }
+    get style() {
+        return this._style;
+    }
+
+    public setColorMode(mode: string) {
+        switch (mode) {
+            case "dark":
+                this.style = Options.darkStyle;
+                break;
+            default:
+                this.style = Options.defaultStyle;
+        }
     }
 
     private save() {

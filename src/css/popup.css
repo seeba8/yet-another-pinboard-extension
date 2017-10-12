@@ -1,3 +1,52 @@
+:root {
+    /* Variables set by javascript */
+    --text-color: #000000;
+    --link-color: #0000ee;
+    --visited-color: #551A8B;
+    --background-color: #ffffff;
+    --disabled-color: #808080;
+}
+
+a {
+    color: var(--link-color);
+}
+
+a:visited {
+    color: var(--visited-color);
+}
+
+body {
+    font-size: .9rem;
+    font-family: sans-serif;
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+input, textarea {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid var(--disabled-color);
+}
+
+textarea {
+    font-size: .8rem;
+}
+
+button {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    cursor: pointer;
+    border: 1px solid var(--disabled-color);
+}
+
+.button {
+    color: var(--text-color);
+}
+
+#toprow a:hover, button:hover {
+    filter: contrast(.85);
+}
+
 #bookmarks {
     list-style-type: none;
     padding-left: 0;
@@ -23,7 +72,7 @@
 
 #filterToRead{
     text-decoration: none;
-    color: black;
+    color: var(--text-color);
 }
 
 .bold {
@@ -39,17 +88,15 @@
     grid-template-columns: 1fr 3fr 3fr 1fr;
     grid-column-gap: 1.5em;
     margin-bottom: .5em;
+    color: var(--text-color);
 }
 
 #toprow a, #toprow a:visited {
     text-decoration: none;
-    color: inherit;
+    color: var(--text-color);
     padding: .25em;
     display: block;
-}
-
-#toprow a:hover {
-   background-color: #eee;
+    background-color: var(--background-color);
 }
 
 .centerbuttons {
@@ -86,8 +133,8 @@
     top:30%;
     position:fixed;
     width: 60%;
-    background-color: white;
-    border: 1px solid grey;
+    background-color: var(--background-color);
+    border: 1px solid var(--disabled-color);
     z-index:5;
     opacity:1;
     padding:1.5em;
@@ -98,7 +145,7 @@
 }
 
 #editwrapper #url {
-    color: grey;
+    color: var(--disabled-color);
 }
 
 label {
@@ -111,23 +158,24 @@ label {
     margin-left: 1em;
     margin-right: 1em;
 }
-a.linkdisabled {
+#prevnext .linkdisabled {
     pointer-events: none;
-    color: grey;
+    color: var(--disabled-color);
     text-decoration: none;
 }
 a.currentpage {
-    pointer-events: none;
-    color: grey;
     font-weight: bold;
-    text-decoration: none;
 }
-#prevnext{
+#prevnext {
     text-align: center;
     margin-top: 1em;
 }
+
+#prevnext a {
+    color: var(--text-color);
+}
 #greyout {
-    background-color: white;
+    background-color: var(--background-color);
     opacity: 0.8;
     position: fixed;
     top: 0;
@@ -143,11 +191,6 @@ a.currentpage {
 .hidden {
     display:none;
 }
-body {
-    font-size: .9rem;
-    font-family: sans-serif;
-}
-
 
 .resetbutton {
   border: none;
@@ -156,7 +199,7 @@ body {
   position: absolute;
   cursor: pointer;
   outline:none;
-  color: grey;
+  color: var(--disabled-color);
   right: 7%;
   top: .2em;
 }

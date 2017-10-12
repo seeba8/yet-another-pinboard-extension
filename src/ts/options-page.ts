@@ -43,6 +43,12 @@ toggleAdvanced.addEventListener("click", (e) => {
     toggleAdvanced.textContent = (toggleAdvanced.textContent.startsWith("Show") ? "Hide" : "Show")
             + " advanced options";
 });
+document.getElementsByName("styleselect").forEach((element) => {
+    element.addEventListener("change", handleStyleSelectChange);
+});
+document.querySelectorAll(".customstyle").forEach((element) => {
+    element.addEventListener("change", onCustomStyleChange);
+});
 
 onLoad();
 
@@ -62,6 +68,14 @@ async function onLoad() {
     if (options.sharedByDefault) {
         sharedByDefault.checked = true;
     }
+    if (options.style.type === "dark") {
+        (document.getElementById("dark") as HTMLInputElement).checked = true;
+    } else if (options.style.type === "default") {
+        (document.getElementById("default") as HTMLInputElement).checked = true;
+    } else {
+        (document.getElementById("custom") as HTMLInputElement).checked = true;
+    }
+    updateColorSelectors();
 
     for (const [k, v] of options.getStringOptions()) {
         (document.getElementById(k) as HTMLInputElement).value = v;
@@ -155,6 +169,31 @@ function onTitleRegexChange(e: Event) {
         child.textContent = full.substring(0, full.indexOf(match));
         child.appendChild(matchElement);
         child.appendChild(document.createTextNode(full.substring(full.indexOf(match) + match.length)));
+    }
+}
+
+function handleStyleSelectChange(e: Event) {
+    const target = (e.target as HTMLInputElement);
+    if (target.id !== "custom") {
+        options.setColorMode(target.id);
+    }
+    updateColorSelectors();
+}
+
+function onCustomStyleChange(e: Event) {
+    (document.getElementById("custom") as HTMLInputElement).checked = true;
+    const style = options.style;
+    const target = e.target as HTMLInputElement;
+    style.type = "custom";
+    style[target.id] = target.value;
+    options.style = style;
+}
+
+function updateColorSelectors() {
+    for (const o in options.style) {
+        if (options.style.hasOwnProperty(o) && o !== "type") {
+            (document.getElementById(o) as HTMLInputElement).value = options.style[o];
+        }
     }
 }
 }

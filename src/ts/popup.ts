@@ -85,6 +85,7 @@ async function getDPI() {
 async function handleStartup() {
     const token = await browser.storage.local.get(["lastsync"]);
     options = await Options.getObject();
+    setColorVariables(options.style);
     editBox.sharedCheckbox.checked = options.sharedByDefault;
     optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
 }
@@ -153,8 +154,7 @@ async function handleBookmarkCurrent(e) {
 
 function preparePrevNext(numberPins) {
     Array.from(prevNext.div.children).forEach((element) => {
-        element.classList.remove("linkdisabled");
-        element.classList.remove("currentpage");
+        element.classList.remove("linkdisabled", "currentpage");
     });
     const firstPage = Math.min(Math.max(1, offset / 100 - 1), Math.max(Math.ceil(numberPins / 100) - 4, 1));
     for (let i = 0; i < 5; i++) {
@@ -162,7 +162,7 @@ function preparePrevNext(numberPins) {
         curElement.textContent = String(firstPage + i);
         curElement.dataset.offset = String((firstPage + i - 1) * 100);
         if (curElement.dataset.offset === String(offset)) {
-            curElement.classList.add("currentpage");
+            curElement.classList.add("currentpage", "linkdisabled");
         } else if (parseInt(curElement.dataset.offset, 10) > numberPins) {
             curElement.classList.add("linkdisabled");
         }
@@ -295,6 +295,7 @@ function addListItem(pin, key) {
         edit.appendChild(document.createTextNode("\u{270E}"));
         edit.addEventListener("click", handleEditBookmark);
         edit.dataset.entryId = key;
+        edit.classList.add("button");
         entry.appendChild(edit);
     }
     function addMainLink() {
@@ -321,8 +322,9 @@ function addListItem(pin, key) {
     }
     function addToReadSymbol() {
         const toreadeye = document.createElement("a");
-        toreadeye.appendChild(document.createTextNode("\u{1f441}"));
+        toreadeye.appendChild(document.createTextNode("\u{2709}"));
         toreadeye.addEventListener("click", handleBookmarkRead);
+        toreadeye.classList.add("toread", "button");
         toreadeye.title = "Mark as read";
         toreadeye.dataset.entryId = key;
         if (pin.toread === "no") {
@@ -338,4 +340,11 @@ function addListItem(pin, key) {
     bookmarkList.appendChild(entry);
 }
 
+function setColorVariables(style: IStyle) {
+    document.documentElement.style.setProperty("--text-color", style.textColor);
+    document.documentElement.style.setProperty("--background-color", style.backgroundColor);
+    document.documentElement.style.setProperty("--link-color", style.linkColor);
+    document.documentElement.style.setProperty("--visited-color", style.visitedColor);
+    document.documentElement.style.setProperty("--disabled-color", style.disabledColor);
+}
 }

@@ -65,6 +65,20 @@
     <div>
       <input type="text" class="prefixes" id="titlePrefix" name="titlePrefix" maxlength="1" pattern="\S" />
     </div>
+    <div>
+      <label>Select style</label>
+    </div>
+    <div>
+      <label for="default">
+        <input type="radio" name="styleselect" id="default" checked>Default
+      </label>
+      <label for="dark">
+        <input type="radio" name="styleselect" id="dark">Dark
+      </label>
+      <label for="custom">
+        <input type="radio" name="styleselect" id="custom">Custom (see advanced options)
+      </label>
+    </div>
     <div class="fullwidth">
       <button id="toggleAdvanced">Show advanced options</button>
     </div>
@@ -73,8 +87,8 @@
         <label for="titleRegex">Regex to apply to tab titles</label>
         <span>
           <br />This is applied when saving a tab as read later. This is useful when using an extension such as TitleURL to modify
-          tab titles. If capturing groups exist, the first capturing group is used.
-          If the match is empty, it uses the full title as a fallback solution.
+          tab titles. If capturing groups exist, the first capturing group is used. If the match is empty, it uses the full
+          title as a fallback solution.
           <br /> Example:
         </span>
         <ul>
@@ -86,12 +100,32 @@
           </li>
         </ul>
         <span>This uses default javascript
-          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">RegExp</a>. 
-          For more info, search it in your favourite search engine.</span>
+          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">RegExp</a>. For more info, search it in your favourite search engine.</span>
       </div>
       <div>
         <input type="text" id="titleRegex" name="titleRegex" />
         <ul id="regexPreview" class="hidden"></ul>
+      </div>
+      <div>
+        <label>Custom style</label>
+        <span>Set Select style to custom in order to Open the popup to see your changes</span>
+      </div>
+      <div>
+        <label for="textColor">
+          <input type="color" id="textColor" class="customstyle"> Text colour</label>
+        <br/> 
+        <label for="backgroundColor">
+          <input type="color" id="backgroundColor" class="customstyle"> Background colour</label>
+        <br/> 
+        <label for="linkColor" >
+          <input type="color" id="linkColor" class="customstyle"> Link colour</label>
+        <br/> 
+        <label for="visitedColor">
+          <input type="color" id="visitedColor" class="customstyle"> Visited link colour</label>
+        <br/> 
+        <label for="disabledColor">
+          <input type="color" id="disabledColor" class="customstyle"> Disabled items (and border) colour</label>
+        <br/>
       </div>
     </div>
   </div>
