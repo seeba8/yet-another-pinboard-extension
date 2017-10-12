@@ -34,7 +34,7 @@ export let pins: Pins;
 let toReadOnly = false;
 export let options: Options;
 
-filterTextbox.addEventListener("keyup", handleFilterChange);
+filterTextbox.addEventListener("input", handleFilterChange);
 bookmarkCurrentButton.addEventListener("click", handleBookmarkCurrent);
 readLaterCurrentButton.addEventListener("click", handleReadLaterCurrent);
 filterToReadButton.addEventListener("click", handleFilterToRead);
@@ -221,24 +221,14 @@ function displayPins() {
         bookmarkList.removeChild(bookmarkList.firstChild);
     }
     let c = 0;
-    for (const pin of pins.forEachReversed()) {
-        if ((pin.toread === "yes" || !toReadOnly) && (filter === "" || pinContains(pin, filter))) {
-            if (c >= offset && c < offset + 100) {
-                addListItem(pin, pin.url);
-            }
-            c++;
+    for (const pin of pins.filter(filter, {toRead: toReadOnly, offset, count: 100})) {
+        if (pin instanceof Pin) {
+            addListItem(pin, pin.url);
+        } else {
+            c = pin;
         }
     }
     preparePrevNext(c);
-}
-
-function pinContains(pin: Pin, searchText: string) {
-    function contains(haystack: string, needle: string) {
-        return haystack.toLowerCase().indexOf(needle.toLowerCase()) > -1;
-    }
-
-    return (contains(pin.description, searchText) || contains(pin.url, searchText) ||
-        contains(pin.tags, searchText) || contains(pin.extended, searchText));
 }
 
 function handleFilterChange(e) {

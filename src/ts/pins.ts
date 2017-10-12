@@ -106,4 +106,43 @@ class Pins extends Map<string, Pin> {
     public saveToStorage() {
         browser.storage.local.set({pins: Array.from(this.entries())});
     }
+    /**
+     * Last value returned is the total number of hits when ignoring the offset and count
+     * @param text
+     * @param options
+     */
+    public *filter(text?: string, options?: {toRead?: boolean, shared?: boolean, offset?: number, count?: number}) {
+        if (options === undefined) {
+            options = {};
+        }
+        if (!options.hasOwnProperty("offset")) {
+            options.offset = 0;
+        }
+        if (!options.hasOwnProperty("count")) {
+            options.count = Number.MAX_VALUE;
+        }
+        let c = -1;
+        for (const pin of this.forEachReversed()) {
+            if ((pin.toread === "yes" || !options.toRead) &&
+                    (text === "" || text === undefined || pinContains(pin, text))) {
+                c++;
+                if (options.offset > c) {
+                    continue;
+                }
+                if (c >= options.offset + options.count) {
+                    continue;
+                }
+                yield pin;
+            }
+        }
+        yield c;
+
+        function pinContains(pin: Pin, searchText: string): boolean {
+            function contains(haystack: string, needle: string) {
+                return haystack.toLowerCase().indexOf(needle.toLowerCase()) > -1;
+            }
+            return (contains(pin.description, searchText) || contains(pin.url, searchText) ||
+                contains(pin.tags, searchText) || contains(pin.extended, searchText));
+        }
+    }
 }

@@ -1,0 +1,30 @@
+li {
+    list-style-type: none;
+    overflow: hidden; 
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    background: url("../img/pinboard-icon-blue.svg") no-repeat;
+    background-size: 16px 16px;
+    background-position: left 50%;
+    padding-left: 16px;
+}
+li>a{
+    text-decoration: none;
+}
+ul {
+    padding: 0;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin-top: 2em;
+    overflow-y: auto;
+}
+
+body {
+    height: 100%;
+}
+.hidden {
+    display:none;
+}
