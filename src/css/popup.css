@@ -40,6 +40,7 @@ button {
 }
 
 .button {
+    display: block;
     color: var(--text-color);
 }
 
@@ -72,7 +73,35 @@ button {
 
 #filterToRead{
     text-decoration: none;
-    color: var(--text-color);
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.icon {
+    width: 1.5em;
+    margin-top: -.25em;
+    margin-bottom: -.25em;
+    pointer-events: none;
+}
+
+.icon path {
+    stroke: var(--text-color);
+}
+
+.shared {
+    stroke-width: 1%;
+    fill: var(--text-color);
+}
+
+.edit {
+    width: 1.3em;
+    stroke-width: 8%;
+    fill: var(--background-color);
+}
+
+.toread {
+    fill: var(--text-color);
+    stroke-width: 1%;
 }
 
 .bold {
@@ -95,7 +124,6 @@ button {
     text-decoration: none;
     color: var(--text-color);
     padding: .25em;
-    display: block;
     background-color: var(--background-color);
 }
 
@@ -200,8 +228,8 @@ a.currentpage {
   cursor: pointer;
   outline:none;
   color: var(--disabled-color);
-  right: 7%;
-  top: .2em;
+  right: 8%;
+  /*top: .2em;*/
 }
 .search:required:invalid ~ .resetbutton {
     display: none;
@@ -211,7 +239,7 @@ a.currentpage {
     display: inline-block;
     margin-left: auto;
     margin-right: auto;
-    width: 92%;
+    width: 91%;
 }
 
 .searchform {

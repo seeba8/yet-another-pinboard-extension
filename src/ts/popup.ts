@@ -3,6 +3,9 @@ namespace PopupPage {
 const bookmarkList = document.getElementById("bookmarks") as HTMLUListElement;
 const filterTextbox = document.getElementById("filter") as HTMLInputElement;
 const searchForm = document.getElementById("searchform") as HTMLFormElement;
+const toReadSvg = document.getElementById("toreadsvg");
+const sharedSvg = document.getElementById("sharedsvg");
+const editSvg = document.getElementById("editsvg");
 
 const bookmarkCurrentButton = document.getElementById("bookmarkcurrent") as HTMLLinkElement;
 const readLaterCurrentButton = document.getElementById("readlatercurrent") as HTMLLinkElement;
@@ -282,7 +285,11 @@ function addListItem(pin, key) {
     function addEditSymbol() {
         const edit = document.createElement("a");
         edit.title = "Edit";
-        edit.appendChild(document.createTextNode("\u{270E}"));
+        const img = editSvg.cloneNode(true) as HTMLElement;
+        img.classList.add("icon", "edit");
+        img.id = "";
+        img.classList.remove("hidden");
+        edit.appendChild(img);
         edit.addEventListener("click", handleEditBookmark);
         edit.dataset.entryId = key;
         edit.classList.add("button");
@@ -300,11 +307,15 @@ function addListItem(pin, key) {
         entry.appendChild(link);
     }
     function addSharedSymbol() {
-        const sharedsymbol = document.createElement("a");
-        sharedsymbol.appendChild(document.createTextNode("\u{1f4e2}"));
+        const sharedsymbol = document.createElement("div");
+        const img = sharedSvg.cloneNode(true) as HTMLElement;
+        img.classList.add("icon", "shared");
+        img.id = "";
+        img.classList.remove("hidden");
+        sharedsymbol.appendChild(img);
         sharedsymbol.title = "Shared";
         sharedsymbol.dataset.entryId = key;
-        sharedsymbol.classList.add("unclickable");
+        sharedsymbol.classList.add("shared");
         if (pin.shared === "no") {
             sharedsymbol.classList.add("invisible");
         }
@@ -312,9 +323,13 @@ function addListItem(pin, key) {
     }
     function addToReadSymbol() {
         const toreadeye = document.createElement("a");
-        toreadeye.appendChild(document.createTextNode("\u{2709}"));
+        const img = toReadSvg.cloneNode(true) as HTMLElement;
+        img.classList.add("icon");
+        img.id = "";
+        toreadeye.appendChild(img);
+        // toreadeye.appendChild(document.createTextNode(""));
         toreadeye.addEventListener("click", handleBookmarkRead);
-        toreadeye.classList.add("toread", "button");
+        toreadeye.classList.add("button", "toread");
         toreadeye.title = "Mark as read";
         toreadeye.dataset.entryId = key;
         if (pin.toread === "no") {

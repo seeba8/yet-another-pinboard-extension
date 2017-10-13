@@ -68,9 +68,9 @@ async function onLoad() {
     if (options.sharedByDefault) {
         sharedByDefault.checked = true;
     }
-    if (options.style.type === "dark") {
+    if (options.style.type === StyleType.dark) {
         (document.getElementById("dark") as HTMLInputElement).checked = true;
-    } else if (options.style.type === "default") {
+    } else if (options.style.type === StyleType.default) {
         (document.getElementById("default") as HTMLInputElement).checked = true;
     } else {
         (document.getElementById("custom") as HTMLInputElement).checked = true;
@@ -176,6 +176,13 @@ function handleStyleSelectChange(e: Event) {
     const target = (e.target as HTMLInputElement);
     if (target.id !== "custom") {
         options.setColorMode(target.id);
+    } else {
+        const style = options.style;
+        style.type = StyleType.custom;
+        document.querySelectorAll(".customstyle").forEach((element: HTMLInputElement) => {
+            style[element.id] = element.value;
+        });
+        options.style = style;
     }
     updateColorSelectors();
 }
@@ -184,7 +191,7 @@ function onCustomStyleChange(e: Event) {
     (document.getElementById("custom") as HTMLInputElement).checked = true;
     const style = options.style;
     const target = e.target as HTMLInputElement;
-    style.type = "custom";
+    style.type = StyleType.custom;
     style[target.id] = target.value;
     options.style = style;
 }

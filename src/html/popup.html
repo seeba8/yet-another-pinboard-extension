@@ -9,15 +9,27 @@
 
 <body>
   <div id="toprow">
-    <div><a id="pinboardlink" href="https://pinboard.in" target="_new">Pinboard</a></div>
-    <div><a href="#" class="centerbuttons" id="readlatercurrent">Read later</a></div>
-    <div><a href="#" class="centerbuttons" id="bookmarkcurrent">Pin current page</a></div>
-    <div><a href="#" class="optionslink" id="optionslink">Options</a></div>
+    <div>
+      <a id="pinboardlink" href="https://pinboard.in" target="_new">Pinboard</a>
+    </div>
+    <div>
+      <a href="#" class="centerbuttons" id="readlatercurrent">Read later</a>
+    </div>
+    <div>
+      <a href="#" class="centerbuttons" id="bookmarkcurrent">Pin current page</a>
+    </div>
+    <div>
+      <a href="#" class="optionslink" id="optionslink">Options</a>
+    </div>
   </div>
   <form class="searchform" id="searchform">
-    <input type="text" id="filter" placeholder="Search" class="search"/>
+    <input type="text" id="filter" placeholder="Search" class="search" />
     <button type="reset" class="resetbutton">&#x2715;</button>
-    <a href="#" id="filterToRead"title="Show only to read">&#x2709;</a>
+    <a href="#" id="filterToRead" class="toread" title="Show only to read">
+        <svg viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" class="icon toread" id="toreadsvg">
+          <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
+      </svg>
+    </a>
   </form>
   <div id="prevnext">
     <a href="#" id="firstPage">&laquo;</a>
@@ -40,7 +52,8 @@
   <div id="greyout" class="hidden"></div>
   <div id="noapikey" class="hidden">
     <h1>Your API key is missing.</h1>
-    <p>Go to the <a class="optionslink" id="optionspage" href="#">options</a> to set your API key.</p>
+    <p>Go to the
+      <a class="optionslink" id="optionspage" href="#">options</a> to set your API key.</p>
   </div>
 
   <div id="editcontainer">
@@ -51,7 +64,7 @@
             <label for="description">Title</label>
           </div>
           <div>
-            <input maxlength="255" type="text" id="description" class="editinput"/>
+            <input maxlength="255" type="text" id="description" class="editinput" />
           </div>
         </div>
         <div>
@@ -59,7 +72,8 @@
             <label for="url">URL</label>
           </div>
           <div>
-            <input type="url" id="url" class="editinput" readonly="readonly" title="Read-only. To change, create a new bookmark instead"/>
+            <input type="url" id="url" class="editinput" readonly="readonly" title="Read-only. To change, create a new bookmark instead"
+            />
             <!-- Readonly, because if we change it, it creates a new bookmark-->
           </div>
         </div>
@@ -78,7 +92,7 @@
             </div>
           </div>
           <div>
-            <input type="text" id="tags" class="editinput"/>
+            <input type="text" id="tags" class="editinput" />
           </div>
         </div>
         <div>
@@ -93,11 +107,18 @@
       </form>
     </div>
   </div>
+  <svg viewBox="0 0 24 24" height="24" xmlns="http://www.w3.org/2000/svg" id="sharedsvg" class="hidden">
+    <path d="M16.5 13c-1.2 0-3.07.34-4.5 1-1.43-.67-3.3-1-4.5-1C5.33 13 1 14.08 1 16.25V19h22v-2.75c0-2.17-4.33-3.25-6.5-3.25zm-4 4.5h-10v-1.25c0-.54 2.56-1.75 5-1.75s5 1.21 5 1.75v1.25zm9 0H14v-1.25c0-.46-.2-.86-.52-1.22.88-.3 1.96-.53 3.02-.53 2.44 0 5 1.21 5 1.75v1.25zM7.5 12c1.93 0 3.5-1.57 3.5-3.5S9.43 5 7.5 5 4 6.57 4 8.5 5.57 12 7.5 12zm0-5.5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2zm9 5.5c1.93 0 3.5-1.57 3.5-3.5S18.43 5 16.5 5 13 6.57 13 8.5s1.57 3.5 3.5 3.5zm0-5.5c1.1 0 2 .9 2 2s-.9 2-2 2-2-.9-2-2 .9-2 2-2z"/>
+</svg>
+<svg viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" id="editsvg" class="hidden">
+  <path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/>
+</svg>
   <script src="../js/shared-functions.js"></script>
   <script src="../js/pin.js"></script>
   <script src="../js/pins.js"></script>
   <script src="../js/options.js"></script>
   <script src="../js/popup.js"></script>
+
 </body>
 
 </html>

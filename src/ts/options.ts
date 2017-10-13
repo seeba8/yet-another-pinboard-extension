@@ -1,10 +1,16 @@
+enum StyleType {
+    "default",
+    "dark",
+    "custom",
+}
+
 declare interface IStyle {
     textColor: string,
     backgroundColor: string,
     disabledColor: string,
     linkColor: string,
     visitedColor: string,
-    type: "dark"|"default"|"custom"
+    type: StyleType
 }
 
 class Options {
@@ -40,22 +46,22 @@ class Options {
     private _titleRegex: string;
     private _style: IStyle;
     
-    private static defaultStyle: IStyle = {
+    private static defaultStyle: Readonly<IStyle> = Object.freeze({
         textColor: "#000000",
         backgroundColor: "#ffffff",
         visitedColor: "#551A8B",
         linkColor: "#0000EE",
         disabledColor: "#808080",
-        type: "default",
-    };
-    private static darkStyle: IStyle = {
+        type: StyleType.default,
+    });
+    private static darkStyle: Readonly<IStyle> = Object.freeze({
         textColor: "#eeeeee",
         backgroundColor: "#111111",
         visitedColor: "#6a5480",
         linkColor: "#5555ff",
         disabledColor: "#808080",
-        type: "dark",
-    };
+        type: StyleType.dark,
+    });
 
     /* tslint:enable */
 
@@ -68,7 +74,7 @@ class Options {
                         saveBrowserBookmarks: boolean = false,
                         sharedByDefault: boolean = false,
                         titleRegex: string = ".*",
-                        style: IStyle = Options.defaultStyle) {
+                        style: IStyle = Object.create(Options.defaultStyle)) {
     this._urlPrefix = urlPrefix;
     this._tagPrefix = tagPrefix;
     this._titlePrefix = titlePrefix;
@@ -177,10 +183,10 @@ class Options {
     public setColorMode(mode: string) {
         switch (mode) {
             case "dark":
-                this.style = Options.darkStyle;
+                this.style = JSON.parse(JSON.stringify(Options.darkStyle));
                 break;
             default:
-                this.style = Options.defaultStyle;
+                this.style = JSON.parse(JSON.stringify(Options.defaultStyle));
         }
     }
 
