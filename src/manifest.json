@@ -15,8 +15,8 @@
       "js/connector.js",
       "js/background.js",
       "js/omnibox.js"
-      
-    ]
+    ],
+    "persistent": false
   },
   "omnibox": { 
     "keyword" : "pin" 

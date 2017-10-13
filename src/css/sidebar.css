@@ -1,3 +1,12 @@
+:root {
+    /* Variables set by javascript */
+    --text-color: #000000;
+    --link-color: #0000ee;
+    --visited-color: #551A8B;
+    --background-color: #ffffff;
+    --disabled-color: #808080;
+}
+
 li {
     list-style-type: none;
     overflow: hidden; 
@@ -22,9 +31,23 @@ ul {
     overflow-y: auto;
 }
 
+a {
+    color: var(--link-color);
+}
+
+a:visited {
+    color: var(--visited-color);
+}
+
 body {
     height: 100%;
+    background-color: var(--background-color);
+    color: var(--text-color);
 }
 .hidden {
     display:none;
+}
+
+#noapikey {
+    z-index: 1;
 }

@@ -121,6 +121,7 @@ button {
 }
 
 #toprow a, #toprow a:visited {
+    display: block;
     text-decoration: none;
     color: var(--text-color);
     padding: .25em;

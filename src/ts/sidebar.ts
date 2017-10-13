@@ -1,11 +1,17 @@
 /// <reference path="pins.ts" />
 /// <reference path="pin.ts" />
+/// <reference path="options.ts" />
 
 namespace Sidebar {
     let pins: Pins;
+    let options: Options;
     const PINSLIST = document.getElementById("pins") as HTMLUListElement;
     const SEARCH = document.getElementById("search") as HTMLInputElement;
-    const TEMPLATELI = document.getElementById("templateli");
+    const TEMPLATELI = document.getElementById("templateli") as HTMLLIElement;
+    const NOAPIKEYDIV = document.getElementById("noapikey") as HTMLDivElement;
+    document.getElementById("optionspage").addEventListener("click", (e) => {
+        browser.runtime.openOptionsPage();
+    })
     SEARCH.addEventListener("input", onSearchInput);
     SEARCH.addEventListener("keydown", (e) => {
         if (e.key === "Escape") {
@@ -18,15 +24,42 @@ namespace Sidebar {
     startup();
 
     async function startup() {
+        options = await Options.getObject();
+        setColorVariables(options.style);
         pins = await Pins.getObject();
         showPins();
         browser.storage.onChanged.addListener(onStorageChanged);
+        checkAPIKey();
+    }
+
+    function setColorVariables(style: IStyle) {
+        document.documentElement.style.setProperty("--text-color", style.textColor);
+        document.documentElement.style.setProperty("--background-color", style.backgroundColor);
+        document.documentElement.style.setProperty("--link-color", style.linkColor);
+        document.documentElement.style.setProperty("--visited-color", style.visitedColor);
+        document.documentElement.style.setProperty("--disabled-color", style.disabledColor);
     }
 
     async function onStorageChanged(changes: browser.storage.ChangeDict, areaName: browser.storage.StorageName) {
         if (Object.keys(changes).includes("pins")) {
             pins = await Pins.getObject();
             showPins();
+        } else if (Object.keys(changes).includes("options")) {
+            options = await Options.getObject();
+            setColorVariables(options.style);
+        } else if (Object.keys(changes).includes("apikey")) {
+            checkAPIKey();
+        }
+    }
+
+    async function checkAPIKey() {
+        const token = await browser.storage.local.get("apikey");
+        if (!token.hasOwnProperty("apikey") || token.apikey === "") {
+            NOAPIKEYDIV.classList.remove("hidden");
+            SEARCH.classList.add("hidden");
+        } else {
+            NOAPIKEYDIV.classList.add("hidden");
+            SEARCH.classList.remove("hidden");
         }
     }
 

@@ -41,10 +41,22 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 * To [lostsnow](https://github.com/lostsnow/pinboard-firefox) for the cool addon and for the bug motivating me to look into WebExtensions.
 * To [weinshel](https://github.com/weinshel) for the [commit](https://github.com/seeba8/yet-another-pinboard-extension/commit/3a2c969389d40c357646d0ce97a4425a737c31c6) in his fork which I took the liberty of [bringing into my version](https://github.com/seeba8/yet-another-pinboard-extension/commit/d285bf935facea7a397bab503256e24f1a45c257)
 * To [alerque](https://github.com/alerque) for your suggestion in #25 to add regex parsing
-* To [Google](https://material.io/icons) for some of the icons used
+* To [Google](https://material.io/icons) for some of the icons used, under [Apache License v2.0](https://www.apache.org/licenses/LICENSE-2.0)
 * To [vurtomatic](https://github.com/vurtomatic) for suggesting dark mode and new icons (#27)
 
 ### Changelog (incomplete)
+
+#### v1.3.0:
+* Adds customisable colours: Set the addon to dark mode, light mode, or any colour scheme your heart desires
+* **Firefox only**: Adds a sidebar containing a searchable list of all your bookmarks.
+* Updates icons in the popup
+* Backend stuff:
+  * Updated to v1.2.0 of Mozilla's webextension-polyfill
+  * Streamlined some more code
+  * The icons were unicode characters before, now they are embedded SVG
+  * Moved the filter functionality into appropriate class to try and reduce code duplication
+  * Made background scripts not persistent (https://developer.chrome.com/extensions/event_pages)
+
 
 #### v1.2.6 - v1.2.9:
 * Adds the option to run a regex on the tab title (might be useful when using an addon to modify the tab title). Thanks @alerque for the suggestion (see #25)!
