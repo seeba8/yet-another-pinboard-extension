@@ -3,7 +3,7 @@ Shows your [Pinboard](https://pinboard.in) bookmarks in the omnibar suggestions 
 Also, allows you to view, open and edit your bookmarks in your browser.
 Furthermore, enables (optionally) auto-copying new browser bookmarks to pinboard.
 
-Written in pure Javascript/HTML/CSS without external dependencies (But uses Mozilla's [Web Extension Polyfill](https://github.com/mozilla/webextension-polyfill) to be able to handle Chrome's differences (mostly, at least). 
+Written in pure Javascript/HTML/CSS without external dependencies (But uses Mozilla's [Web Extension Polyfill](https://github.com/mozilla/webextension-polyfill) to be able to handle Chrome's differences (mostly, at least)). 
 
 Does not send any data anywhere, as far as I know (except to pinboard, of course).
 
