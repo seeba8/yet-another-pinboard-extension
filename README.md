@@ -16,6 +16,15 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 * The API key can be found on https://pinboard.in/settings/password.
 * You can search through your bookmarks, create new ones and edit old ones via the button in the Action Menu (add it to the bar if it is not there)
 
+### Reasons for the permissions
+* `"https://api.pinboard.in/v1/*"` to connect to the API of course...
+* `"storage"` to save the pins and settings across restarts and network losses
+* `"tabs"` to set listeners on changing tab URLs to update the pin button
+* `"bookmarks"` to be able to auto-save new bookmarks as pins as well (see issue #31 for a future change)
+* `"contextMenus"` to create a context menu entry to save the page as a pin
+* `"activeTab"` for the "save link as to read" context menu functionality to read the link URL and text
+* `"alarms"` to rate-throttle API requests and periodically check for new pins
+
 ### To build
 * Install npm/node and run npm install
 * Alternatively, manually install these packages:

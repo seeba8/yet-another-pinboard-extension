@@ -47,7 +47,7 @@ async function handleStartup() {
         id: "tabAddToToRead",
         title: "Add page to To Read",
     });
-    browser.browserAction.setBadgeBackgroundColor({color: "#333"});
+    browser.browserAction.setBadgeBackgroundColor({ color: "#333" });
 
 }
 
@@ -109,9 +109,9 @@ async function handleStorageChanged(changes: browser.storage.ChangeDict, area: b
 async function checkDisplayBookmarked(tab?: browser.tabs.Tab) {
     function checkExists(t: browser.tabs.Tab) {
         if (!!pins && pins.has(t.url) && options.changeActionbarIcon) {
-            browser.browserAction.setBadgeText({text: "\u{2713}", tabId: t.id});
+            browser.browserAction.setBadgeText({ text: "\u{2713}", tabId: t.id });
         } else {
-            browser.browserAction.setBadgeText({text: "", tabId: t.id});
+            browser.browserAction.setBadgeText({ text: "", tabId: t.id });
         }
     }
 
@@ -141,7 +141,7 @@ function handleMessage(request: any, sender: browser.runtime.MessageSender) {
             const tab = tabs[0];
             checkDisplayBookmarked();
         });
-    }  else if (request.callFunction === "saveBookmark") {
+    } else if (request.callFunction === "saveBookmark") {
         const pin = Pin.fromObject(request.pin);
         pins.addPin(pin);
         checkDisplayBookmarked();
