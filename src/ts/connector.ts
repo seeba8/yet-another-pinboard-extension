@@ -15,14 +15,19 @@ namespace Connector {
     const MIN_INTERVAL_ALL = 5 * 60 * 1000;
     let interval = MIN_INTERVAL;
     let intervalAll = MIN_INTERVAL_ALL;
-    let localQueue = Array<{params: any, reject: (message: any) => void,
-                            resolve: (message: any) => void, type: string}>();
+    let getAllPinsObj;
+    let localQueue = Array<{
+        params: any, reject: (message: any) => void,
+        resolve: (message: any) => void, type: string,
+    }>();
     const lastGetAllPins = new Date(0);
     let lastRequest = new Date(0);
 
     // Needed for the initial startUp(). In case a new request comes in really quick,
     // this de-duplicates the proceedQueue call.
-    let hasQueueStarted = false;
+
+    browser.alarms.onAlarm.addListener(onAlarm);
+
     startUp();
 
     // let queue = new Array();
@@ -38,7 +43,8 @@ namespace Connector {
     async function startUp() {
         const queue = await getQueue();
         localQueue = queue.concat(localQueue);
-        if (queue.length > 0 && !hasQueueStarted) {
+        const alarm = await browser.alarms.get("proceedQueue");
+        if (queue.length > 0 && alarm !== undefined) {
             cleanQueueDuplicates();
             proceedQueue();
         }
@@ -49,16 +55,23 @@ namespace Connector {
     }
 
     function addToQueue(item) {
-        hasQueueStarted = true;
         localQueue.push(item);
-        saveQueue(localQueue);
         cleanQueueDuplicates();
+        saveQueue(localQueue);
         if (localQueue.length === 1) {
             if (lastRequest < new Date(Date.now() - MIN_INTERVAL)) {
                 proceedQueue();
             } else {
-                setTimeout(proceedQueue, interval);
+                browser.alarms.create("proceedQueue", { when: Date.now() + interval });
             }
+        }
+    }
+
+    function onAlarm(alarm: browser.alarms.Alarm) {
+        if (alarm.name === "processQueue") {
+            proceedQueue();
+        } else if (alarm.name === "proceedGetAllData") {
+            proceedGetAllData();
         }
     }
 
@@ -120,21 +133,22 @@ namespace Connector {
             .catch(onError);
     }
 
-    function proceedGetAllData(item) {
-        sendRequest(item)
+    function proceedGetAllData() {
+
+        sendRequest(getAllPinsObj)
             .then(validateResponse)
             .then(parseJSON)
             .then((json) => {
                 if (typeof json !== "object" || (json.length === 1 && typeof json[0] !== "object")) {
-                    item.reject(Error(json));
+                    getAllPinsObj.reject(Error(json));
                     return;
                 } else {
-                    item.resolve(json);
+                    getAllPinsObj.resolve(json);
                 }
             })
             .catch((error) => {
                 // intervalAll *= 2; // Removing the doubling as it might cause issues (growing too quickly)
-                setTimeout(proceedGetAllData, intervalAll, item);
+                browser.alarms.create("proceedGetAllData", { when: Date.now() + intervalAll });
             });
     }
 
@@ -156,6 +170,9 @@ namespace Connector {
     }
 
     async function handleResultJSON(json) {
+        if (localQueue.length === 0) {
+            return json;
+        }
         switch (localQueue[0].type) {
             case "getLastUpdate":
                 if (!json.hasOwnProperty("update_time")) {
@@ -196,14 +213,14 @@ namespace Connector {
             promise.resolve(result);
         }
         if (localQueue.length > 0) {
-            setTimeout(proceedQueue, interval);
+            browser.alarms.create("proceedQueue", { when: Date.now() + interval });
         }
     }
 
     function onError(error) {
         interval = Math.max(interval * 2, 1000 * 60 * 10);
         SharedFunctions.showErrorBadge(String(error));
-        setTimeout(proceedQueue, interval);
+        browser.alarms.create("proceedQueue", { when: Date.now() + interval });
         // Possible:
         // queue.shift().reject(error);
     }
@@ -233,36 +250,38 @@ namespace Connector {
     }
     export function getAllPins(): Promise<any[]> {
         return new Promise((resolve, reject) => {
-            setTimeout(proceedGetAllData, Math.max(0, intervalAll -
-                (Date.now() - lastGetAllPins.getTime())), { // TODO CHECK THIS
+            browser.alarms.create("proceedGetAllData", {
+                when: Date.now() +
+                intervalAll - (Date.now() - lastGetAllPins.getTime())});
+            getAllPinsObj = { // TODO CHECK THIS
                 params: {},
                 reject,
                 resolve,
                 type: "getAllPins",
-            });
-        });
-    }
+            };
+    });
+}
     export function deletePin(pin: Pin) {
-        return new Promise((resolve, reject) => {
-            addToQueue({
-                params: pin,
-                reject,
-                resolve,
-                type: "deletePin",
-            });
+    return new Promise((resolve, reject) => {
+        addToQueue({
+            params: pin,
+            reject,
+            resolve,
+            type: "deletePin",
         });
-    }
-    export function suggestTags(url: string|{url: string}): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            if (typeof url === "string") {
-                url = {url};
-            }
-            addToQueue({
-                params: url,
-                reject,
-                resolve,
-                type: "suggestTags",
-            });
+    });
+}
+    export function suggestTags(url: string | { url: string }): Promise<string[]> {
+    return new Promise((resolve, reject) => {
+        if (typeof url === "string") {
+            url = { url };
+        }
+        addToQueue({
+            params: url,
+            reject,
+            resolve,
+            type: "suggestTags",
         });
-    }
+    });
+}
 }
