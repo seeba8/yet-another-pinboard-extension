@@ -16,17 +16,23 @@ browser.alarms.create("checkUpdate", {
     periodInMinutes: 5,
 });
 
-async function handleStartup() {
+onWakeUp(); // Differs from handleStartup as this also needs to run when the event page refreshes
+
+async function onWakeUp() {
     options = await Options.getObject();
-    browser.runtime.onMessage.addListener(handleMessage);
     // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
     // That is possibly caused by browser-polyfill
     // October 2017: It works with browser.runtime, if a promise is returned
     // from the listener instaed of using sendResponse
+    browser.runtime.onMessage.addListener(handleMessage);
     browser.storage.onChanged.addListener(handleStorageChanged);
     browser.tabs.onUpdated.addListener(handleTabUpdated);
     browser.bookmarks.onCreated.addListener(handleBookmarkCreated);
+    browser.contextMenus.onClicked.addListener(handleContextMenuClick);
+    pins = await Pins.updateList();
+}
 
+async function handleStartup() {
     // Provide help text to the user.
     browser.omnibox.setDefaultSuggestion({
         description: `Search your pinboard bookmarks`,
@@ -42,8 +48,7 @@ async function handleStartup() {
         title: "Add page to To Read",
     });
     browser.browserAction.setBadgeBackgroundColor({color: "#333"});
-    browser.contextMenus.onClicked.addListener(handleContextMenuClick);
-    pins = await Pins.updateList();
+
 }
 
 async function onCheckUpdate(alarm: browser.alarms.Alarm) {
