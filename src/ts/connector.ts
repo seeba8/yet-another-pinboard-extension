@@ -68,7 +68,7 @@ namespace Connector {
     }
 
     function onAlarm(alarm: browser.alarms.Alarm) {
-        if (alarm.name === "processQueue") {
+        if (alarm.name === "proceeedQueue") {
             proceedQueue();
         } else if (alarm.name === "proceedGetAllData") {
             proceedGetAllData();
