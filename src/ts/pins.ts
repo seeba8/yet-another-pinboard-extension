@@ -2,6 +2,10 @@
 "use strict";
 class Pins extends Map<string, Pin> {
     public static async updateList(forceUpdate: boolean = false): Promise<Pins> {
+        if (typeof Connector === "undefined") {
+            throw new Error("Wrong scope. Connector does not exist. Only call this from the background script");
+        }
+
         const token = await browser.storage.local.get(["apikey", "pins"]);
         if (!token.hasOwnProperty("apikey") || token.apikey === "") {
             return new Pins();
@@ -24,39 +28,6 @@ class Pins extends Map<string, Pin> {
         }
         return Pins.sendRequestAllPins(lastUpdate);
     }
-    /**
-     * Requests all pins from pinboard
-     * @param lastUpdate Timestamp of the last update requested before,
-     * so the storage can be updated if it was successful
-     */
-    public static async sendRequestAllPins(lastUpdate) {
-        const pins = new Pins();
-        const json = await Connector.getAllPins();
-        const oldPins = await Pins.getObject();
-        json.reverse().forEach((pin) => {
-            pins.set(pin.href, new Pin(
-                // pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url
-                pin.href,
-                pin.description,
-                pin.tags,
-                pin.time,
-                pin.extended,
-                pin.toread,
-                pin.shared));
-        });
-        for (const p of oldPins.filter()) {
-            if (p instanceof Pin) {
-                if (!pins.has(p.url)) {
-                    pins.addPin(p);
-                    p.save();
-                }
-            }
-        }
-        pins.saveToStorage();
-        browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
-        browser.storage.local.set({ lastsync: new Date().getTime() });
-        return pins;
-    }
 
     public static async getObject() {
         const res = await browser.storage.local.get("pins");
@@ -69,6 +40,31 @@ class Pins extends Map<string, Pin> {
             }
             return pins;
         }
+    }
+
+    /**
+     * Requests all pins from pinboard
+     * @param lastUpdate Timestamp of the last update requested before,
+     * so the storage can be updated if it was successful
+     */
+    private static async sendRequestAllPins(lastUpdate) {
+        const pins = new Pins();
+        const json = await Connector.getAllPins();
+        json.reverse().forEach((pin) => {
+            pins.set(pin.href, new Pin(
+                // pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url
+                pin.href,
+                pin.description,
+                pin.tags,
+                pin.time,
+                pin.extended,
+                pin.toread,
+                pin.shared));
+        });
+        pins.saveToStorage();
+        browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
+        browser.storage.local.set({ lastsync: new Date().getTime() });
+        return pins;
     }
 
     private static async getStoredLastUpdate() {
@@ -95,13 +91,13 @@ class Pins extends Map<string, Pin> {
         super.set(key, pin);
         return this;
     }
-    public delete(key: string) {
+    public delete(key: string): boolean {
         const result = super.delete(key);
         this.saveToStorage();
         return result;
     }
 
-    public addPin(pin: Pin) {
+    public addPin(pin: Pin): void {
         this.set(pin.url, pin);
         this.saveToStorage();
     }
@@ -112,7 +108,7 @@ class Pins extends Map<string, Pin> {
         }
     }
 
-    public saveToStorage() {
+    public saveToStorage(): void {
         browser.storage.local.set({pins: Array.from(this.entries())});
     }
     /**

@@ -54,6 +54,11 @@
             "type": "npm",
             "script": "copytodist",
             "problemMatcher": []
+        },
+        {
+            "type": "npm",
+            "script": "web-ext",
+            "problemMatcher": []
         }
     ]
 }

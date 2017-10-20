@@ -129,7 +129,7 @@ function handleTabUpdated(tabId: number, changeInfo: any, tab: browser.tabs.Tab)
     if (!options.changeActionbarIcon) {
         return;
     }
-    if (changeInfo.status === "loading") {
+    if (changeInfo.hasOwnProperty("status") && changeInfo.status === "loading") {
         checkDisplayBookmarked(tab);
     }
 }
@@ -147,11 +147,9 @@ function handleMessage(request: any, sender: browser.runtime.MessageSender) {
         checkDisplayBookmarked();
         return pin.save();
     } else if (request.callFunction === "forceUpdatePins") {
-        return new Promise((resolve, reject) => {
-            Pins.updateList(true).then((p) => {
-                pins = p;
-                resolve("OK");
-            });
+        return Pins.updateList(true).then((p) => {
+            pins = p;
+            return "OK";
         });
     } else if (request.callFunction === "deleteBookmark") {
         const pin = Pin.fromObject(request.pin);

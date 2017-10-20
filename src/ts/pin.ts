@@ -27,10 +27,16 @@ class Pin {
     }
 
     public delete() {
+        if (typeof Connector === "undefined") {
+            throw new Error("Wrong scope. Connector does not exist. Only call this from the background script");
+        }
         return Connector.deletePin(this);
     }
 
     public save() {
+        if (typeof Connector === "undefined") {
+            throw new Error("Wrong scope. Connector does not exist. Only call this from the background script");
+        }
         return Connector.addPin(this);
     }
 

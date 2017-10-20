@@ -17,7 +17,8 @@
     "lint": "tslint --fix --project tsconfig.json",
     "tsc": "tsc",
     "copyandbuild": "npm run copytodist && npm run lint && npm run tsc",
-    "build": "npm run lint && npm run tsc"
+    "build": "npm run lint && npm run tsc",
+    "web-ext": "web-ext run --source-dir=dist/ --firefox=nightly"
   },
   "repository": {
     "type": "git",

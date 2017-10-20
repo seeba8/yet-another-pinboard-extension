@@ -74,13 +74,14 @@ class Options {
                         saveBrowserBookmarks: boolean = false,
                         sharedByDefault: boolean = false,
                         titleRegex: string = ".*",
-                        style: IStyle = Object.create(Options.defaultStyle)) {
+                        style: IStyle = JSON.parse(JSON.stringify(Options.defaultStyle))) {
     this._urlPrefix = urlPrefix;
     this._tagPrefix = tagPrefix;
     this._titlePrefix = titlePrefix;
     this._toReadPrefix = toReadPrefix;
     this._showBookmarked = showBookmarked;
     this._changeActionbarIcon = changeActionbarIcon;
+    this._saveBrowserBookmarks = saveBrowserBookmarks;
     this._sharedbyDefault = sharedByDefault;
     this._titleRegex = titleRegex;
     this._style = style;
@@ -177,6 +178,11 @@ class Options {
         this.save();
     }
     get style() {
+        // Fix for a bug in a previous version
+        // Otherwise redundant
+        if (!this._style.hasOwnProperty("textColor")) {
+            this._style = JSON.parse(JSON.stringify(Options.defaultStyle));
+        }
         return this._style;
     }
 

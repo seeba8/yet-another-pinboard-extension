@@ -251,37 +251,38 @@ namespace Connector {
     export function getAllPins(): Promise<any[]> {
         return new Promise((resolve, reject) => {
             browser.alarms.create("proceedGetAllData", {
-                when: Date.now() + intervalAll -
-                 Math.min(intervalAll, (Date.now() - lastGetAllPins.getTime()))});
+                when: Date.now() + intervalAll + 1000 -
+                Math.min(intervalAll, (Date.now() - lastGetAllPins.getTime())),
+            });
             getAllPinsObj = { // TODO CHECK THIS
                 params: {},
                 reject,
                 resolve,
                 type: "getAllPins",
             };
-    });
-}
+        });
+    }
     export function deletePin(pin: Pin) {
-    return new Promise((resolve, reject) => {
-        addToQueue({
-            params: pin,
-            reject,
-            resolve,
-            type: "deletePin",
+        return new Promise((resolve, reject) => {
+            addToQueue({
+                params: pin,
+                reject,
+                resolve,
+                type: "deletePin",
+            });
         });
-    });
-}
+    }
     export function suggestTags(url: string | { url: string }): Promise<string[]> {
-    return new Promise((resolve, reject) => {
-        if (typeof url === "string") {
-            url = { url };
-        }
-        addToQueue({
-            params: url,
-            reject,
-            resolve,
-            type: "suggestTags",
+        return new Promise((resolve, reject) => {
+            if (typeof url === "string") {
+                url = { url };
+            }
+            addToQueue({
+                params: url,
+                reject,
+                resolve,
+                type: "suggestTags",
+            });
         });
-    });
-}
+    }
 }
