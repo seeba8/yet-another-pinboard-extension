@@ -251,8 +251,8 @@ namespace Connector {
     export function getAllPins(): Promise<any[]> {
         return new Promise((resolve, reject) => {
             browser.alarms.create("proceedGetAllData", {
-                when: Date.now() +
-                intervalAll - (Date.now() - lastGetAllPins.getTime())});
+                when: Date.now() + intervalAll -
+                 Math.min(intervalAll, (Date.now() - lastGetAllPins.getTime()))});
             getAllPinsObj = { // TODO CHECK THIS
                 params: {},
                 reject,

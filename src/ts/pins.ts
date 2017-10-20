@@ -3,11 +3,11 @@
 class Pins extends Map<string, Pin> {
     public static async updateList(forceUpdate: boolean = false): Promise<Pins> {
         const token = await browser.storage.local.get(["apikey", "pins"]);
-        // Plus 5 at the end for buffer, in order for the alarm to trigger this usually.
         if (!token.hasOwnProperty("apikey") || token.apikey === "") {
             return new Pins();
         }
         const lastSync = await this.getStoredLastSync();
+        // Plus 5 at the end for buffer, in order for the alarm to trigger this usually.
         if (!forceUpdate && lastSync.getTime() > new Date(Date.now() - 1000 * 60 * 5 + 5).getTime()) {
             // Not forced and last sync less than 5 minutes ago, therefore we just get the stored object
             return Pins.getObject();
@@ -32,6 +32,7 @@ class Pins extends Map<string, Pin> {
     public static async sendRequestAllPins(lastUpdate) {
         const pins = new Pins();
         const json = await Connector.getAllPins();
+        const oldPins = await Pins.getObject();
         json.reverse().forEach((pin) => {
             pins.set(pin.href, new Pin(
                 // pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url
@@ -43,6 +44,14 @@ class Pins extends Map<string, Pin> {
                 pin.toread,
                 pin.shared));
         });
+        for (const p of oldPins.filter()) {
+            if (p instanceof Pin) {
+                if (!pins.has(p.url)) {
+                    pins.addPin(p);
+                    p.save();
+                }
+            }
+        }
         pins.saveToStorage();
         browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
         browser.storage.local.set({ lastsync: new Date().getTime() });
