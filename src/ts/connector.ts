@@ -209,7 +209,7 @@ namespace Connector {
         interval = MIN_INTERVAL;
         const promise = localQueue.shift();
         saveQueue(localQueue);
-        if (typeof promise.resolve === "function") {
+        if (promise !== undefined && typeof promise.resolve === "function") {
             promise.resolve(result);
         }
         if (localQueue.length > 0) {
