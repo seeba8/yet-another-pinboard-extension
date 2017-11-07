@@ -2,7 +2,7 @@ namespace PopupPage {
 // Elements
 const bookmarkList = document.getElementById("bookmarks") as HTMLUListElement;
 const filterTextbox = document.getElementById("filter") as HTMLInputElement;
-const searchForm = document.getElementById("searchform") as HTMLFormElement;
+const resetBtn = document.getElementById("resetbutton") as HTMLButtonElement;
 const toReadSvg = document.getElementById("toreadsvg");
 const sharedSvg = document.getElementById("sharedsvg");
 const editSvg = document.getElementById("editsvg");
@@ -36,7 +36,6 @@ let offset = 0;
 export let pins: Pins;
 let toReadOnly = false;
 export let options: Options;
-
 filterTextbox.addEventListener("input", handleFilterChange);
 bookmarkCurrentButton.addEventListener("click", handleBookmarkCurrent);
 readLaterCurrentButton.addEventListener("click", handleReadLaterCurrent);
@@ -47,7 +46,7 @@ greyoutDiv.addEventListener("click", (e) => {
     greyoutDiv.classList.toggle("hidden");
     editWrapper.classList.toggle("hidden");
 });
-searchForm.addEventListener("reset", (e) => {
+resetBtn.addEventListener("click", (e) => {
     filterTextbox.value = "";
     handleFilterChange(e);
 });
@@ -57,6 +56,7 @@ document.querySelectorAll(".optionslink").forEach((element) => {
 Array.from(prevNext.div.children).forEach((element) => {
     element.addEventListener("click", handlePrevNextClick);
 });
+document.body.addEventListener("keydown", onKeyDown);
 getDPI();
 handleStartup();
 reloadPins();
@@ -91,6 +91,9 @@ async function handleStartup() {
     setColorVariables(options.style);
     editBox.sharedCheckbox.checked = options.sharedByDefault;
     optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
+    // currently (november 7, 2017) only works in chrome, for firefox, see bug:
+    // https://bugzilla.mozilla.org/show_bug.cgi?id=1324255
+    filterTextbox.focus();
 }
 
 function onOptionsLinkClick(e) {
@@ -185,8 +188,12 @@ function preparePrevNext(numberPins) {
     }
 }
 
-function handlePrevNextClick(e) {
-    offset = parseInt(e.target.dataset.offset, 10);
+function handlePrevNextClick(e: Event) {
+    const newOffset = parseInt((e.target as HTMLElement).dataset.offset, 10);
+    if (newOffset < 0 || newOffset > pins.size) {
+        return;
+    }
+    offset = newOffset;
     displayPins();
 }
 
@@ -258,6 +265,7 @@ function handleEditBookmark(e) {
     greyoutDiv.classList.toggle("hidden");
     editBox.URL.dataset.entryId = e.target.dataset.entryId;
     editBox.extended.value = pin.extended || "";
+    editBox.description.focus();
 }
 
 function handleLinkClick(e) {
@@ -351,5 +359,40 @@ function setColorVariables(style: IStyle) {
     document.documentElement.style.setProperty("--link-color", style.linkColor);
     document.documentElement.style.setProperty("--visited-color", style.visitedColor);
     document.documentElement.style.setProperty("--disabled-color", style.disabledColor);
+}
+
+function onKeyDown(e: KeyboardEvent) {
+    if (e.target === filterTextbox) {
+        if (e.key === "Enter") {
+            (bookmarkList.children[0].children[1] as HTMLElement).focus();
+        }
+        return;
+    }
+    console.log(e);
+    if (e.key === "ArrowLeft") {
+        prevNext.prevPage.click();
+        (bookmarkList.children[0].children[1] as HTMLElement).focus();
+        return;
+    } else if (e.key === "ArrowRight") {
+        prevNext.nextPage.click();
+        (bookmarkList.children[0].children[1] as HTMLElement).focus();
+        return;
+    } else if (e.key === "f" && e.ctrlKey) {
+        filterTextbox.focus();
+        return;
+    }
+    if (bookmarkList.contains(document.activeElement)) {
+        if (e.key === "ArrowDown") {
+            (document.activeElement.closest("li").nextElementSibling.children[1] as HTMLElement).focus();
+            e.preventDefault();
+            return;
+        } else if (e.key === "ArrowUp") {
+            (document.activeElement.closest("li").previousElementSibling.children[1] as HTMLElement).focus();
+            e.preventDefault();
+            return;
+        } else if (e.key === "F2") {
+            (document.activeElement.closest("li").children[0] as HTMLElement).click();
+        }
+    }
 }
 }

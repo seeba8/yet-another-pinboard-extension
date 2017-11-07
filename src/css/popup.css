@@ -229,7 +229,7 @@ a.currentpage {
   cursor: pointer;
   outline:none;
   color: var(--disabled-color);
-  right: 8%;
+  right: 10%;
   /*top: .2em;*/
 }
 .search:required:invalid ~ .resetbutton {
@@ -241,10 +241,6 @@ a.currentpage {
     margin-left: auto;
     margin-right: auto;
     width: 91%;
-}
-
-.searchform {
-    position: relative;
 }
 
 .delete {

@@ -26,25 +26,23 @@
       <a href="#" class="optionslink" id="optionslink">Options</a>
     </div>
   </div>
-  <form class="searchform" id="searchform">
-    <input type="text" id="filter" placeholder="Search" class="search" />
-    <button type="reset" class="resetbutton">&#x2715;</button>
-    <a href="#" id="filterToRead" class="toread" title="Show only to read">
-        <svg viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" class="icon toread" id="toreadsvg">
-          <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
-      </svg>
-    </a>
-  </form>
+  <input type="text" id="filter" placeholder="Search (Or press Ctrl-F)" class="search" />
+  <button type="reset" id="resetbutton" class="resetbutton" tabindex="-1">&#x2715;</button>
+  <a href="#" id="filterToRead" class="toread" title="Show only to read" tabindex="-1">
+      <svg viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg" class="icon toread" id="toreadsvg">
+        <path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 14H4V8l8 5 8-5v10zm-8-7L4 6h16l-8 5z"/>
+    </svg>
+  </a>
   <div id="prevnext">
-    <a href="#" id="firstPage">&laquo;</a>
-    <a href="#" id="prevPage">&lsaquo;</a>
-    <a href="#" id="pageNo1">1</a>
-    <a href="#" id="pageNo2">2</a>
-    <a href="#" id="pageNo3">3</a>
-    <a href="#" id="pageNo4">4</a>
-    <a href="#" id="pageNo5">5</a>
-    <a href="#" id="nextPage">&rsaquo;</a>
-    <a href="#" id="lastPage">&raquo;</a>
+    <a href="#" id="firstPage" tabindex="-1">&laquo;</a>
+    <a href="#" id="prevPage" tabindex="-1">&lsaquo;</a>
+    <a href="#" id="pageNo1" tabindex="-1">1</a>
+    <a href="#" id="pageNo2" tabindex="-1">2</a>
+    <a href="#" id="pageNo3" tabindex="-1">3</a>
+    <a href="#" id="pageNo4" tabindex="-1">4</a>
+    <a href="#" id="pageNo5" tabindex="-1">5</a>
+    <a href="#" id="nextPage" tabindex="-1">&rsaquo;</a>
+    <a href="#" id="lastPage" tabindex="-1">&raquo;</a>
 
   </div>
   <div id="listdiv">

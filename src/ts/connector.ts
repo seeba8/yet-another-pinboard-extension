@@ -134,7 +134,6 @@ namespace Connector {
     }
 
     function proceedGetAllData() {
-
         sendRequest(getAllPinsObj)
             .then(validateResponse)
             .then(parseJSON)
@@ -220,6 +219,7 @@ namespace Connector {
     function onError(error) {
         interval = Math.max(interval * 2, 1000 * 60 * 10);
         SharedFunctions.showErrorBadge(String(error));
+        // Maybe do not show uninteresting errors?
         browser.alarms.create("proceedQueue", { when: Date.now() + interval });
         // Possible:
         // queue.shift().reject(error);
