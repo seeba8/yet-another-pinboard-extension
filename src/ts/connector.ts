@@ -44,9 +44,11 @@ namespace Connector {
         const queue = await getQueue();
         localQueue = queue.concat(localQueue);
         const alarm = await browser.alarms.get("proceedQueue");
-        if (queue.length > 0 && alarm !== undefined) {
+        if (queue.length > 0) {
             cleanQueueDuplicates();
-            proceedQueue();
+            if (alarm === undefined) {
+                proceedQueue();
+            }
         }
     }
 
@@ -89,7 +91,7 @@ namespace Connector {
         return paramStr;
     }
 
-    async function getQueue() {
+    async function getQueue(): Promise<any[]> {
         const token = await browser.storage.local.get("queue");
         if (token.hasOwnProperty("queue") && typeof token.queue === "object") {
             return token.queue;

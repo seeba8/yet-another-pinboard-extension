@@ -24,12 +24,19 @@ namespace Sidebar {
     startup();
 
     async function startup() {
-        options = await Options.getObject();
-        setColorVariables(options.style);
-        pins = await Pins.getObject();
-        showPins();
+        await Promise.all([loadOptions(), loadPins()]);
         browser.storage.onChanged.addListener(onStorageChanged);
         checkAPIKey();
+    }
+
+    async function loadOptions() {
+        options = await Options.getObject();
+        setColorVariables(options.style);
+    }
+
+    async function loadPins() {
+        pins = await Pins.getObject();
+        showPins();
     }
 
     function setColorVariables(style: IStyle) {
@@ -42,11 +49,9 @@ namespace Sidebar {
 
     async function onStorageChanged(changes: browser.storage.ChangeDict, areaName: browser.storage.StorageName) {
         if (Object.keys(changes).includes("pins")) {
-            pins = await Pins.getObject();
-            showPins();
+            loadPins();
         } else if (Object.keys(changes).includes("options")) {
-            options = await Options.getObject();
-            setColorVariables(options.style);
+            loadOptions();
         } else if (Object.keys(changes).includes("apikey")) {
             checkAPIKey();
         }

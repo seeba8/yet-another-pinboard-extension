@@ -36,6 +36,7 @@ let offset = 0;
 export let pins: Pins;
 let toReadOnly = false;
 export let options: Options;
+
 filterTextbox.addEventListener("input", handleFilterChange);
 bookmarkCurrentButton.addEventListener("click", handleBookmarkCurrent);
 readLaterCurrentButton.addEventListener("click", handleReadLaterCurrent);
@@ -57,9 +58,8 @@ Array.from(prevNext.div.children).forEach((element) => {
     element.addEventListener("click", handlePrevNextClick);
 });
 document.body.addEventListener("keydown", onKeyDown);
-getDPI();
+
 handleStartup();
-reloadPins();
 
 async function getDPI() {
     if (window.navigator.userAgent.indexOf("Gecko/") === -1) {
@@ -86,14 +86,22 @@ async function getDPI() {
 }
 
 async function handleStartup() {
-    const token = await browser.storage.local.get(["lastsync"]);
+    await Promise.all([loadOptions(), reloadPins(), getDPI()]);
+    filterTextbox.focus();
+
+}
+
+async function loadOptions() {
     options = await Options.getObject();
     setColorVariables(options.style);
     editBox.sharedCheckbox.checked = options.sharedByDefault;
-    optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
     // currently (november 7, 2017) only works in chrome, for firefox, see bug:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1324255
-    filterTextbox.focus();
+}
+
+async function loadLastSync() {
+    const token = await browser.storage.local.get(["lastsync"]);
+    optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
 }
 
 function onOptionsLinkClick(e) {
@@ -105,6 +113,7 @@ async function reloadPins() {
     const token = await browser.storage.local.get(["apikey"]);
     if (!token.apikey || token.apikey === "") {
         noAPIKeyDiv.classList.remove("hidden");
+        return;
     }
     pins = await Pins.getObject();
     displayPins();
@@ -361,14 +370,48 @@ function setColorVariables(style: IStyle) {
     document.documentElement.style.setProperty("--disabled-color", style.disabledColor);
 }
 
+function onKeyDownTextbox(e: KeyboardEvent) {
+    if (e.key === "Enter") {
+        (bookmarkList.children[0].children[1] as HTMLElement).focus();
+    } else if (e.key === "Escape") {
+        if (filterTextbox.value !== "") {
+            e.preventDefault();
+            e.stopPropagation();
+            filterTextbox.value = "";
+            displayPins();
+        }
+    }
+}
+
+function onKeyDownBookmarkList(e: KeyboardEvent) {
+    if (e.key === "ArrowDown") {
+        (document.activeElement.closest("li").nextElementSibling.children[1] as HTMLElement).focus();
+        e.preventDefault();
+        return;
+    } else if (e.key === "ArrowUp") {
+        (document.activeElement.closest("li").previousElementSibling.children[1] as HTMLElement).focus();
+        e.preventDefault();
+        return;
+    } else if (e.key === "F2") {
+        (document.activeElement.closest("li").children[0] as HTMLElement).click();
+    }
+}
+
+function onKeyDownEditWrapper(e: KeyboardEvent) {
+    if (e.key === "Escape") {
+        e.stopPropagation();
+        e.preventDefault();
+        const url = editBox.URL.dataset.entryId;
+        greyoutDiv.click();
+        document.getElementById(url).focus();
+    }
+}
+
 function onKeyDown(e: KeyboardEvent) {
     if (e.target === filterTextbox) {
-        if (e.key === "Enter") {
-            (bookmarkList.children[0].children[1] as HTMLElement).focus();
-        }
+        onKeyDownTextbox(e);
         return;
     }
-    console.log(e);
     if (e.key === "ArrowLeft") {
         prevNext.prevPage.click();
         (bookmarkList.children[0].children[1] as HTMLElement).focus();
@@ -382,17 +425,14 @@ function onKeyDown(e: KeyboardEvent) {
         return;
     }
     if (bookmarkList.contains(document.activeElement)) {
-        if (e.key === "ArrowDown") {
-            (document.activeElement.closest("li").nextElementSibling.children[1] as HTMLElement).focus();
-            e.preventDefault();
-            return;
-        } else if (e.key === "ArrowUp") {
-            (document.activeElement.closest("li").previousElementSibling.children[1] as HTMLElement).focus();
-            e.preventDefault();
-            return;
-        } else if (e.key === "F2") {
-            (document.activeElement.closest("li").children[0] as HTMLElement).click();
-        }
+        onKeyDownBookmarkList(e);
+        return;
     }
+    if (!editWrapper.classList.contains("hidden")) {
+        onKeyDownEditWrapper(e);
+        return;
+    }
+    // Todo: More keyboard controls: e.g. to save bookmark, to filter for toread, ...
+    // Escape key capturing does not work on firefox
 }
 }

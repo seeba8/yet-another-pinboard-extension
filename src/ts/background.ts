@@ -134,32 +134,27 @@ function handleTabUpdated(tabId: number, changeInfo: any, tab: browser.tabs.Tab)
     }
 }
 
-function handleMessage(request: any, sender: browser.runtime.MessageSender) {
-    // Not async because it needs to return true in order for the message port to stay open
-    if (request.callFunction === "checkDisplayBookmarked" && !!request.url) {
-        return browser.tabs.query({ currentWindow: true, active: true }).then((tabs) => {
-            const tab = tabs[0];
-            checkDisplayBookmarked();
-        });
+async function handleMessage(request: any, sender: browser.runtime.MessageSender) {
+    if (request.callFunction === "checkDisplayBookmarked") {
+        checkDisplayBookmarked();
+        return;
     } else if (request.callFunction === "saveBookmark") {
         const pin = Pin.fromObject(request.pin);
+        if (pins === undefined) {
+            pins = await Pins.updateList();
+        }
         pins.addPin(pin);
         checkDisplayBookmarked();
         return pin.save();
     } else if (request.callFunction === "forceUpdatePins") {
-        return Pins.updateList(true).then((p) => {
-            pins = p;
-            return "OK";
-        });
+        pins = await Pins.updateList(true);
+        return "OK";
     } else if (request.callFunction === "deleteBookmark") {
         const pin = Pin.fromObject(request.pin);
-        return new Promise((resolve, reject) => {
-            const response = pin.delete().then(() => {
-                pins.delete(pin.url);
-                checkDisplayBookmarked();
-                resolve("OK");
-            });
-        });
+        const response = await pin.delete();
+        pins.delete(pin.url);
+        checkDisplayBookmarked();
+        return "OK";
     } else if (request.callFunction === "getTagSuggestions") {
         return Connector.suggestTags(request.url);
     } else if (request.callFunction === "showErrorBadge") {
