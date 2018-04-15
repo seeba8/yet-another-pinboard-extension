@@ -52,8 +52,13 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 * To [alerque](https://github.com/alerque) for your suggestion in #25 to add regex parsing
 * To [Google](https://material.io/icons) for some of the icons used, under [Apache License v2.0](https://www.apache.org/licenses/LICENSE-2.0)
 * To [vurtomatic](https://github.com/vurtomatic) for suggesting dark mode and new icons (#27)
+* To [pspinler](https://github.com/pspinler) for debugging the API-key issue with me
 
 ### Changelog (incomplete)
+#### v1.3.1 - 1.3.6:
+* Fixed some bugs
+* Started adding keyboard controls to the popup
+* Made the options screen more clear with regards to the API key
 
 #### v1.3.0:
 * Adds customisable colours: Set the addon to dark mode, light mode, or any colour scheme your heart desires

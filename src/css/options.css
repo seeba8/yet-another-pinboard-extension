@@ -1,7 +1,7 @@
 .wrapper {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    grid-row-gap: 1em;
+    grid-row-gap: .9em;
     grid-column-gap: 2em;
 }
 body{
@@ -53,4 +53,9 @@ pre {
 
 #titleRegex {
     width: 100%;
+}
+
+.wrapper form:invalid button {
+    pointer-events: none;
+    cursor: not-allowed;
 }

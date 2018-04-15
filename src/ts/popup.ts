@@ -62,6 +62,9 @@ document.body.addEventListener("keydown", onKeyDown);
 handleStartup();
 
 async function getDPI() {
+    // removed as of April 2018, as the bug is fixed
+    return;
+    /*
     if (window.navigator.userAgent.indexOf("Gecko/") === -1) {
         // Don't adjust for Chrome, as it has a different problem entirely
         return;
@@ -82,11 +85,11 @@ async function getDPI() {
     if (dppx !== window.devicePixelRatio) {
         document.body.style.transform = `scale(${dppx / window.devicePixelRatio})`;
         document.body.style.transformOrigin = "top left";
-    }
+    } */
 }
 
 async function handleStartup() {
-    await Promise.all([loadOptions(), reloadPins(), getDPI()]);
+    await Promise.all([loadOptions(), reloadPins()/*, getDPI()*/]);
     filterTextbox.focus();
 
 }

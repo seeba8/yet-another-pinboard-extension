@@ -14,12 +14,16 @@
       <label for="apikey">Pinboard API Key</label>
       <br/>
       <span>The key can be found
-        <a target="_blank" href="https://pinboard.in/settings/password">here</a>.</span>
+        <a target="_blank" href="https://pinboard.in/settings/password">here</a>.
+      </span><span>Please enter it in the format seeba8:1234567890ABCDEFG</span>
     </div>
     <div>
-      <input type="password" id="apikey" />
-      <button type="button" id="saveapi">Save API Key</button>
-      <div id="errorsymbol" class="hidden">&#x26a0;</div>
+      <form>
+        <input type="password" id="apikey" placeholder="seeba8:1234567890ABCDEFG" pattern=".+:.+" required title="Please enter your API key in the format seeba8:1234567890ABCDEFG"
+        />
+        <button type="button" id="saveapi">Save API Key</button>
+        <div id="errorsymbol" class="hidden">&#x26a0;</div>
+      </form>
       <button type="button" id="clearapi" class="hidden">Clear API Key</button>
       <button type="button" id="forcereload" class="hidden">Force reload pins</button>
     </div>
@@ -113,16 +117,16 @@
       <div>
         <label for="textColor">
           <input type="color" id="textColor" class="customstyle"> Text colour</label>
-        <br/> 
+        <br/>
         <label for="backgroundColor">
           <input type="color" id="backgroundColor" class="customstyle"> Background colour</label>
-        <br/> 
-        <label for="linkColor" >
+        <br/>
+        <label for="linkColor">
           <input type="color" id="linkColor" class="customstyle"> Link colour</label>
-        <br/> 
+        <br/>
         <label for="visitedColor">
           <input type="color" id="visitedColor" class="customstyle"> Visited link colour</label>
-        <br/> 
+        <br/>
         <label for="disabledColor">
           <input type="color" id="disabledColor" class="customstyle"> Disabled items (and border) colour</label>
         <br/>
