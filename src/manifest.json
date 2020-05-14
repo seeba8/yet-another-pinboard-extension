@@ -18,9 +18,16 @@
     ],
     "persistent": false
   },
-  "omnibox": { 
-    "keyword" : "pin" 
-    },
+  "omnibox": {
+    "keyword" : "pin"
+  },
+  "commands": {
+    "_execute_browser_action": {
+      "suggested_key": {
+        "default": "Alt+P"
+      }
+    }
+  },
   "icons": {
     "16": "img/pinboard-16.png",
     "32": "img/pinboard-32.png",
