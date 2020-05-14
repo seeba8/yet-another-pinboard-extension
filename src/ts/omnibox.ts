@@ -71,7 +71,7 @@ function createSuggestions(pins, searchtext) {
             content: "https://pinboard.in/search/?query=" + encodeURIComponent(searchtext),
             description: "No results found, go to Pinboard search",
         }];
-        if (!pins || pins.size === 0) {
+        if (!pins || pins.length === 0) {
             return resolve(suggestionsOnEmptyResults);
         }
         pins.forEach((pin) => {
