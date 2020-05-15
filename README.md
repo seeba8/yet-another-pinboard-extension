@@ -53,8 +53,12 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 * To [Google](https://material.io/icons) for some of the icons used, under [Apache License v2.0](https://www.apache.org/licenses/LICENSE-2.0)
 * To [vurtomatic](https://github.com/vurtomatic) for suggesting dark mode and new icons (#27)
 * To [pspinler](https://github.com/pspinler) for debugging the API-key issue with me
+* To [marcinsmialek](https://github.com/marcinsmialek) for fixing a bug with the search in the omnibar and adding a keyboard shortcut to open the popup (#48)
 
 ### Changelog (incomplete)
+#### v1.3.7
+* Merged pull request #48, thanks @marcinsmialek! This adds the keyboard shortcut Alt-P (by default) to open the pinboard popup. Also, it fixes the behaviour when searching for bookmarks in the omnibar when no results are found.
+* On development side: updated dependencies. Did not replace tslint by eslint yet because it seems to be quite the task...
 #### v1.3.1 - 1.3.6:
 * Fixed some bugs
 * Started adding keyboard controls to the popup
