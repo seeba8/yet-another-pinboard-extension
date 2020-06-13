@@ -68,10 +68,12 @@ async function onLoad() {
     if (options.sharedByDefault) {
         sharedByDefault.checked = true;
     }
-    if (options.style.type === StyleType.dark) {
+    if (options.styleType === StyleType.dark) {
         (document.getElementById("dark") as HTMLInputElement).checked = true;
-    } else if (options.style.type === StyleType.default) {
-        (document.getElementById("default") as HTMLInputElement).checked = true;
+    } else if (options.styleType === StyleType.light) {
+        (document.getElementById("light") as HTMLInputElement).checked = true;    
+    } else if (options.styleType === StyleType.browser) {
+        (document.getElementById("browser") as HTMLInputElement).checked = true;
     } else {
         (document.getElementById("custom") as HTMLInputElement).checked = true;
     }

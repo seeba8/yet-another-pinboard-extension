@@ -7,6 +7,12 @@
     --disabled-color: #808080;
 }
 
+/*@media(prefers-color-scheme: dark) {
+    body {
+        scrollbar-color: var(--text-color) var(--background-color);
+    }
+}*/
+
 a {
     color: var(--link-color);
 }

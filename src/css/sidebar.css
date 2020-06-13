@@ -51,3 +51,9 @@ body {
 #noapikey {
     z-index: 1;
 }
+
+input {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border: 1px solid #4a4a4f;
+}

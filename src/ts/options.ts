@@ -1,6 +1,7 @@
 enum StyleType {
-    "default",
+    "browser",
     "dark",
+    "light",
     "custom",
 }
 
@@ -31,7 +32,8 @@ class Options {
                                 options._saveBrowserBookmarks,
                                 options._sharedbyDefault,
                                 options._titleRegex,
-                                options._style);
+                                options._style,
+                                options._styleType,);
         }
     }
     /* tslint:disable */
@@ -45,21 +47,22 @@ class Options {
     private _sharedbyDefault: boolean;
     private _titleRegex: string;
     private _style: IStyle;
+    private _styleType: StyleType;
     
-    private static defaultStyle: Readonly<IStyle> = Object.freeze({
+    private static lightStyle: Readonly<IStyle> = Object.freeze({
         textColor: "#000000",
         backgroundColor: "#ffffff",
         visitedColor: "#551A8B",
         linkColor: "#0000EE",
         disabledColor: "#808080",
-        type: StyleType.default,
+        type: StyleType.light,
     });
     private static darkStyle: Readonly<IStyle> = Object.freeze({
-        textColor: "#eeeeee",
-        backgroundColor: "#111111",
-        visitedColor: "#6a5480",
-        linkColor: "#5555ff",
-        disabledColor: "#808080",
+        textColor: "#f9f9fa",
+        backgroundColor: "#4a4a4f",
+        visitedColor: "#f9f9fa",
+        linkColor: "#f9f9fa",
+        disabledColor: "#b1b1b3",
         type: StyleType.dark,
     });
 
@@ -74,7 +77,8 @@ class Options {
                         saveBrowserBookmarks: boolean = false,
                         sharedByDefault: boolean = false,
                         titleRegex: string = ".*",
-                        style: IStyle = JSON.parse(JSON.stringify(Options.defaultStyle))) {
+                        style: IStyle = JSON.parse(JSON.stringify(Options.lightStyle)),
+                        styleType: StyleType = StyleType.browser) {
     this._urlPrefix = urlPrefix;
     this._tagPrefix = tagPrefix;
     this._titlePrefix = titlePrefix;
@@ -85,6 +89,7 @@ class Options {
     this._sharedbyDefault = sharedByDefault;
     this._titleRegex = titleRegex;
     this._style = style;
+    this._styleType = styleType;
 }
 
     public *getStringOptions(): IterableIterator<[string, string]> {
@@ -181,18 +186,37 @@ class Options {
         // Fix for a bug in a previous version
         // Otherwise redundant
         if (!this._style.hasOwnProperty("textColor")) {
-            this._style = JSON.parse(JSON.stringify(Options.defaultStyle));
+            this._style = JSON.parse(JSON.stringify(Options.lightStyle));
         }
         return this._style;
+    }
+
+    get styleType() {
+        return this._styleType;
     }
 
     public setColorMode(mode: string) {
         switch (mode) {
             case "dark":
                 this.style = JSON.parse(JSON.stringify(Options.darkStyle));
+                this._styleType = StyleType.dark;
+                break;
+            case "light":
+                this.style = JSON.parse(JSON.stringify(Options.lightStyle));
+                this._styleType = StyleType.light;
+                break;
+            case "browser":
+                // see https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme
+                if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
+                    this.style = JSON.parse(JSON.stringify(Options.darkStyle));
+                } else {
+                    this.style = JSON.parse(JSON.stringify(Options.lightStyle));
+                }
+                this._styleType = StyleType.browser;
                 break;
             default:
-                this.style = JSON.parse(JSON.stringify(Options.defaultStyle));
+                this.style = JSON.parse(JSON.stringify(Options.lightStyle));
+                this._styleType = StyleType.browser;
         }
     }
 
