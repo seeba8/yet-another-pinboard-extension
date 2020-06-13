@@ -15,7 +15,7 @@ declare interface IStyle {
 
 class Options {
     public static async getObject() {
-        const o = await browser.storage.local.get("options");
+        const o = await browser.storage.local.get("options") as any;
         if (o.options === undefined) {
             const x = new Options();
             x.save();
@@ -197,6 +197,6 @@ class Options {
     }
 
     private save() {
-        browser.storage.local.set({ options: this });
+        browser.storage.local.set({ options: this as any });
     }
 }

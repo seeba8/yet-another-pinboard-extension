@@ -6,7 +6,7 @@ class Pins extends Map<string, Pin> {
             throw new Error("Wrong scope. Connector does not exist. Only call this from the background script");
         }
 
-        const token = await browser.storage.local.get(["apikey", "pins"]);
+        const token = await browser.storage.local.get(["apikey", "pins"]) as {apikey: string, pins: any[]};
         if (!token.hasOwnProperty("apikey") || token.apikey === "") {
             return new Pins();
         }
@@ -30,7 +30,7 @@ class Pins extends Map<string, Pin> {
     }
 
     public static async getObject() {
-        const res = await browser.storage.local.get("pins");
+        const res = await browser.storage.local.get("pins")  as {pins: any[]};
         if (res.pins === undefined) {
             return new Pins();
         } else {
@@ -68,7 +68,7 @@ class Pins extends Map<string, Pin> {
     }
 
     private static async getStoredLastUpdate() {
-        const token = await browser.storage.local.get("lastupdate");
+        const token = await browser.storage.local.get("lastupdate") as {lastupdate: any};
         if (token.hasOwnProperty("lastupdate")) {
             return new Date(token.lastupdate);
         }
@@ -76,7 +76,7 @@ class Pins extends Map<string, Pin> {
     }
 
     private static async getStoredLastSync() {
-        const token = await browser.storage.local.get("lastsync");
+        const token = await browser.storage.local.get("lastsync") as {lastsync: any};
         if (token.hasOwnProperty("lastsync")) {
             return new Date(token.lastsync);
         }
@@ -109,7 +109,7 @@ class Pins extends Map<string, Pin> {
     }
 
     public saveToStorage(): void {
-        browser.storage.local.set({pins: Array.from(this.entries())});
+        browser.storage.local.set({pins: Array.from(this.entries()) as any});
     }
     /**
      * Last value returned is the total number of hits when ignoring the offset and count

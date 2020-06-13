@@ -101,12 +101,12 @@ async function loadOptions() {
     // currently (november 7, 2017) only works in chrome, for firefox, see bug:
     // https://bugzilla.mozilla.org/show_bug.cgi?id=1324255
 }
-
+/*
 async function loadLastSync() {
     const token = await browser.storage.local.get(["lastsync"]);
     optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
 }
-
+*/
 function onOptionsLinkClick(e) {
     browser.runtime.openOptionsPage();
     window.close();

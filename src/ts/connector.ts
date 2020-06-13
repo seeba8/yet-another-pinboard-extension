@@ -94,7 +94,7 @@ namespace Connector {
     async function getQueue(): Promise<any[]> {
         const token = await browser.storage.local.get("queue");
         if (token.hasOwnProperty("queue") && typeof token.queue === "object") {
-            return token.queue;
+            return (token.queue as any[]);
         } else {
             return new Array();
         }
@@ -154,7 +154,7 @@ namespace Connector {
     }
 
     async function sendRequest(item) {
-        const apikey = (await browser.storage.local.get(["apikey"])).apikey;
+        const apikey = (await browser.storage.local.get(["apikey"])).apikey as string;
         return fetch(API_URL[item.type] + "?auth_token=" + encodeURIComponent(apikey) + "&format=json" +
             makeParamString(item.params));
     }

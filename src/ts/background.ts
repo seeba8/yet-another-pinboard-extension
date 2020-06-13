@@ -7,7 +7,7 @@
 declare let chrome: any;
 let pins: Pins;
 let options: Options;
-
+// (browser as any).contextMenus is necessary since Firefox renamed their api to browser.menus...
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
 browser.runtime.onStartup.addListener(handleStartup);
 browser.alarms.onAlarm.addListener(onCheckUpdate);
@@ -28,7 +28,7 @@ async function onWakeUp() {
     browser.storage.onChanged.addListener(handleStorageChanged);
     browser.tabs.onUpdated.addListener(handleTabUpdated);
     browser.bookmarks.onCreated.addListener(handleBookmarkCreated);
-    browser.contextMenus.onClicked.addListener(handleContextMenuClick);
+    (browser as any).contextMenus.onClicked.addListener(handleContextMenuClick);
     pins = await Pins.updateList();
 }
 
@@ -37,12 +37,12 @@ async function handleStartup() {
     browser.omnibox.setDefaultSuggestion({
         description: `Search your pinboard bookmarks`,
     });
-    browser.contextMenus.create({
+    (browser as any).contextMenus.create({
         contexts: ["link"],
         id: "linkAddToToRead",
         title: "Add to To Read",
     });
-    browser.contextMenus.create({
+    (browser as any).contextMenus.create({
         contexts: ["browser_action", "page"], // chrome can't do context type "tab" yet as of July 2017
         id: "tabAddToToRead",
         title: "Add page to To Read",
@@ -68,7 +68,7 @@ function handleBookmarkCreated(id: string, bookmark: browser.bookmarks.BookmarkT
     }
 }
 
-async function handleContextMenuClick(info: browser.contextMenus.OnClickData, tab: browser.tabs.Tab) {
+async function handleContextMenuClick(info: browser.menus.OnClickData, tab: browser.tabs.Tab) {
     let pin: Pin;
     switch (info.menuItemId) {
         case "linkAddToToRead":

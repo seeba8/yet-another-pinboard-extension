@@ -53,7 +53,7 @@ document.querySelectorAll(".customstyle").forEach((element) => {
 onLoad();
 
 async function onLoad() {
-    const token = await browser.storage.local.get(["lastsync", "apikey"]);
+    const token = await browser.storage.local.get(["lastsync", "apikey"]) as {lastsync: number, apikey: string};
     forceReloadButton.title = "Last bookmark sync: " + new Date(token.lastsync);
     options = await Options.getObject();
     if (!! token.apikey && token.apikey !== "") {
