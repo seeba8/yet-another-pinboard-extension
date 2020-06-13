@@ -114,7 +114,7 @@ button {
 
 #toprow {
     display: grid;
-    grid-template-columns: 1fr 3fr 3fr 1fr;
+    grid-template-columns: 1.5fr 3fr 3fr 1fr;
     grid-column-gap: 1.5em;
     margin-bottom: .5em;
     color: var(--text-color);
