@@ -1,5 +1,6 @@
 ///<reference path="pin.ts" />
 "use strict";
+
 class Pins extends Map<string, Pin> {
     public static async updateList(forceUpdate: boolean = false): Promise<Pins> {
         if (typeof Connector === "undefined") {
@@ -116,7 +117,7 @@ class Pins extends Map<string, Pin> {
      * @param text
      * @param options
      */
-    public *filter(text?: string, options?: {toRead?: boolean, shared?: boolean, offset?: number, count?: number}) {
+    public *filter(text?: string, options?: {toRead?: boolean, shared?: boolean, offset?: number, count?: number}, searchFields?: ("tags" | "description" | "url" | "extended")[]) {
         if (options === undefined) {
             options = {};
         }
@@ -126,10 +127,21 @@ class Pins extends Map<string, Pin> {
         if (!options.hasOwnProperty("count")) {
             options.count = Number.MAX_VALUE;
         }
+
+        if(searchFields === undefined) {
+            searchFields = ["tags", "description", "extended", "url"];
+        }
+
+        if(text === undefined) {
+            text = "";
+        } else {
+            text = text.toLowerCase();
+        }
+        
         let c = -1;
         for (const pin of this.forEachReversed()) {
-            if ((pin.toread === "yes" || !options.toRead) &&
-                    (text === "" || text === undefined || pinContains(pin, text))) {
+            if(options.toRead && pin.toread !== "yes") continue;
+            if (text === "" || searchFields.some(field => {return pin[field].toLowerCase().includes(text)})) {
                 c++;
                 if (options.offset > c) {
                     continue;
@@ -141,13 +153,14 @@ class Pins extends Map<string, Pin> {
             }
         }
         yield c;
-
-        function pinContains(pin: Pin, searchText: string): boolean {
-            function contains(haystack: string, needle: string) {
-                return haystack.toLowerCase().indexOf(needle.toLowerCase()) > -1;
-            }
-            return (contains(pin.description, searchText) || contains(pin.url, searchText) ||
-                contains(pin.tags, searchText) || contains(pin.extended, searchText));
-        }
+        
+    }
+    private static pinContains(pin: Pin, searchText: string, searchFields: ("tags" | "description" | "url" | "extended")[]): boolean {
+        return searchFields.some(searchField => {
+            // return contains(pin[searchField], searchText)
+            ;
+        });
+        /*return (contains(pin.description, searchText) || contains(pin.url, searchText) ||
+            contains(pin.tags, searchText) || contains(pin.extended, searchText));*/
     }
 }

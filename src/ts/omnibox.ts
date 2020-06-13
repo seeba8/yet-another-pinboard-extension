@@ -1,13 +1,15 @@
 ///<reference path="pin.ts" />
+///<reference path="pins.ts" />
 browser.omnibox.onInputChanged.addListener(handleInputChanged);
 browser.omnibox.onInputEntered.addListener(handleInputEntered);
 
 // Update the suggestions whenever the input is changed.
-function handleInputChanged(text, addSuggestions) {
+function handleInputChanged(text: string, addSuggestions: (arg: browser.omnibox.SuggestResult[]) => void): void{
     /*    const toReadRegex = new Regex("(^\w\s)?"+options.toReadPrefix+"\w?\s.*","gm");
         text = text.toLowerCase();
         let toReadPrefix = text.search(toReadRegex);
     */
+    text = text.toLowerCase();
     let searchArea = [];
     let hasPrefix = false;
     let toRead = false;
@@ -30,21 +32,17 @@ function handleInputChanged(text, addSuggestions) {
     if (hasPrefix) {
         text = text.slice(text.indexOf(" ") + 1);
     }
-    const selectedPins = [];
-    for (const [key, pin] of pins) {
-        searchArea.forEach((filter) => {
-            if (pin[filter].toLowerCase().includes(text)) {
-                if (!toRead || pin.toread === "yes") {
-                    selectedPins.push(pin);
-                }
-            }
-        });
+    const selectedPins: Pin[] = [];
+    for (const pin of pins.filter(text, {toRead: toRead, count: 6}, searchArea)) {
+        if (pin instanceof Pin) {
+            selectedPins.push(pin);
+        }
     }
     createSuggestions(selectedPins, text).then(addSuggestions);
 }
 
 // Open the page based on how the user clicks on a suggestion.
-function handleInputEntered(text, disposition) {
+function handleInputEntered(text: string, disposition: browser.omnibox.OnInputEnteredDisposition): void{
     let url = text;
     const regex = /^(http:\/\/|https:\/\/|ftp:|mailto:|file:|javascript:|feed:).+$/iu;
     if (regex.exec(text) === null) {
@@ -64,7 +62,7 @@ function handleInputEntered(text, disposition) {
 }
 
 // Create the array with the searchbar suggestions
-function createSuggestions(pins, searchtext) {
+function createSuggestions(pins: Pin[], searchtext: string): Promise<browser.omnibox.SuggestResult[]> {
     return new Promise((resolve) => {
         const suggestions = []
         const suggestionsOnEmptyResults = [{
