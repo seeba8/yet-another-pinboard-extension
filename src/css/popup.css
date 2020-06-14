@@ -263,17 +263,18 @@ a {
 }
 
 .selected {
-    background-color: yellow;
+    font-weight: bold;
+    color: var(--text-color);
 }
 #suggestions {
     border: 1px solid grey;
     list-style-type: none;
     padding: 7px;
     position:absolute;
-    background-color: white;
+    background-color: var(--background-color);
+    color: var(--disabled-color);
     margin-top: -10px;
 }
 #suggestions > li {
     cursor: pointer;
-    
 }
