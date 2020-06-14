@@ -83,13 +83,12 @@ async function onLoad() {
         (document.getElementById(k) as HTMLInputElement).value = v;
     }
 
-    browser.tabs.query({}).then((tabs: browser.tabs.Tab[]) => {
-        for (const tab of tabs) {
-            const li = document.createElement("li") as HTMLLIElement;
-            li.textContent = tab.title;
-            regexPreview.appendChild(li);
-        }
-    });
+    const tabs = await browser.tabs.query({});//.then((tabs: browser.tabs.Tab[]) => {
+    for (const tab of tabs) {
+        const li = document.createElement("li") as HTMLLIElement;
+        li.textContent = tab.title;
+        regexPreview.appendChild(li);
+    }
 }
 
 function forcePinReload() {
@@ -133,11 +132,12 @@ async function saveAPIKey() {
     }
 }
 
-function handleOptionChange(e) {
-    if (e.target.type === "checkbox") {
-        options[e.target.name] = e.target.checked;
+function handleOptionChange(e: Event) {
+    const target = (e.target as HTMLInputElement);
+    if (target.type === "checkbox") {
+        options[target.name] = target.checked;
     } else {
-        options[e.target.name] = e.target.value;
+        options[target.name] = target.value;
     }
 }
 

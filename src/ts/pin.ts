@@ -3,7 +3,7 @@
 declare type YesNo = "yes"|"no";
 
 class Pin {
-    public static fromObject(o) {
+    public static fromObject(o: {url: string, description: string, tags: string, time: string, extended: string, toread: YesNo, shared: YesNo}) {
         return new Pin(o.url, o.description, o.tags, o.time, o.extended, o.toread, o.shared);
     }
 

@@ -77,7 +77,7 @@ class Options {
                         saveBrowserBookmarks: boolean = false,
                         sharedByDefault: boolean = false,
                         titleRegex: string = ".*",
-                        style: IStyle = JSON.parse(JSON.stringify(Options.lightStyle)),
+                        style?: IStyle,
                         styleType: StyleType = StyleType.browser) {
     this._urlPrefix = urlPrefix;
     this._tagPrefix = tagPrefix;
@@ -88,7 +88,11 @@ class Options {
     this._saveBrowserBookmarks = saveBrowserBookmarks;
     this._sharedbyDefault = sharedByDefault;
     this._titleRegex = titleRegex;
-    this._style = style;
+    if(style === undefined) {
+        this._style = window.matchMedia("(prefers-color-scheme: dark)").matches ? JSON.parse(JSON.stringify(Options.darkStyle)) : JSON.parse(JSON.stringify(Options.lightStyle));
+    } else {
+        this._style = style;
+    }
     this._styleType = styleType;
 }
 

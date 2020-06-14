@@ -12,7 +12,6 @@ const readLaterCurrentButton = document.getElementById("readlatercurrent") as HT
 const filterToReadButton = document.getElementById("filterToRead") as HTMLLinkElement;
 const greyoutDiv = document.getElementById("greyout") as HTMLDivElement;
 const editWrapper = document.getElementById("editwrapper") as HTMLDivElement;
-const optionsButton = document.getElementById("optionslink") as HTMLLinkElement;
 const editForm = document.getElementById("editform") as HTMLFormElement;
 const noAPIKeyDiv = document.getElementById("noapikey") as HTMLDivElement;
 const prevNext = {
@@ -34,6 +33,7 @@ const editBox = {
 const suggestionList = document.getElementById("suggestions") as HTMLOListElement;
 const suggestionRow = document.getElementById("suggestion-template") as HTMLTemplateElement;
 const MAX_SUGGESTIONS = 7;
+const PINS_PER_PAGE = 100;
 
 let offset = 0;
 export let pins: Pins;
@@ -116,7 +116,7 @@ async function loadLastSync() {
     optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
 }
 */
-function onOptionsLinkClick(e) {
+function onOptionsLinkClick(e: MouseEvent) {
     browser.runtime.openOptionsPage();
     window.close();
 }
@@ -131,7 +131,7 @@ async function reloadPins() {
     displayPins();
 }
 
-function handleDeletePin(e) {
+function handleDeletePin(e: MouseEvent) {
     e.preventDefault();
     browser.runtime.sendMessage({
         callFunction: "deleteBookmark",
@@ -143,7 +143,7 @@ function handleDeletePin(e) {
     greyoutDiv.classList.toggle("hidden");
 }
 
-async function handleReadLaterCurrent(e) {
+async function handleReadLaterCurrent(e: MouseEvent) {
     e.preventDefault();
     const tabs = await browser.tabs.query({currentWindow: true, active: true});
     const tab = tabs[0];
@@ -152,7 +152,7 @@ async function handleReadLaterCurrent(e) {
     addPin(pin);
 }
 
-async function handleBookmarkCurrent(e) {
+async function handleBookmarkCurrent(e: MouseEvent) {
     e.preventDefault();
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
@@ -163,31 +163,31 @@ async function handleBookmarkCurrent(e) {
     editBox.tags.value = "";
 }
 
-function preparePrevNext(numberPins) {
+function preparePrevNext(numberPins: number) {
     Array.from(prevNext.div.children).forEach((element) => {
         element.classList.remove("linkdisabled", "currentpage");
     });
-    const firstPage = Math.min(Math.max(1, offset / 100 - 1), Math.max(Math.ceil(numberPins / 100) - 4, 1));
+    const firstPage = Math.min(Math.max(1, offset / PINS_PER_PAGE - 1), Math.max(Math.ceil(numberPins / PINS_PER_PAGE) - 4, 1));
     for (let i = 0; i < 5; i++) {
         const curElement = document.getElementById("pageNo" + (i + 1).toString());
         curElement.textContent = String(firstPage + i);
-        curElement.dataset.offset = String((firstPage + i - 1) * 100);
+        curElement.dataset.offset = String((firstPage + i - 1) * PINS_PER_PAGE);
         if (curElement.dataset.offset === String(offset)) {
             curElement.classList.add("currentpage", "linkdisabled");
         } else if (parseInt(curElement.dataset.offset, 10) > numberPins) {
             curElement.classList.add("linkdisabled");
         }
     }
-    prevNext.prevPage.dataset.offset = String(offset - 100);
-    prevNext.nextPage.dataset.offset = String(offset + 100);
+    prevNext.prevPage.dataset.offset = String(offset - PINS_PER_PAGE);
+    prevNext.nextPage.dataset.offset = String(offset + PINS_PER_PAGE);
     prevNext.firstPage.dataset.offset = String(0);
-    prevNext.lastPage.dataset.offset = String(100 * Math.floor(numberPins / 100));
+    prevNext.lastPage.dataset.offset = String(PINS_PER_PAGE * Math.floor(numberPins / PINS_PER_PAGE));
 
     if (offset === 0) {
         prevNext.firstPage.classList.add("linkdisabled");
         prevNext.prevPage.classList.add("linkdisabled");
     }
-    if (offset === 100 * Math.floor(numberPins / 100) || numberPins <= 100) {
+    if (offset === PINS_PER_PAGE * Math.floor(numberPins / PINS_PER_PAGE) || numberPins <= PINS_PER_PAGE) {
         prevNext.lastPage.classList.add("linkdisabled");
         prevNext.nextPage.classList.add("linkdisabled");
     }
@@ -202,7 +202,7 @@ function handlePrevNextClick(e: Event) {
     displayPins();
 }
 
-function handleSubmit(e) {
+function handleSubmit(e: Event) {
     e.preventDefault();
     let pin = pins.get(editBox.URL.dataset.entryId);
     let newPin = false;
@@ -236,7 +236,7 @@ function displayPins() {
         bookmarkList.removeChild(bookmarkList.firstChild);
     }
     let c = 0;
-    for (const pin of pins.filter(filter, {toRead: toReadOnly, offset, count: 100})) {
+    for (const pin of pins.filter(filter, {toRead: toReadOnly, offset, count: PINS_PER_PAGE})) {
         if (pin instanceof Pin) {
             addListItem(pin, pin.url);
         } else {
@@ -246,21 +246,21 @@ function displayPins() {
     preparePrevNext(c);
 }
 
-function handleFilterChange(e) {
+function handleFilterChange(e: Event) {
     offset = 0;
     displayPins();
 }
 
-function handleFilterToRead(e) {
-    e.target.classList.toggle("bold");
+function handleFilterToRead(e: MouseEvent) {
+    (e.target as HTMLElement).classList.toggle("bold");
     toReadOnly = !toReadOnly;
     offset = 0;
     displayPins();
 }
 
-function handleEditBookmark(e) {
+function handleEditBookmark(e: MouseEvent) {
     e.preventDefault();
-    const pin = pins.get(e.target.dataset.entryId);
+    const pin = pins.get((e.target as HTMLElement).dataset.entryId);
     editBox.description.value = pin.description || "";
     editBox.URL.value = pin.url;
     editBox.tags.value = pin.tags || "";
@@ -268,33 +268,33 @@ function handleEditBookmark(e) {
     editBox.sharedCheckbox.checked = (pin.shared === "yes");
     editWrapper.classList.toggle("hidden");
     greyoutDiv.classList.toggle("hidden");
-    editBox.URL.dataset.entryId = e.target.dataset.entryId;
+    editBox.URL.dataset.entryId = (e.target as HTMLElement).dataset.entryId;
     editBox.extended.value = pin.extended || "";
     editBox.description.focus();
 }
 
-function handleLinkClick(e) {
+function handleLinkClick(e: MouseEvent) {
     e.preventDefault();
     if (e.button === 1 || e.ctrlKey) {
-        browser.tabs.create({ url: e.target.href });
+        browser.tabs.create({ url: (e.target as HTMLLinkElement).href });
     } else {
-        browser.tabs.update(undefined, { url: e.target.href });
+        browser.tabs.update(undefined, { url: (e.target as HTMLLinkElement).href });
     }
     window.close();
 }
 
-function handleBookmarkRead(e) {
+function handleBookmarkRead(e: MouseEvent) {
     e.preventDefault();
-    const pin = pins.get(e.target.dataset.entryId);
+    const pin = pins.get((e.target as HTMLElement).dataset.entryId);
     pin.toread = "no";
     browser.runtime.sendMessage({
         callFunction: "saveBookmark",
         pin,
     });
-    e.target.classList.toggle("invisible");
+    (e.target as HTMLElement).classList.toggle("invisible");
 }
 
-function addListItem(pin, key) {
+function addListItem(pin: Pin, key: string) {
     function addEditSymbol() {
         const edit = document.createElement("a");
         edit.title = "Edit";
@@ -506,7 +506,7 @@ function onTagTextInput(e: InputEvent) {
 
 }
 
- function onSuggestionMouseover(e: MouseEvent) {
+function onSuggestionMouseover(e: MouseEvent) {
     if((e.target as HTMLElement).id === "suggestions") return;
     const selectedSuggestion = document.getElementsByClassName("selected").item(0);
     selectedSuggestion.classList.toggle("selected");

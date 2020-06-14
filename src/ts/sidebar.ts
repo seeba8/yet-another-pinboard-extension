@@ -68,13 +68,12 @@ namespace Sidebar {
         }
     }
 
-    function onLinkClick(e) {
-
+    function onLinkClick(e: MouseEvent) {
         e.preventDefault();
         if (e.button === 1 || e.ctrlKey) {
-            browser.tabs.create({ url: e.target.href });
+            browser.tabs.create({ url: (e.target as HTMLLinkElement).href });
         } else {
-            browser.tabs.update(undefined, {url: e.target.href});
+            browser.tabs.update(undefined, {url: (e.target as HTMLLinkElement).href});
         }
     }
 
