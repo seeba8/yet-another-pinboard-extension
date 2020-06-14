@@ -258,10 +258,6 @@ a.currentpage {
    font-family: sans-serif;
 }
 
-#tagsuggestions a {
-    cursor: pointer;
-}
-
 a {
     text-decoration: none;
 }

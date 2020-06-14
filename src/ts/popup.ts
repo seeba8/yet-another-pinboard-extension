@@ -15,7 +15,6 @@ const editWrapper = document.getElementById("editwrapper") as HTMLDivElement;
 const optionsButton = document.getElementById("optionslink") as HTMLLinkElement;
 const editForm = document.getElementById("editform") as HTMLFormElement;
 const noAPIKeyDiv = document.getElementById("noapikey") as HTMLDivElement;
-const tagSuggestionsDiv = document.getElementById("tagsuggestions") as HTMLDivElement;
 const prevNext = {
     div: document.getElementById("prevnext") as HTMLDivElement,
     firstPage: document.getElementById("firstPage") as HTMLLinkElement,
@@ -148,11 +147,6 @@ async function handleReadLaterCurrent(e) {
 }
 
 async function handleBookmarkCurrent(e) {
-    function handleAddTag(ev) {
-        editBox.tags.value += " " + ev.target.textContent;
-        ev.target.parentElement.removeChild(ev.target);
-    }
-
     e.preventDefault();
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
@@ -161,17 +155,6 @@ async function handleBookmarkCurrent(e) {
     editBox.URL.value = tab.url;
     editBox.toReadCheckbox.checked = false;
     editBox.tags.value = "";
-    const tagSuggestions = await browser.runtime.sendMessage({
-        callFunction: "getTagSuggestions",
-        url: tab.url,
-    });
-    tagSuggestions.forEach((tag) => {
-        const t = document.createElement("a");
-        t.addEventListener("click", handleAddTag);
-        t.appendChild(document.createTextNode(tag));
-        tagSuggestionsDiv.appendChild(t);
-        tagSuggestionsDiv.appendChild(document.createTextNode(" "));
-    });
 }
 
 function preparePrevNext(numberPins) {

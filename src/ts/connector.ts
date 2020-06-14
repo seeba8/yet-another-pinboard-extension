@@ -7,7 +7,7 @@ namespace Connector {
         getAllPins: "https://api.pinboard.in/v1/posts/all",
         // getAuthToken: "https://api.pinboard.in/v1/user/auth_token",
         getLastUpdate: "https://api.pinboard.in/v1/posts/update",
-        suggestTags: "https://api.pinboard.in/v1/posts/suggest",
+        //suggestTags: "https://api.pinboard.in/v1/posts/suggest",
     });
 
     const lastUpdate = 0;
@@ -271,19 +271,6 @@ namespace Connector {
                 reject,
                 resolve,
                 type: "deletePin",
-            });
-        });
-    }
-    export function suggestTags(url: string | { url: string }): Promise<string[]> {
-        return new Promise((resolve, reject) => {
-            if (typeof url === "string") {
-                url = { url };
-            }
-            addToQueue({
-                params: url,
-                reject,
-                resolve,
-                type: "suggestTags",
             });
         });
     }

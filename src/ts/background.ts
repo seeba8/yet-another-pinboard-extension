@@ -155,8 +155,6 @@ async function handleMessage(request: any, sender: browser.runtime.MessageSender
         pins.delete(pin.url);
         checkDisplayBookmarked();
         return "OK";
-    } else if (request.callFunction === "getTagSuggestions") {
-        return Connector.suggestTags(request.url);
     } else if (request.callFunction === "showErrorBadge") {
         SharedFunctions.showErrorBadge(request.error);
     } else if (request.callFunction === "hideErrorBadge") {
