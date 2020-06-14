@@ -1,6 +1,13 @@
 ///<reference path="pin.ts" />
 "use strict";
 namespace Connector {
+    type QueueElement = {
+        params: any, 
+        reject: (message: any) => void,
+        resolve: (message: any) => void, 
+        type: string,
+    }
+
     const API_URL = Object.freeze({
         addPin: "https://api.pinboard.in/v1/posts/add",
         deletePin: "https://api.pinboard.in/v1/posts/delete",
@@ -10,16 +17,12 @@ namespace Connector {
         //suggestTags: "https://api.pinboard.in/v1/posts/suggest",
     });
 
-    const lastUpdate = 0;
     const MIN_INTERVAL = 3 * 1000;
     const MIN_INTERVAL_ALL = 5 * 60 * 1000;
     let interval = MIN_INTERVAL;
     let intervalAll = MIN_INTERVAL_ALL;
-    let getAllPinsObj;
-    let localQueue = Array<{
-        params: any, reject: (message: any) => void,
-        resolve: (message: any) => void, type: string,
-    }>();
+    let getAllPinsObj: QueueElement;
+    let localQueue = Array<QueueElement>();
     const lastGetAllPins = new Date(0);
     let lastRequest = new Date(0);
 
@@ -52,11 +55,11 @@ namespace Connector {
         }
     }
 
-    function saveQueue(queue) {
-        return browser.storage.local.set({ queue });
+    function saveQueue(queue: QueueElement[]) {
+        return browser.storage.local.set({ queue: queue as any[] });
     }
 
-    function addToQueue(item) {
+    function addToQueue(item: QueueElement) {
         localQueue.push(item);
         cleanQueueDuplicates();
         saveQueue(localQueue);
@@ -77,13 +80,13 @@ namespace Connector {
         }
     }
 
-    function makeParamString(params) {
+    function makeParamString(params: object|any) {
         if (typeof params !== "object") {
             return "";
         }
         let paramStr = "";
         for (const prop in params) {
-            // Needs to be for .. in, I don't quite undertsand why
+            // Needs to be for .. in, I don't quite understand why
             if (params.hasOwnProperty(prop)) {
                 paramStr += "&" + encodeURIComponent(prop) + "=" + encodeURIComponent(params[prop]);
             }
@@ -153,20 +156,20 @@ namespace Connector {
             });
     }
 
-    async function sendRequest(item) {
+    async function sendRequest(item: QueueElement) {
         const apikey = (await browser.storage.local.get(["apikey"])).apikey as string;
         return fetch(API_URL[item.type] + "?auth_token=" + encodeURIComponent(apikey) + "&format=json" +
             makeParamString(item.params));
     }
 
-    function validateResponse(response) {
+    function validateResponse(response: Response) {
         if (!response.ok || response.status !== 200) {
             throw Error(String(response.status) + " " + response.statusText);
         }
         return response;
     }
 
-    function parseJSON(response) {
+    function parseJSON(response: Response){
         return response.json();
     }
 
@@ -186,20 +189,6 @@ namespace Connector {
                     throw Error(json.result_code);
                 }
                 break;
-            case "suggestTags":
-                if (typeof json !== "object") {
-                    throw Error(json);
-                } else {
-                    let tags = new Array();
-                    json.forEach((element) => {
-                        if (element.hasOwnProperty("popular")) {
-                            tags = tags.concat(element.popular);
-                        } else if (element.hasOwnProperty("recommended")) {
-                            tags = tags.concat(element.recommended);
-                        }
-                    });
-                    return tags;
-                }
         }
         return json;
     }
