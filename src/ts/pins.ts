@@ -155,12 +155,4 @@ class Pins extends Map<string, Pin> {
         yield c;
         
     }
-    private static pinContains(pin: Pin, searchText: string, searchFields: ("tags" | "description" | "url" | "extended")[]): boolean {
-        return searchFields.some(searchField => {
-            // return contains(pin[searchField], searchText)
-            ;
-        });
-        /*return (contains(pin.description, searchText) || contains(pin.url, searchText) ||
-            contains(pin.tags, searchText) || contains(pin.extended, searchText));*/
-    }
 }

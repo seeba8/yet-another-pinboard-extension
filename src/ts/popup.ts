@@ -36,6 +36,10 @@ let offset = 0;
 export let pins: Pins;
 let toReadOnly = false;
 export let options: Options;
+export const tags = new Array<string>();
+// sort tags by value, see https://stackoverflow.com/a/48324540
+
+
 
 filterTextbox.addEventListener("input", handleFilterChange);
 bookmarkCurrentButton.addEventListener("click", handleBookmarkCurrent);
@@ -61,37 +65,37 @@ document.body.addEventListener("keydown", onKeyDown);
 
 handleStartup();
 
-async function getDPI() {
-    // removed as of April 2018, as the bug is fixed
-    return;
-    /*
-    if (window.navigator.userAgent.indexOf("Gecko/") === -1) {
-        // Don't adjust for Chrome, as it has a different problem entirely
-        return;
-    }
-    let dppx = 1;
-    try {
-        const res = await browser.tabs.executeScript(undefined, {code: "window.devicePixelRatio;"});
-        dppx = Number(res[0]);
-        browser.storage.local.set({popupdppx : dppx});
-    } catch (error) {
-        // This happens if we do not have permission to run execute script
-        // For example on browser-internal pages such as about:addons or about:newtab
-        const res = await browser.storage.local.get("popupdppx");
-        if (res.hasOwnProperty("popupdppx")) {
-            dppx = res.popupdppx;
-        }
-    }
-    if (dppx !== window.devicePixelRatio) {
-        document.body.style.transform = `scale(${dppx / window.devicePixelRatio})`;
-        document.body.style.transformOrigin = "top left";
-    } */
-}
-
 async function handleStartup() {
     await Promise.all([loadOptions(), reloadPins()/*, getDPI()*/]);
     filterTextbox.focus();
+    collectTags();
+}
 
+function collectTags() {
+    const tagsMap = new Map<string, number>();
+    //console.time("collectTags");
+    for(const pin of pins.forEachReversed()) {
+        if(pin.tags !== "") {
+            for(const tag of pin.tags.split(" ")) {
+                const num = tagsMap.get(tag);
+                if(num === undefined) {
+                    tagsMap.set(tag, 1);
+                } else {
+                    tagsMap.set(tag, num + 1);
+                }
+            }
+        }
+    }
+    //console.timeEnd("collectTags");
+    //console.time("sortTags");
+    // sort map accpording to https://stackoverflow.com/a/48324540
+    tagsMap[Symbol.iterator] = function* () {
+        yield* [...this.entries()].sort((a, b) => b[1] - a[1]);
+    }
+    for(const [key, val] of tagsMap) {
+        tags.push(key);
+    }
+    //console.timeEnd("sortTags");
 }
 
 async function loadOptions() {
