@@ -261,3 +261,19 @@ a.currentpage {
 a {
     text-decoration: none;
 }
+
+.selected {
+    background-color: yellow;
+}
+#suggestions {
+    border: 1px solid grey;
+    list-style-type: none;
+    padding: 7px;
+    position:absolute;
+    background-color: white;
+    margin-top: -10px;
+}
+#suggestions > li {
+    cursor: pointer;
+    
+}

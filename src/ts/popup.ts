@@ -31,15 +31,21 @@ const editBox = {
     toReadCheckbox: document.getElementById("toread") as HTMLInputElement,
 };
 
+const suggestionList = document.getElementById("suggestions") as HTMLOListElement;
+const suggestionRow = document.getElementById("suggestion-template") as HTMLTemplateElement;
+const MAX_SUGGESTIONS = 7;
+
 let offset = 0;
 export let pins: Pins;
 let toReadOnly = false;
 export let options: Options;
 export const tags = new Array<string>();
-// sort tags by value, see https://stackoverflow.com/a/48324540
 
 
-
+editBox.tags.addEventListener("input", onTagTextInput);
+editBox.tags.addEventListener("keydown", onTagTextKeyDown);
+suggestionList.addEventListener("click", onSuggestionClick);
+suggestionList.addEventListener("mouseover", onSuggestionMouseover);
 filterTextbox.addEventListener("input", handleFilterChange);
 bookmarkCurrentButton.addEventListener("click", handleBookmarkCurrent);
 readLaterCurrentButton.addEventListener("click", handleReadLaterCurrent);
@@ -424,5 +430,90 @@ function onKeyDown(e: KeyboardEvent) {
     }
     // Todo: More keyboard controls: e.g. to save bookmark, to filter for toread, ...
     // Escape key capturing does not work on firefox
+}
+
+// suggestions
+
+function acceptSuggestion(suggestionText: string) {
+    editBox.tags.value = editBox.tags.value.slice(0, editBox.tags.value.lastIndexOf(" ") + 1) + suggestionText + " ";
+    editBox.tags.focus();
+    clearSuggestionList();
+}
+
+function fillSuggestionList(currentToken: string) {
+    let numSuggestions = 0;
+    for (const o of tags) {
+        if (numSuggestions < MAX_SUGGESTIONS && o.toLocaleLowerCase().startsWith(currentToken)) {
+            const clone = suggestionRow.content.cloneNode(true) as HTMLElement;
+            clone.firstElementChild.textContent = o;
+            suggestionList.appendChild(clone);
+            numSuggestions++;
+        }
+    }
+    if(suggestionList.children.length > 0)  {
+        suggestionList.firstElementChild.classList.toggle("selected");
+        suggestionList.classList.remove("hidden");
+    }
+}
+
+function clearSuggestionList() {
+    while (suggestionList.lastChild) {
+        suggestionList.lastChild.remove();
+    }
+    suggestionList.classList.add("hidden");
+}
+
+function getCurrentToken() {
+    const inputText = String(editBox.tags.value);
+    return inputText.slice(inputText.lastIndexOf(" ") + 1).trim().toLocaleLowerCase();
+}
+
+function onTagTextKeyDown(e: KeyboardEvent) {
+    
+    const selectedSuggestion = document.getElementsByClassName("selected").item(0);
+    if(selectedSuggestion === null) return;
+    switch(e.code) {
+        case "ArrowDown":
+            e.stopPropagation();
+            e.preventDefault();
+            if(selectedSuggestion.nextElementSibling) {
+                selectedSuggestion.classList.toggle("selected");
+                selectedSuggestion.nextElementSibling.classList.toggle("selected");
+            }
+            break;
+        case "ArrowUp":
+            e.stopPropagation();
+            e.preventDefault();
+            if(selectedSuggestion.previousElementSibling) {
+                selectedSuggestion.classList.toggle("selected");
+                selectedSuggestion.previousElementSibling.classList.toggle("selected");
+            }
+            break;
+        case "Enter":
+            e.stopPropagation();
+            e.preventDefault();
+            acceptSuggestion(selectedSuggestion.textContent);
+            break;
+    }
+}
+
+function onTagTextInput(e: InputEvent) {
+    clearSuggestionList();
+    const currentToken = getCurrentToken();
+    if (currentToken === "") return;
+    fillSuggestionList(currentToken);
+
+}
+
+ function onSuggestionMouseover(e: MouseEvent) {
+    if((e.target as HTMLElement).id === "suggestions") return;
+    const selectedSuggestion = document.getElementsByClassName("selected").item(0);
+    selectedSuggestion.classList.toggle("selected");
+    (e.target as HTMLElement).classList.toggle("selected");
+}
+
+function onSuggestionClick(e: MouseEvent) {
+    if((e.target as HTMLElement).id === "suggestions") return;
+    acceptSuggestion((e.target as HTMLElement).textContent);
 }
 }
