@@ -490,6 +490,7 @@ function onTagTextKeyDown(e: KeyboardEvent) {
             }
             break;
         case "Enter":
+        case "Tab":
             e.stopPropagation();
             e.preventDefault();
             acceptSuggestion(selectedSuggestion.textContent);
