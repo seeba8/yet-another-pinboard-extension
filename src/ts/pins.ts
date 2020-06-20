@@ -7,7 +7,7 @@ class Pins extends Map<string, Pin> {
             throw new Error("Wrong scope. Connector does not exist. Only call this from the background script");
         }
 
-        const token = await browser.storage.local.get(["apikey", "pins"]) as {apikey: string, pins: any[]};
+        const token = await browser.storage.local.get(["apikey", "pins"]) as { apikey: string, pins: any[] };
         if (!token.hasOwnProperty("apikey") || token.apikey === "") {
             return new Pins();
         }
@@ -31,7 +31,7 @@ class Pins extends Map<string, Pin> {
     }
 
     public static async getObject() {
-        const res = await browser.storage.local.get("pins")  as {pins: any[]};
+        const res = await browser.storage.local.get("pins") as { pins: any[] };
         if (res.pins === undefined) {
             return new Pins();
         } else {
@@ -69,7 +69,7 @@ class Pins extends Map<string, Pin> {
     }
 
     private static async getStoredLastUpdate() {
-        const token = await browser.storage.local.get("lastupdate") as {lastupdate: any};
+        const token = await browser.storage.local.get("lastupdate") as { lastupdate: any };
         if (token.hasOwnProperty("lastupdate")) {
             return new Date(token.lastupdate);
         }
@@ -77,7 +77,7 @@ class Pins extends Map<string, Pin> {
     }
 
     private static async getStoredLastSync() {
-        const token = await browser.storage.local.get("lastsync") as {lastsync: any};
+        const token = await browser.storage.local.get("lastsync") as { lastsync: any };
         if (token.hasOwnProperty("lastsync")) {
             return new Date(token.lastsync);
         }
@@ -110,14 +110,14 @@ class Pins extends Map<string, Pin> {
     }
 
     public saveToStorage(): void {
-        browser.storage.local.set({pins: Array.from(this.entries()) as any});
+        browser.storage.local.set({ pins: Array.from(this.entries()) as any });
     }
     /**
      * Last value returned is the total number of hits when ignoring the offset and count
      * @param text
      * @param options
      */
-    public *filter(text?: string, options?: {toRead?: boolean, shared?: boolean, offset?: number, count?: number}, searchFields?: ("tags" | "description" | "url" | "extended")[]) {
+    public *filter(text?: string, options?: { toRead?: boolean, shared?: boolean, offset?: number, count?: number }, searchFields?: ("tags" | "description" | "url" | "extended")[]) {
         if (options === undefined) {
             options = {};
         }
@@ -128,20 +128,20 @@ class Pins extends Map<string, Pin> {
             options.count = Number.MAX_VALUE;
         }
 
-        if(searchFields === undefined) {
+        if (searchFields === undefined) {
             searchFields = ["tags", "description", "extended", "url"];
         }
 
-        if(text === undefined) {
+        if (text === undefined) {
             text = "";
         } else {
             text = text.toLowerCase();
         }
-        
+
         let c = -1;
         for (const pin of this.forEachReversed()) {
-            if(options.toRead && pin.toread !== "yes") continue;
-            if (text === "" || searchFields.some(field => {return pin[field].toLowerCase().includes(text)})) {
+            if (options.toRead && pin.toread !== "yes") continue;
+            if (text === "" || searchFields.some(field => { return pin[field].toLowerCase().includes(text) })) {
                 c++;
                 if (options.offset > c) {
                     continue;
@@ -153,6 +153,36 @@ class Pins extends Map<string, Pin> {
             }
         }
         yield c;
-        
+
+    }
+
+    public *filterWithOptions(text: string, options: Options, additional:{count?: number, toRead?: boolean, offset?: number} = {}) {
+        if(text === undefined) text = "";
+        text = text.toLowerCase();
+        let searchArea = [];
+        let hasPrefix = false;
+        let toRead = false;
+        if (text.startsWith(options.tagPrefix + " ")) {
+            searchArea.push("tags");
+            hasPrefix = true;
+        } else if (text.startsWith(options.urlPrefix + " ")) {
+            searchArea.push("url");
+            hasPrefix = true;
+        } else if (text.startsWith(options.titlePrefix + " ")) {
+            searchArea.push("description");
+            hasPrefix = true;
+        } else {
+            searchArea = ["tags", "url", "description", "extended"];
+        }
+        if (text.startsWith(options.toReadPrefix + " ")) {
+            hasPrefix = true;
+            toRead = true;
+        }
+        if (hasPrefix) {
+            text = text.slice(text.indexOf(" ") + 1);
+        }
+        for (const pin of this.filter(text, {toRead: toRead || additional.toRead, count: additional.count}, searchArea)) {
+            yield pin;
+        }
     }
 }

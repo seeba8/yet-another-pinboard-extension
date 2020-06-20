@@ -236,7 +236,7 @@ function displayPins() {
         bookmarkList.removeChild(bookmarkList.firstChild);
     }
     let c = 0;
-    for (const pin of pins.filter(filter, {toRead: toReadOnly, offset, count: PINS_PER_PAGE})) {
+    for (const pin of pins.filterWithOptions(filter, options, {toRead: toReadOnly, offset, count: PINS_PER_PAGE})) {
         if (pin instanceof Pin) {
             addListItem(pin, pin.url);
         } else {

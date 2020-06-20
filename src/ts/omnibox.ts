@@ -9,31 +9,8 @@ function handleInputChanged(text: string, addSuggestions: (arg: browser.omnibox.
         text = text.toLowerCase();
         let toReadPrefix = text.search(toReadRegex);
     */
-    text = text.toLowerCase();
-    let searchArea = [];
-    let hasPrefix = false;
-    let toRead = false;
-    if (text.startsWith(options.tagPrefix + " ")) {
-        searchArea.push("tags");
-        hasPrefix = true;
-    } else if (text.startsWith(options.urlPrefix + " ")) {
-        searchArea.push("url");
-        hasPrefix = true;
-    } else if (text.startsWith(options.titlePrefix + " ")) {
-        searchArea.push("description");
-        hasPrefix = true;
-    } else {
-        searchArea = ["tags", "url", "description", "extended"];
-    }
-    if (text.startsWith(options.toReadPrefix + " ")) {
-        hasPrefix = true;
-        toRead = true;
-    }
-    if (hasPrefix) {
-        text = text.slice(text.indexOf(" ") + 1);
-    }
     const selectedPins: Pin[] = [];
-    for (const pin of pins.filter(text, {toRead: toRead, count: 6}, searchArea)) {
+    for (const pin of pins.filterWithOptions(text, options, {count: 6})) {
         if (pin instanceof Pin) {
             selectedPins.push(pin);
         }

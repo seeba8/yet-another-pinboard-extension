@@ -84,7 +84,7 @@ namespace Sidebar {
             }
         }
         TEMPLATELI.classList.remove("hidden");
-        for (const pin of pins.filter(filter)) {
+        for (const pin of pins.filterWithOptions(filter || "", options)) {
             if (typeof pin === "number") {
                 continue;
             }
