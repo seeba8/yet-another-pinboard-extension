@@ -56,6 +56,9 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 * To [marcinsmialek](https://github.com/marcinsmialek) for fixing a bug with the search in the omnibar and adding a keyboard shortcut to open the popup (#48)
 
 ### Changelog (incomplete)
+#### v1.4.1
+- Fixed pagination in popup
+
 #### v1.4.0
 - Added prettier dark mode and option to use browser/system setting for the dark mode, see [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme).
 - (#51) Adds keybind Alt+Shift+P to open the create bookmark dialog within the popup ([Firefox only](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/browserAction/openPopup))

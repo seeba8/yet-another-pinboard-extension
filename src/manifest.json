@@ -4,7 +4,7 @@
   "description" : "Browser extension for pinboard (including omnibar search, sidebar and actionbar button popup)",
   "homepage_url": "https://github.com/seeba8/yet-another-pinboard-extension",
   "author": "seeba8",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "background": {
     "scripts": [
       "vendor/webextension-polyfill/browser-polyfill.min.js",

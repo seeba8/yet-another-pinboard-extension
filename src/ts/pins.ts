@@ -181,7 +181,7 @@ class Pins extends Map<string, Pin> {
         if (hasPrefix) {
             text = text.slice(text.indexOf(" ") + 1);
         }
-        for (const pin of this.filter(text, {toRead: toRead || additional.toRead, count: additional.count}, searchArea)) {
+        for (const pin of this.filter(text, {toRead: toRead || additional.toRead, count: additional.count, offset: additional.offset}, searchArea)) {
             yield pin;
         }
     }
