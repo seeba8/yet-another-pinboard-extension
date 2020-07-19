@@ -7,6 +7,8 @@
 declare let chrome: any;
 let pins: Pins;
 let options: Options;
+let waitForOpenedPopup = false;
+
 // (browser as any).contextMenus is necessary since Firefox renamed their api to browser.menus...
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
 browser.runtime.onStartup.addListener(handleStartup);
@@ -28,6 +30,7 @@ async function onWakeUp() {
     browser.storage.onChanged.addListener(handleStorageChanged);
     browser.tabs.onUpdated.addListener(handleTabUpdated);
     browser.bookmarks.onCreated.addListener(handleBookmarkCreated);
+    browser.commands.onCommand.addListener(handleCommand);
     (browser as any).contextMenus.onClicked.addListener(handleContextMenuClick);
     pins = await Pins.updateList();
 }
@@ -49,6 +52,16 @@ async function handleStartup() {
     });
     browser.browserAction.setBadgeBackgroundColor({ color: "#333" });
 
+}
+
+async function handleCommand(command: string) {
+    if(command === "create_bookmark") {
+        await browser.browserAction.openPopup();
+        waitForOpenedPopup = true;
+    } else if (command === "execute_sidebar_action") {
+        // toggle gives an error with the current type definition, but it works.
+        (browser.sidebarAction as any).toggle();
+    }
 }
 
 async function onCheckUpdate(alarm: browser.alarms.Alarm) {
@@ -159,5 +172,8 @@ async function handleMessage(request: any, sender: browser.runtime.MessageSender
         SharedFunctions.showErrorBadge(request.error);
     } else if (request.callFunction === "hideErrorBadge") {
         SharedFunctions.hideErrorBadge();
+    } else if (request.callFunction === "popupOpened" && waitForOpenedPopup) {
+        browser.runtime.sendMessage({"callFunction": "createBookmark"});
+        waitForOpenedPopup = false;
     }
 }

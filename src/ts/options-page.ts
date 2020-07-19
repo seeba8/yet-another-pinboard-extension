@@ -71,7 +71,7 @@ async function onLoad() {
     if (options.styleType === StyleType.dark) {
         (document.getElementById("dark") as HTMLInputElement).checked = true;
     } else if (options.styleType === StyleType.light) {
-        (document.getElementById("light") as HTMLInputElement).checked = true;    
+        (document.getElementById("light") as HTMLInputElement).checked = true;
     } else if (options.styleType === StyleType.browser) {
         (document.getElementById("browser") as HTMLInputElement).checked = true;
     } else {
@@ -83,7 +83,7 @@ async function onLoad() {
         (document.getElementById(k) as HTMLInputElement).value = v;
     }
 
-    const tabs = await browser.tabs.query({});//.then((tabs: browser.tabs.Tab[]) => {
+    const tabs = await browser.tabs.query({});// .then((tabs: browser.tabs.Tab[]) => {
     for (const tab of tabs) {
         const li = document.createElement("li") as HTMLLIElement;
         li.textContent = tab.title;

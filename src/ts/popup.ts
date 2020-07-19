@@ -67,6 +67,8 @@ Array.from(prevNext.div.children).forEach((element) => {
     element.addEventListener("click", handlePrevNextClick);
 });
 document.body.addEventListener("keydown", onKeyDown);
+browser.runtime.onMessage.addListener(onMessage);
+
 
 handleStartup();
 
@@ -74,11 +76,18 @@ async function handleStartup() {
     await Promise.all([loadOptions(), reloadPins()/*, getDPI()*/]);
     filterTextbox.focus();
     collectTags();
+    browser.runtime.sendMessage({"callFunction": "popupOpened"});
+}
+
+function onMessage(data: any) {
+    if(data.callFunction === "createBookmark") {
+        handleBookmarkCurrent(undefined);
+    }
 }
 
 function collectTags() {
     const tagsMap = new Map<string, number>();
-    //console.time("collectTags");
+    // console.time("collectTags");
     for(const pin of pins.forEachReversed()) {
         if(pin.tags !== "") {
             for(const tag of pin.tags.split(" ")) {
@@ -91,8 +100,8 @@ function collectTags() {
             }
         }
     }
-    //console.timeEnd("collectTags");
-    //console.time("sortTags");
+    // console.timeEnd("collectTags");
+    // console.time("sortTags");
     // sort map accpording to https://stackoverflow.com/a/48324540
     tagsMap[Symbol.iterator] = function* () {
         yield* [...this.entries()].sort((a, b) => b[1] - a[1]);
@@ -100,7 +109,7 @@ function collectTags() {
     for(const [key, val] of tagsMap) {
         tags.push(key);
     }
-    //console.timeEnd("sortTags");
+    // console.timeEnd("sortTags");
 }
 
 async function loadOptions() {
@@ -153,7 +162,9 @@ async function handleReadLaterCurrent(e: MouseEvent) {
 }
 
 async function handleBookmarkCurrent(e: MouseEvent) {
-    e.preventDefault();
+    if(e !== undefined) {
+        e.preventDefault();
+    }
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
     const tab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
@@ -161,6 +172,7 @@ async function handleBookmarkCurrent(e: MouseEvent) {
     editBox.URL.value = tab.url;
     editBox.toReadCheckbox.checked = false;
     editBox.tags.value = "";
+    editBox.description.focus();
 }
 
 function preparePrevNext(numberPins: number) {
@@ -469,9 +481,9 @@ function getCurrentToken() {
 }
 
 function onTagTextKeyDown(e: KeyboardEvent) {
-    
+
     const selectedSuggestion = document.getElementsByClassName("selected").item(0);
-    if(selectedSuggestion === null) return;
+    if(selectedSuggestion === null) { return; }
     switch(e.code) {
         case "ArrowDown":
             e.stopPropagation();
@@ -501,20 +513,20 @@ function onTagTextKeyDown(e: KeyboardEvent) {
 function onTagTextInput(e: InputEvent) {
     clearSuggestionList();
     const currentToken = getCurrentToken();
-    if (currentToken === "") return;
+    if (currentToken === "") { return; }
     fillSuggestionList(currentToken);
 
 }
 
 function onSuggestionMouseover(e: MouseEvent) {
-    if((e.target as HTMLElement).id === "suggestions") return;
+    if((e.target as HTMLElement).id === "suggestions") { return; }
     const selectedSuggestion = document.getElementsByClassName("selected").item(0);
     selectedSuggestion.classList.toggle("selected");
     (e.target as HTMLElement).classList.toggle("selected");
 }
 
 function onSuggestionClick(e: MouseEvent) {
-    if((e.target as HTMLElement).id === "suggestions") return;
+    if((e.target as HTMLElement).id === "suggestions") { return; }
     acceptSuggestion((e.target as HTMLElement).textContent);
 }
 }

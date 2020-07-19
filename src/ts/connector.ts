@@ -2,9 +2,9 @@
 "use strict";
 namespace Connector {
     type QueueElement = {
-        params: any, 
+        params: any,
         reject: (message: any) => void,
-        resolve: (message: any) => void, 
+        resolve: (message: any) => void,
         type: string,
     }
 
@@ -14,7 +14,7 @@ namespace Connector {
         getAllPins: "https://api.pinboard.in/v1/posts/all",
         // getAuthToken: "https://api.pinboard.in/v1/user/auth_token",
         getLastUpdate: "https://api.pinboard.in/v1/posts/update",
-        //suggestTags: "https://api.pinboard.in/v1/posts/suggest",
+        // suggestTags: "https://api.pinboard.in/v1/posts/suggest",
     });
 
     const MIN_INTERVAL = 3 * 1000;

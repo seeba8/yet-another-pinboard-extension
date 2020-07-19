@@ -56,9 +56,17 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 * To [marcinsmialek](https://github.com/marcinsmialek) for fixing a bug with the search in the omnibar and adding a keyboard shortcut to open the popup (#48)
 
 ### Changelog (incomplete)
+#### v1.4.0
+- Added prettier dark mode and option to use browser/system setting for the dark mode, see [MDN](https://developer.mozilla.org/en-US/docs/Web/CSS/@media/prefers-color-scheme).
+- (#51) Adds keybind Alt+Shift+P to open the create bookmark dialog within the popup ([Firefox only](https://developer.mozilla.org/en-US/docs/Mozilla/Add-ons/WebExtensions/API/browserAction/openPopup))
+- (#51) Adds keybind Alt+Shift+Left to open the sidebar (Firefox only)
+- (#50) Fixes search prefixing and makes search the same across popup, sidebar and browser address bar
+- (#49) Improves tag suggestions when adding a new bookmark 
+
 #### v1.3.7
 * Merged pull request #48, thanks @marcinsmialek! This adds the keyboard shortcut Alt-P (by default) to open the pinboard popup. Also, it fixes the behaviour when searching for bookmarks in the omnibar when no results are found.
 * On development side: updated dependencies. Did not replace tslint by eslint yet because it seems to be quite the task...
+
 #### v1.3.1 - 1.3.6:
 * Fixed some bugs
 * Started adding keyboard controls to the popup

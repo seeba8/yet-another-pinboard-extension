@@ -140,7 +140,7 @@ class Pins extends Map<string, Pin> {
 
         let c = -1;
         for (const pin of this.forEachReversed()) {
-            if (options.toRead && pin.toread !== "yes") continue;
+            if (options.toRead && pin.toread !== "yes") { continue; }
             if (text === "" || searchFields.some(field => { return pin[field].toLowerCase().includes(text) })) {
                 c++;
                 if (options.offset > c) {
@@ -157,7 +157,7 @@ class Pins extends Map<string, Pin> {
     }
 
     public *filterWithOptions(text: string, options: Options, additional:{count?: number, toRead?: boolean, offset?: number} = {}) {
-        if(text === undefined) text = "";
+        if(text === undefined) { text = ""; }
         text = text.toLowerCase();
         let searchArea = [];
         let hasPrefix = false;
