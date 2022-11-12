@@ -1,4 +1,7 @@
-namespace optionsPage {
+import type { Browser } from "webextension-polyfill";
+declare let browser: Browser;
+import { Options, StyleType } from "./options.js";
+
 let options: Options;
 // TODO browser.storage.sync
 
@@ -38,10 +41,10 @@ titleRegex.addEventListener("blur", (e) => {
 document.querySelectorAll(".prefixes").forEach((element) => {
     element.addEventListener("change", handleOptionChange);
 });
-toggleAdvanced.addEventListener("click", (e) => {
+toggleAdvanced.addEventListener("click", () => {
     advancedOptions.classList.toggle("hidden");
     toggleAdvanced.textContent = (toggleAdvanced.textContent.startsWith("Show") ? "Hide" : "Show")
-            + " advanced options";
+        + " advanced options";
 });
 document.getElementsByName("styleselect").forEach((element) => {
     element.addEventListener("change", handleStyleSelectChange);
@@ -53,10 +56,10 @@ document.querySelectorAll(".customstyle").forEach((element) => {
 onLoad();
 
 async function onLoad() {
-    const token = await browser.storage.local.get(["lastsync", "apikey"]) as {lastsync: number, apikey: string};
+    const token = await browser.storage.local.get(["lastsync", "apikey"]) as { lastsync: number, apikey: string };
     forceReloadButton.title = "Last bookmark sync: " + new Date(token.lastsync);
     options = await Options.getObject();
-    if (!! token.apikey && token.apikey !== "") {
+    if (!!token.apikey && token.apikey !== "") {
         toggleAPIKeyInputs();
     }
     if (options.changeActionbarIcon) {
@@ -92,7 +95,7 @@ async function onLoad() {
 }
 
 function forcePinReload() {
-    browser.runtime.sendMessage({callFunction: "forceUpdatePins"});
+    browser.runtime.sendMessage({ callFunction: "forceUpdatePins" });
 }
 
 function toggleAPIKeyInputs() {
@@ -103,7 +106,7 @@ function toggleAPIKeyInputs() {
 }
 
 function clearAPIKey() {
-    browser.storage.local.set({apikey : "", pins: [], lastupdate: ""});
+    browser.storage.local.set({ apikey: "", pins: [], lastupdate: "" });
     toggleAPIKeyInputs();
 }
 
@@ -113,7 +116,7 @@ async function saveAPIKey() {
     const apikey = apiKeyInput.value;
     const init = { method: "GET", headers };
     const request = new Request("https://api.pinboard.in/v1/user/api_token/?auth_token=" +
-    apikey + "&format=json", init);
+        apikey + "&format=json", init);
     const response = await fetch(request);
     if (!response || response.status !== 200) {
         apiKeyInput.value = "";
@@ -123,7 +126,7 @@ async function saveAPIKey() {
     }
     const json = await response.json();
     if (json.result === apikey.split(":")[1]) {
-        browser.storage.local.set({apikey: apiKeyInput.value});
+        browser.storage.local.set({ apikey: apiKeyInput.value });
         apiKeyInput.value = "";
         toggleAPIKeyInputs();
         errorSymbol.classList.add("hidden");
@@ -146,10 +149,10 @@ function onTitleRegexChange(e: Event) {
     try {
         regex = new RegExp((e.target as HTMLInputElement).value);
     } catch (error) {
-
-        for (const child of Array.from(regexPreview.children) as HTMLLIElement[]) {
-            child.textContent = child.textContent;
-        }
+        // TODO: What is this below? I commented it out now...
+        // for (const child of Array.from(regexPreview.children) as HTMLLIElement[]) {
+        //     child.textContent = child.textContent;
+        // }
         titleRegex.title = String(error);
         titleRegex.classList.add("wronginput");
         return;
@@ -159,7 +162,8 @@ function onTitleRegexChange(e: Event) {
     for (const child of Array.from(regexPreview.children) as HTMLLIElement[]) {
         const res = regex.exec(child.textContent);
         if (res === null) {
-            child.textContent = child.textContent;
+            // TODO why was this there?
+            //child.textContent = child.textContent;
             continue;
         }
         // If we have more than one match (thus, a capture group), look at the first capture group
@@ -200,9 +204,9 @@ function onCustomStyleChange(e: Event) {
 
 function updateColorSelectors() {
     for (const o in options.style) {
-        if (options.style.hasOwnProperty(o) && o !== "type") {
+        if (Object.prototype.hasOwnProperty.call(options.style, o) && o !== "type") {
             (document.getElementById(o) as HTMLInputElement).value = options.style[o];
         }
     }
 }
-}
+

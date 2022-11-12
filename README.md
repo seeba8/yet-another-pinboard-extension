@@ -27,11 +27,6 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 
 ### To build
 * Install npm/node and run npm install
-* Alternatively, manually install these packages:
-  * webextension-polyfill (necessary to be included)
-  * web-ext-types (typescript declarations for web extensions)
-  * tslint (optionally, to use standardised formatting)
-  * typescript (to cross-compile .ts to .js)
 * run the scripts outlined in package.json or:
   * create folder structure below
   * copy html and css in their folders

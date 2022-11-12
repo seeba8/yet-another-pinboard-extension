@@ -1,11 +1,14 @@
-enum StyleType {
+import type {Browser} from "webextension-polyfill";
+declare let browser: Browser;
+
+export enum StyleType {
     "browser",
     "dark",
     "light",
     "custom",
 }
 
-declare interface IStyle {
+export declare interface IStyle {
     textColor: string,
     backgroundColor: string,
     disabledColor: string,
@@ -14,7 +17,7 @@ declare interface IStyle {
     type: StyleType
 }
 
-class Options {
+export class Options {
     public static async getObject() {
         const o = await browser.storage.local.get("options") as any;
         if (o.options === undefined) {
@@ -68,15 +71,15 @@ class Options {
 
     /* tslint:enable */
 
-    private constructor(urlPrefix: string = "u",
-                        tagPrefix: string = "t",
-                        titlePrefix: string = "n",
-                        toReadPrefix: string = "r",
-                        showBookmarked: boolean = true,
-                        changeActionbarIcon: boolean = true,
-                        saveBrowserBookmarks: boolean = false,
-                        sharedByDefault: boolean = false,
-                        titleRegex: string = ".*",
+    private constructor(urlPrefix = "u",
+                        tagPrefix = "t",
+                        titlePrefix = "n",
+                        toReadPrefix = "r",
+                        showBookmarked = true,
+                        changeActionbarIcon = true,
+                        saveBrowserBookmarks = false,
+                        sharedByDefault = false,
+                        titleRegex = ".*",
                         style?: IStyle,
                         styleType: StyleType = StyleType.browser) {
     this._urlPrefix = urlPrefix;
@@ -172,7 +175,8 @@ class Options {
             titleRegex = ".*";
         }
         try {
-            const r = new RegExp(titleRegex);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _ = new RegExp(titleRegex);
             this._titleRegex = titleRegex;
             this.save();
         } catch (e) {
@@ -189,7 +193,7 @@ class Options {
     get style() {
         // Fix for a bug in a previous version
         // Otherwise redundant
-        if (!this._style.hasOwnProperty("textColor")) {
+        if (!Object.prototype.hasOwnProperty.call(this._style, "textColor")) {
             this._style = JSON.parse(JSON.stringify(Options.lightStyle));
         }
         return this._style;

@@ -1,10 +1,12 @@
-///<reference path="pin.ts" />
-///<reference path="pins.ts" />
+import type {Browser, Omnibox} from "webextension-polyfill";
+declare let browser: Browser;
+import { options, pins } from "./background.js";
+import { Pin } from "./pin.js";
 browser.omnibox.onInputChanged.addListener(handleInputChanged);
 browser.omnibox.onInputEntered.addListener(handleInputEntered);
 
 // Update the suggestions whenever the input is changed.
-function handleInputChanged(text: string, addSuggestions: (arg: browser.omnibox.SuggestResult[]) => void): void{
+function handleInputChanged(text: string, addSuggestions: (arg: Omnibox.SuggestResult[]) => void): void{
     /*    const toReadRegex = new Regex("(^\w\s)?"+options.toReadPrefix+"\w?\s.*","gm");
         text = text.toLowerCase();
         let toReadPrefix = text.search(toReadRegex);
@@ -19,11 +21,11 @@ function handleInputChanged(text: string, addSuggestions: (arg: browser.omnibox.
 }
 
 // Open the page based on how the user clicks on a suggestion.
-function handleInputEntered(text: string, disposition: browser.omnibox.OnInputEnteredDisposition): void{
+function handleInputEntered(text: string, disposition: Omnibox.OnInputEnteredDisposition): void{
     let url = text;
     const regex = /^(http:\/\/|https:\/\/|ftp:|mailto:|file:|javascript:|feed:).+$/iu;
     if (regex.exec(text) === null) {
-        url = "https:\/\/pinboard.in/search/?query=" + encodeURIComponent(url) + "&mine=Search+Mine";
+        url = "https://pinboard.in/search/?query=" + encodeURIComponent(url) + "&mine=Search+Mine";
     }
     switch (disposition) {
         case "currentTab":
@@ -39,7 +41,7 @@ function handleInputEntered(text: string, disposition: browser.omnibox.OnInputEn
 }
 
 // Create the array with the searchbar suggestions
-function createSuggestions(pins: Pin[], searchtext: string): Promise<browser.omnibox.SuggestResult[]> {
+function createSuggestions(pins: Pin[], searchtext: string): Promise<Omnibox.SuggestResult[]> {
     return new Promise((resolve) => {
         const suggestions = []
         const suggestionsOnEmptyResults = [{

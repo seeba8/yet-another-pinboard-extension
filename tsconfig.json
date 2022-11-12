@@ -1,12 +1,12 @@
 {
     "compilerOptions": {
-        "target": "es2017",
-        "module": "es2015",
-        "sourceMap": true,
-        "watch": true,
-        "sourceRoot": "src/ts",
+        "target": "ES2021",
+        "module": "ES2020",
+        "sourceMap": false,
+        //"sourceRoot": "src/ts",
         "outDir": "dist/js",
+        "watch": true,
         // You have to explicitly set @types to get DefinitelyTyped type definitions
-        "typeRoots": ["@types", "node_modules/web-ext-types"]
+        "typeRoots": ["@types", "@types/webextension-polyfill"],
     }
 }
