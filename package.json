@@ -20,7 +20,7 @@
     "tsc": "tsc",
     "copyandbuild": "npm run copytodist && npm run tsc",
     "build": "npm run tsc",
-    "web-ext": "web-ext run --source-dir=dist/ --firefox=nightly"
+    "web-ext": "web-ext run --source-dir=dist/ --firefox=nightly --devtools"
   },
   "repository": {
     "type": "git",

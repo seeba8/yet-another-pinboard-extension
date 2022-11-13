@@ -5,6 +5,8 @@ import { Pins } from "./pins.js";
 import { Pin } from "./pin.js";
 import { IStyle, Options } from "./options.js";
 
+const port = browser.runtime.connect({"name": "backend"});
+
 // Elements
 const bookmarkList = document.getElementById("bookmarks") as HTMLUListElement;
 const filterTextbox = document.getElementById("filter") as HTMLInputElement;
@@ -82,7 +84,7 @@ async function handleStartup() {
     await Promise.all([loadOptions(), reloadPins()/*, getDPI()*/]);
     filterTextbox.focus();
     collectTags();
-    browser.runtime.sendMessage({ "callFunction": "popupOpened" });
+    port.postMessage({ "callFunction": "popupOpened" });
 }
 
 function onMessage(data: any) {
@@ -148,8 +150,8 @@ async function reloadPins() {
 
 function handleDeletePin(e: MouseEvent) {
     e.preventDefault();
-    browser.runtime.sendMessage({
-        callFunction: "deleteBookmark",
+    port.postMessage({
+        callFunction: "deletePin",
         pin: pins.get(editBox.URL.value),
     });
     pins.delete(editBox.URL.value);
@@ -239,8 +241,8 @@ function handleSubmit(e: Event) {
 
 function addPin(pin: Pin) {
     pins.addPin(pin);
-    browser.runtime.sendMessage({
-        callFunction: "saveBookmark",
+    port.postMessage({
+        callFunction: "savePin",
         pin,
     });
     displayPins();
@@ -303,8 +305,8 @@ function handleBookmarkRead(e: MouseEvent) {
     e.preventDefault();
     const pin = pins.get((e.target as HTMLElement).dataset.entryId);
     pin.toread = "no";
-    browser.runtime.sendMessage({
-        callFunction: "saveBookmark",
+    port.postMessage({
+        callFunction: "savePin",
         pin,
     });
     (e.target as HTMLElement).classList.toggle("invisible");

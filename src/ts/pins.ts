@@ -1,38 +1,11 @@
 import type { Browser } from "webextension-polyfill";
 declare let browser: Browser;
 
-import { getLastUpdate, getAllPins } from "./connector.js";
 import { Options } from "./options.js";
 import { Pin, PinData } from "./pin.js";
 
+const port = browser.runtime.connect({"name": "backend"});
 export class Pins extends Map<string, Pin> {
-    public static async updateList(forceUpdate = false): Promise<Pins> {
-        if (typeof getLastUpdate === "undefined") {
-            throw new Error("Wrong scope. Connector does not exist. Only call this from the background script");
-        }
-
-        const token = await browser.storage.local.get(["apikey", "pins"]) as { apikey: string, pins: PinData[] };
-        if (token?.apikey === "") {
-            return new Pins();
-        }
-        const lastSync = await this.getStoredLastSync();
-        // Plus 5 at the end for buffer, in order for the alarm to trigger this usually.
-        if (!forceUpdate && lastSync.getTime() > new Date(Date.now() - 1000 * 60 * 5 + 5).getTime()) {
-            // Not forced and last sync less than 5 minutes ago, therefore we just get the stored object
-            return Pins.getObject();
-        }
-        const lastUpdate = await getLastUpdate();
-        const storedLastUpdate = await this.getStoredLastUpdate();
-        // To compare Dates: https://stackoverflow.com/a/493018
-        if (!forceUpdate && token?.pins?.length > 0 && storedLastUpdate.getTime() === lastUpdate.getTime()) {
-            // Pinboard's last update is the same as the one stored, and the pins Array is non-empty
-            // therefore we just get the stored object
-            return Pins.getObject();
-
-        }
-        return Pins.sendRequestAllPins(lastUpdate);
-    }
-
     public static async getObject(): Promise<Pins> {
         const res = await browser.storage.local.get("pins") as { pins: any[] };
         if (res.pins === undefined) {
@@ -46,48 +19,7 @@ export class Pins extends Map<string, Pin> {
         }
     }
 
-    /**
-     * Requests all pins from pinboard
-     * @param lastUpdate Timestamp of the last update requested before,
-     * so the storage can be updated if it was successful
-     */
-    private static async sendRequestAllPins(lastUpdate): Promise<Pins> {
-        const pins = new Pins();
-        const json = await getAllPins();
-        json.reverse().forEach((pin) => {
-            pins.set(pin.href, new Pin(
-                // pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url
-                pin.href,
-                pin.description,
-                pin.tags,
-                pin.time,
-                pin.extended,
-                pin.toread,
-                pin.shared));
-        });
-        pins.saveToStorage();
-        browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
-        browser.storage.local.set({ lastsync: new Date().getTime() });
-        return pins;
-    }
-
-    private static async getStoredLastUpdate(): Promise<Date> {
-        const token = await browser.storage.local.get("lastupdate") as { lastupdate: any };
-        if (Object.prototype.hasOwnProperty.call(token, "lastupdate")) {
-            return new Date(token.lastupdate);
-        }
-        return new Date(0);
-    }
-
-    private static async getStoredLastSync(): Promise<Date> {
-        const token = await browser.storage.local.get("lastsync") as { lastsync: any };
-        if (Object.prototype.hasOwnProperty.call(token, "lastsync")) {
-            return new Date(token.lastsync);
-        }
-        return new Date(0);
-    }
-
-    private constructor(i?: any) {
+    public constructor(i?: any) {
         super(i);
     }
 

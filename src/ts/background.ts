@@ -1,10 +1,11 @@
 import type { Browser, Alarms, Menus, Bookmarks, Tabs, Storage, Runtime } from "webextension-polyfill";
+import { addPin, deletePin, getAllPins, getLastUpdate } from "./connector.js";
 declare let browser: Browser;
 
 import { Options } from "./options.js";
 import { Pin, PinData } from "./pin.js";
 import { Pins } from "./pins.js";
-import { executeTitleRegex, hideErrorBadge, showErrorBadge } from "./shared-functions.js";
+import { executeTitleRegex } from "./shared-functions.js";
 
 export let pins: Pins;
 export let options: Options;
@@ -16,6 +17,13 @@ declare type MessageRequest = {
 };
 
 let waitForOpenedPopup = false;
+let backendPort: Runtime.Port;
+browser.runtime.onConnect.addListener((port) => {
+    if (port.name === "backend") {
+        backendPort = port;
+        backendPort.onMessage.addListener(handlePortMessage);
+    }
+})
 
 browser.runtime.onInstalled.addListener(handleAddonInstalled);
 browser.runtime.onStartup.addListener(handleStartup);
@@ -30,17 +38,12 @@ onWakeUp(); // Differs from handleStartup as this also needs to run when the eve
 
 async function onWakeUp() {
     options = await Options.getObject();
-    // browser.runtime... has a bug where sendResponse does not work currently as of July 2017
-    // That is possibly caused by browser-polyfill
-    // October 2017: It works with browser.runtime, if a promise is returned
-    // from the listener instaed of using sendResponse
-    browser.runtime.onMessage.addListener(handleMessage);
     browser.storage.onChanged.addListener(handleStorageChanged);
     browser.tabs.onUpdated.addListener(handleTabUpdated);
     browser.bookmarks.onCreated.addListener(handleBookmarkCreated);
     browser.commands.onCommand.addListener(handleCommand);
     browser.contextMenus.onClicked.addListener(handleContextMenuClick);
-    pins = await Pins.updateList();
+    pins = await updateList();
 }
 
 async function handleStartup() {
@@ -74,7 +77,7 @@ async function handleCommand(command: string) {
 
 async function onCheckUpdate(alarm: Alarms.Alarm) {
     if (alarm.name === "checkUpdate") {
-        pins = await Pins.updateList();
+        pins = await updateList();
     }
 }
 
@@ -85,7 +88,7 @@ function handleBookmarkCreated(id: string, bookmark: Bookmarks.BookmarkTreeNode)
     if (!!bookmark.url && bookmark.url !== "") {
         const pin = new Pin(bookmark.url, bookmark.title, undefined, new Date().toISOString());
         pins.addPin(pin);
-        pin.save();
+        addPin(pin);
     }
 }
 
@@ -100,7 +103,7 @@ async function handleContextMenuClick(info: Menus.OnClickData, tab: Tabs.Tab) {
             pin = new Pin(info.linkUrl, String(result[0]), undefined, undefined,
                 "Found on " + info.pageUrl, "yes", "no");
             pins.addPin(pin);
-            pin.save();
+            addPin(pin);
             checkDisplayBookmarked();
             break;
         }
@@ -108,7 +111,7 @@ async function handleContextMenuClick(info: Menus.OnClickData, tab: Tabs.Tab) {
             const title = executeTitleRegex(tab.title, options.titleRegex);
             pin = new Pin(tab.url, title, undefined, undefined, undefined, "yes", "no");
             pins.addPin(pin);
-            pin.save();
+            addPin(pin);
             checkDisplayBookmarked();
             break;
         }
@@ -121,7 +124,7 @@ async function handleAddonInstalled() {
 
 async function handleStorageChanged(changes: Record<string, Storage.StorageChange>) {
     if (Object.keys(changes).includes("apikey")) {
-        pins = await Pins.updateList(true);
+        pins = await updateList(true);
     } else if (Object.keys(changes).includes("pins")) {
         pins = await Pins.getObject();
         checkDisplayBookmarked();
@@ -158,34 +161,99 @@ function handleTabUpdated(tabId: number, changeInfo: Tabs.OnUpdatedChangeInfoTyp
     }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-async function handleMessage(request: MessageRequest, _sender: Runtime.MessageSender): Promise<string> {
-    if (request.callFunction === "checkDisplayBookmarked") {
-        checkDisplayBookmarked();
-        return;
-    } else if (request.callFunction === "saveBookmark") {
-        const pin = Pin.fromObject(request.pin);
-        if (pins === undefined) {
-            pins = await Pins.updateList();
-        }
-        pins.addPin(pin);
-        checkDisplayBookmarked();
-        return pin.save();
-    } else if (request.callFunction === "forceUpdatePins") {
-        pins = await Pins.updateList(true);
-        return "OK";
-    } else if (request.callFunction === "deleteBookmark") {
-        const pin = Pin.fromObject(request.pin);
-        await pin.delete();
-        pins.delete(pin.url);
-        checkDisplayBookmarked();
-        return "OK";
-    } else if (request.callFunction === "showErrorBadge") {
-        showErrorBadge(request.error);
-    } else if (request.callFunction === "hideErrorBadge") {
-        hideErrorBadge();
-    } else if (request.callFunction === "popupOpened" && waitForOpenedPopup) {
-        browser.runtime.sendMessage({ "callFunction": "createBookmark" });
-        waitForOpenedPopup = false;
+async function handlePortMessage(message: MessageRequest, port: Runtime.Port) {
+    if (pins === undefined) {
+        pins = await updateList();
     }
+    switch (message.callFunction) {
+        case "deletePin": {
+            const pin = Pin.fromObject(message.pin);
+            pins.delete(pin.url);
+            const response = await deletePin(Pin.fromObject(message.pin));
+            port.postMessage(response);
+            checkDisplayBookmarked();
+            break;
+        }
+        case "savePin": {
+            const pin = Pin.fromObject(message.pin);
+            pins.addPin(pin);
+            const response = await addPin(pin);
+            port.postMessage(response);
+            break;
+        }
+        case "forceUpdatePins": {
+            pins = await updateList(true);
+            break;
+        }
+        case "popupOpened": {
+            if (waitForOpenedPopup) {
+                browser.runtime.sendMessage({ "callFunction": "createBookmark" });
+                waitForOpenedPopup = false;
+            }
+            break;
+        }
+    }
+}
+
+async function updateList(forceUpdate = false): Promise<Pins> {
+    const token = await browser.storage.local.get(["apikey", "pins"]) as { apikey: string, pins: PinData[] };
+    if (token?.apikey === "") {
+        return new Pins();
+    }
+    const lastSync = await getStoredLastSync();
+    // Plus 5 at the end for buffer, in order for the alarm to trigger this usually.
+    if (!forceUpdate && lastSync.getTime() > new Date(Date.now() - 1000 * 60 * 5 + 5).getTime()) {
+        // Not forced and last sync less than 5 minutes ago, therefore we just get the stored object
+        return Pins.getObject();
+    }
+    const lastUpdate = await getLastUpdate();
+    const storedLastUpdate = await getStoredLastUpdate();
+    // To compare Dates: https://stackoverflow.com/a/493018
+    if (!forceUpdate && token?.pins?.length > 0 && storedLastUpdate.getTime() === lastUpdate.getTime()) {
+        // Pinboard's last update is the same as the one stored, and the pins Array is non-empty
+        // therefore we just get the stored object
+        return Pins.getObject();
+
+    }
+    return sendRequestAllPins(lastUpdate);
+}
+
+/**
+     * Requests all pins from pinboard
+     * @param lastUpdate Timestamp of the last update requested before,
+     * so the storage can be updated if it was successful
+     */
+async function sendRequestAllPins(lastUpdate): Promise<Pins> {
+    const pins = new Pins();
+    const json = await getAllPins();
+    json.reverse().forEach((pin) => {
+        pins.set(pin.href, new Pin(
+            // pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url
+            pin.href,
+            pin.description,
+            pin.tags,
+            pin.time,
+            pin.extended,
+            pin.toread,
+            pin.shared));
+    });
+    pins.saveToStorage();
+    browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
+    browser.storage.local.set({ lastsync: new Date().getTime() });
+    return pins;
+}
+
+async function getStoredLastSync(): Promise<Date> {
+    const token = await browser.storage.local.get("lastsync") as { lastsync: any };
+    if (Object.prototype.hasOwnProperty.call(token, "lastsync")) {
+        return new Date(token.lastsync);
+    }
+    return new Date(0);
+}
+async function getStoredLastUpdate(): Promise<Date> {
+    const token = await browser.storage.local.get("lastupdate") as { lastupdate: any };
+    if (Object.prototype.hasOwnProperty.call(token, "lastupdate")) {
+        return new Date(token.lastupdate);
+    }
+    return new Date(0);
 }

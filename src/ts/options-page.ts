@@ -1,7 +1,7 @@
 import type { Browser } from "webextension-polyfill";
 declare let browser: Browser;
 import { Options, StyleType } from "./options.js";
-
+const port = browser.runtime.connect({"name": "backend"});
 let options: Options;
 // TODO browser.storage.sync
 
@@ -95,7 +95,7 @@ async function onLoad() {
 }
 
 function forcePinReload() {
-    browser.runtime.sendMessage({ callFunction: "forceUpdatePins" });
+    port.postMessage({ callFunction: "forceUpdatePins" });
 }
 
 function toggleAPIKeyInputs() {

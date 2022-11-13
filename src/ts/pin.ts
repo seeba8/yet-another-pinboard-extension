@@ -1,8 +1,4 @@
-
-import { addPin, deletePin } from "./connector.js";
-
-declare type YesNo = "yes"|"no";
-
+declare type YesNo = "yes" | "no";
 export declare type PinData = {
     url: string, description: string, tags: string, time: string, extended: string, toread: YesNo, shared: YesNo
 }
@@ -21,7 +17,7 @@ export class Pin {
     public shared?: YesNo;
 
     constructor(url: string, description = "", tags = "", time = "",
-                extended = "", toread: YesNo = "no", shared: YesNo = "no") {
+        extended = "", toread: YesNo = "no", shared: YesNo = "no") {
         this.url = url;
         this.description = description;
         this.tags = tags;
@@ -31,22 +27,8 @@ export class Pin {
         this.shared = shared;
     }
 
-    public delete() {
-        if (typeof deletePin === "undefined") {
-            throw new Error("Wrong scope. Connector does not exist. Only call this from the background script");
-        }
-        return deletePin(this);
-    }
-
-    public save() {
-        if (typeof addPin === "undefined") {
-            throw new Error("Wrong scope. Connector does not exist. Only call this from the background script");
-        }
-        return addPin(this);
-    }
-
     public update(description = "", tags = "", time = "",
-                  extended = "", toread: YesNo = "no", shared: YesNo = "no") {
+        extended = "", toread: YesNo = "no", shared: YesNo = "no") {
         this.description = description;
         this.tags = tags;
         this.time = time;

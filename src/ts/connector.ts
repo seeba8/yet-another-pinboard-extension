@@ -1,6 +1,6 @@
 import type { Browser, Alarms } from "webextension-polyfill";
 declare let browser: Browser;
-import { Pin, PinData } from "./pin.js";
+import { Pin } from "./pin.js";
 import { hideErrorBadge, showErrorBadge } from "./shared-functions.js";
 type QueueElement = {
     params: any,
