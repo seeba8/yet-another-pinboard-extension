@@ -1,6 +1,7 @@
 import type { Browser } from "webextension-polyfill";
 declare let browser: Browser;
 import { Options, StyleType } from "./options.js";
+import { Pins } from "./pins.js";
 const port = browser.runtime.connect({"name": "backend"});
 let options: Options;
 // TODO browser.storage.sync
@@ -18,6 +19,8 @@ const titleRegex = document.getElementById("titleRegex") as HTMLInputElement;
 const regexPreview = document.getElementById("regexPreview") as HTMLUListElement;
 const toggleAdvanced = document.getElementById("toggleAdvanced") as HTMLButtonElement;
 const advancedOptions = document.getElementById("advancedOptions") as HTMLDivElement;
+const exportToHtml = document.getElementById("exportToHTML") as HTMLButtonElement;
+const exportToJson = document.getElementById("exportToJSON") as HTMLButtonElement;
 
 // Event listeners
 changeActionbarIcon.addEventListener("change", handleOptionChange);
@@ -26,6 +29,8 @@ sharedByDefault.addEventListener("change", handleOptionChange);
 saveAPIButton.addEventListener("click", saveAPIKey);
 clearAPIButton.addEventListener("click", clearAPIKey);
 forceReloadButton.addEventListener("click", forcePinReload);
+exportToHtml.addEventListener("click", onExportToHtml);
+exportToJson.addEventListener("click", onExportToJson);
 titleRegex.addEventListener("input", onTitleRegexChange);
 titleRegex.addEventListener("focus", (e) => {
     regexPreview.classList.remove("hidden");
@@ -210,3 +215,50 @@ function updateColorSelectors() {
     }
 }
 
+async function onExportToHtml() {
+    function escape(input: string): string {
+        return input.replace(/&/g, "&amp;")
+              .replace(/</g, "&lt;")
+              .replace(/>/g, "&gt;")
+              .replace(/"/g, "&quot;")
+              .replace(/'/g, "&#39;");        
+     }
+    const bookmarks = await Pins.getObject();
+    let out = `<!DOCTYPE NETSCAPE-Bookmark-file-1>
+    <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=UTF-8">
+    <TITLE>Pinboard Bookmarks</TITLE>
+    <H1>Bookmarks</H1>
+    <DL><p>`;
+    for(const bookmark of bookmarks.forEachReversed()) {
+        out += `<DT><A HREF="${escape(bookmark.url)}" ADD_DATE="${new Date(bookmark.time).getTime()}" PRIVATE="${bookmark.shared === "yes" ? "0" : "1"}" TOREAD="${bookmark.toread === "yes" ? "1" : "0"}" TAGS="${escape(bookmark.tags)}">` 
+            + `${escape(bookmark.description)}</A>\n`;
+        if(bookmark.extended !== undefined && bookmark.extended.length > 0) {
+            out += `<DD>${escape(bookmark.extended)}`;
+        }
+        out += '\n\n';
+    }
+    const j = document.createElement("a");
+    j.download = "pinboard_export_"+Date.now()+".html";
+    j.href = URL.createObjectURL(new Blob([out]));
+    j.click();
+}
+
+async function onExportToJson() {
+    const bookmarks = await Pins.getObject();
+    const out = [];
+    for(const bookmark of bookmarks.forEachReversed()) {
+        out.push({
+            "href": bookmark.url ?? "",
+            "description": bookmark.description ?? "",
+            "extended": bookmark.extended ?? "",
+            "time": bookmark.time ?? "",
+            "shared": bookmark.shared ?? "no",
+            "toread": bookmark.toread ?? "no",
+            "tags": bookmark.tags ?? "",
+        });
+    }
+    const j = document.createElement("a");
+    j.download = "pinboard_export_"+Date.now()+".json";
+    j.href = URL.createObjectURL(new Blob([JSON.stringify(out)]));
+    j.click();
+}

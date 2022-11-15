@@ -2,9 +2,8 @@ import type { Browser } from "webextension-polyfill";
 declare let browser: Browser;
 
 import { Options } from "./options.js";
-import { Pin, PinData } from "./pin.js";
+import { Pin } from "./pin.js";
 
-const port = browser.runtime.connect({"name": "backend"});
 export class Pins extends Map<string, Pin> {
     public static async getObject(): Promise<Pins> {
         const res = await browser.storage.local.get("pins") as { pins: any[] };
