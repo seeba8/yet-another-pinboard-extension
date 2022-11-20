@@ -1,36 +1,11 @@
-///<reference path="pin.ts" />
-"use strict";
+import type { Browser } from "webextension-polyfill";
+declare let browser: Browser;
 
-class Pins extends Map<string, Pin> {
-    public static async updateList(forceUpdate: boolean = false): Promise<Pins> {
-        if (typeof Connector === "undefined") {
-            throw new Error("Wrong scope. Connector does not exist. Only call this from the background script");
-        }
+import { Options, SearchMode } from "./options.js";
+import { Pin } from "./pin.js";
 
-        const token = await browser.storage.local.get(["apikey", "pins"]) as { apikey: string, pins: any[] };
-        if (!token.hasOwnProperty("apikey") || token.apikey === "") {
-            return new Pins();
-        }
-        const lastSync = await this.getStoredLastSync();
-        // Plus 5 at the end for buffer, in order for the alarm to trigger this usually.
-        if (!forceUpdate && lastSync.getTime() > new Date(Date.now() - 1000 * 60 * 5 + 5).getTime()) {
-            // Not forced and last sync less than 5 minutes ago, therefore we just get the stored object
-            return Pins.getObject();
-        }
-        const lastUpdate = await Connector.getLastUpdate();
-        const storedLastUpdate = await this.getStoredLastUpdate();
-        // To compare Dates: https://stackoverflow.com/a/493018
-        if (!forceUpdate && token.hasOwnProperty("pins") && token.pins.length > 0 &&
-            storedLastUpdate.getTime() === lastUpdate.getTime()) {
-            // Pinboard's last update is the same as the one stored, and the pins Array is non-empty
-            // therefore we just get the stored object
-            return Pins.getObject();
-
-        }
-        return Pins.sendRequestAllPins(lastUpdate);
-    }
-
-    public static async getObject() {
+export class Pins extends Map<string, Pin> {
+    public static async getObject(): Promise<Pins> {
         const res = await browser.storage.local.get("pins") as { pins: any[] };
         if (res.pins === undefined) {
             return new Pins();
@@ -43,48 +18,7 @@ class Pins extends Map<string, Pin> {
         }
     }
 
-    /**
-     * Requests all pins from pinboard
-     * @param lastUpdate Timestamp of the last update requested before,
-     * so the storage can be updated if it was successful
-     */
-    private static async sendRequestAllPins(lastUpdate) {
-        const pins = new Pins();
-        const json = await Connector.getAllPins();
-        json.reverse().forEach((pin) => {
-            pins.set(pin.href, new Pin(
-                // pinboard API gets pin with attribute href, and addPin wants url. so we standardise to url
-                pin.href,
-                pin.description,
-                pin.tags,
-                pin.time,
-                pin.extended,
-                pin.toread,
-                pin.shared));
-        });
-        pins.saveToStorage();
-        browser.storage.local.set({ lastupdate: lastUpdate.getTime() });
-        browser.storage.local.set({ lastsync: new Date().getTime() });
-        return pins;
-    }
-
-    private static async getStoredLastUpdate() {
-        const token = await browser.storage.local.get("lastupdate") as { lastupdate: any };
-        if (token.hasOwnProperty("lastupdate")) {
-            return new Date(token.lastupdate);
-        }
-        return new Date(0);
-    }
-
-    private static async getStoredLastSync() {
-        const token = await browser.storage.local.get("lastsync") as { lastsync: any };
-        if (token.hasOwnProperty("lastsync")) {
-            return new Date(token.lastsync);
-        }
-        return new Date(0);
-    }
-
-    private constructor(i?: any) {
+    public constructor(i?: any) {
         super(i);
     }
 
@@ -104,7 +38,7 @@ class Pins extends Map<string, Pin> {
     }
 
     public *forEachReversed() {
-        for (const [url, pin] of Array.from(this.entries()).reverse()) {
+        for (const [, pin] of Array.from(this.entries()).reverse()) {
             yield pin;
         }
     }
@@ -117,14 +51,14 @@ class Pins extends Map<string, Pin> {
      * @param text
      * @param options
      */
-    public *filter(text?: string, options?: { toRead?: boolean, shared?: boolean, offset?: number, count?: number }, searchFields?: ("tags" | "description" | "url" | "extended")[]) {
+    public *filter(text?: string, options?: { toRead?: boolean, shared?: boolean, offset?: number, count?: number, searchMode?: SearchMode }, searchFields?: ("tags" | "description" | "url" | "extended")[]) {
         if (options === undefined) {
             options = {};
         }
-        if (!options.hasOwnProperty("offset")) {
+        if (!Object.prototype.hasOwnProperty.call(options, "offset")) {
             options.offset = 0;
         }
-        if (!options.hasOwnProperty("count")) {
+        if (!Object.prototype.hasOwnProperty.call(options, "count")) {
             options.count = Number.MAX_VALUE;
         }
 
@@ -141,7 +75,11 @@ class Pins extends Map<string, Pin> {
         let c = -1;
         for (const pin of this.forEachReversed()) {
             if (options.toRead && pin.toread !== "yes") { continue; }
-            if (text === "" || searchFields.some(field => { return pin[field].toLowerCase().includes(text) })) {
+            if (text === "" 
+                || (options.searchMode === SearchMode.searchAny && searchFields.some(field => text.split(/\s+/).some(word => pin[field].toLowerCase().includes(word))))
+                || (options.searchMode === SearchMode.searchAll && searchFields.some(field => text.split(/\s+/).every(word => pin[field].toLowerCase().includes(word))))
+                || (options.searchMode === SearchMode.searchPhrase && searchFields.some(field => pin[field].toLowerCase().includes(text)))
+                || (options.searchMode === SearchMode.searchRegex && searchFields.some(field => new RegExp(text, "i").test(pin[field])))) {
                 c++;
                 if (options.offset > c) {
                     continue;
@@ -156,8 +94,8 @@ class Pins extends Map<string, Pin> {
 
     }
 
-    public *filterWithOptions(text: string, options: Options, additional:{count?: number, toRead?: boolean, offset?: number} = {}) {
-        if(text === undefined) { text = ""; }
+    public *filterWithOptions(text: string, options: Options, additional: { count?: number, toRead?: boolean, offset?: number } = {}) {
+        if (text === undefined) { text = ""; }
         text = text.toLowerCase();
         let searchArea = [];
         let hasPrefix = false;
@@ -181,7 +119,7 @@ class Pins extends Map<string, Pin> {
         if (hasPrefix) {
             text = text.slice(text.indexOf(" ") + 1);
         }
-        for (const pin of this.filter(text, {toRead: toRead || additional.toRead, count: additional.count, offset: additional.offset}, searchArea)) {
+        for (const pin of this.filter(text, { toRead: toRead || additional.toRead, count: additional.count, offset: additional.offset , searchMode: options.searchMode}, searchArea)) {
             yield pin;
         }
     }

@@ -8,7 +8,12 @@
 <head>
   <meta charset="utf-8">
   <link rel="stylesheet" type="text/css" href="../css/popup.css">
-  <script src="../vendor/webextension-polyfill/browser-polyfill.min.js"></script>
+  <script type="module" src="../vendor/webextension-polyfill/browser-polyfill.min.js"></script>
+  <script type="module" src="../js/shared-functions.js"></script>
+  <script type="module" src="../js/pin.js"></script>
+  <script type="module" src="../js/pins.js"></script>
+  <script type="module" src="../js/options.js"></script>
+  <script type="module" src="../js/popup.js"></script>
 </head>
 
 <body>
@@ -121,11 +126,7 @@
   <template id="suggestion-template">
     <li class="suggestion"></li>
   </template>
-  <script src="../js/shared-functions.js"></script>
-  <script src="../js/pin.js"></script>
-  <script src="../js/pins.js"></script>
-  <script src="../js/options.js"></script>
-  <script src="../js/popup.js"></script>
+
 
 </body>
 

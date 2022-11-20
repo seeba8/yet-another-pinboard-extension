@@ -1,4 +1,12 @@
-namespace PopupPage {
+import type { Browser } from "webextension-polyfill";
+declare let browser: Browser;
+import { executeTitleRegex } from "./shared-functions.js";
+import { Pins } from "./pins.js";
+import { Pin } from "./pin.js";
+import { IStyle, Options } from "./options.js";
+
+const port = browser.runtime.connect({"name": "backend"});
+
 // Elements
 const bookmarkList = document.getElementById("bookmarks") as HTMLUListElement;
 const filterTextbox = document.getElementById("filter") as HTMLInputElement;
@@ -52,13 +60,13 @@ readLaterCurrentButton.addEventListener("click", handleReadLaterCurrent);
 filterToReadButton.addEventListener("click", handleFilterToRead);
 editForm.addEventListener("submit", handleSubmit);
 document.getElementById("delete").addEventListener("click", handleDeletePin);
-greyoutDiv.addEventListener("click", (e) => {
+greyoutDiv.addEventListener("click", () => {
     greyoutDiv.classList.toggle("hidden");
     editWrapper.classList.toggle("hidden");
 });
-resetBtn.addEventListener("click", (e) => {
+resetBtn.addEventListener("click", () => {
     filterTextbox.value = "";
-    handleFilterChange(e);
+    handleFilterChange();
 });
 document.querySelectorAll(".optionslink").forEach((element) => {
     element.addEventListener("click", onOptionsLinkClick);
@@ -76,11 +84,11 @@ async function handleStartup() {
     await Promise.all([loadOptions(), reloadPins()/*, getDPI()*/]);
     filterTextbox.focus();
     collectTags();
-    browser.runtime.sendMessage({"callFunction": "popupOpened"});
+    port.postMessage({ "callFunction": "popupOpened" });
 }
 
 function onMessage(data: any) {
-    if(data.callFunction === "createBookmark") {
+    if (data.callFunction === "createBookmark") {
         handleBookmarkCurrent(undefined);
     }
 }
@@ -88,11 +96,11 @@ function onMessage(data: any) {
 function collectTags() {
     const tagsMap = new Map<string, number>();
     // console.time("collectTags");
-    for(const pin of pins.forEachReversed()) {
-        if(pin.tags !== "") {
-            for(const tag of pin.tags.split(" ")) {
+    for (const pin of pins.forEachReversed()) {
+        if (pin.tags !== "") {
+            for (const tag of pin.tags.split(" ")) {
                 const num = tagsMap.get(tag);
-                if(num === undefined) {
+                if (num === undefined) {
                     tagsMap.set(tag, 1);
                 } else {
                     tagsMap.set(tag, num + 1);
@@ -106,7 +114,7 @@ function collectTags() {
     tagsMap[Symbol.iterator] = function* () {
         yield* [...this.entries()].sort((a, b) => b[1] - a[1]);
     }
-    for(const [key, val] of tagsMap) {
+    for (const [key, ] of tagsMap) {
         tags.push(key);
     }
     // console.timeEnd("sortTags");
@@ -125,7 +133,7 @@ async function loadLastSync() {
     optionsButton.title = "Last bookmark sync: " + new Date(token.lastsync);
 }
 */
-function onOptionsLinkClick(e: MouseEvent) {
+function onOptionsLinkClick() {
     browser.runtime.openOptionsPage();
     window.close();
 }
@@ -142,8 +150,8 @@ async function reloadPins() {
 
 function handleDeletePin(e: MouseEvent) {
     e.preventDefault();
-    browser.runtime.sendMessage({
-        callFunction: "deleteBookmark",
+    port.postMessage({
+        callFunction: "deletePin",
         pin: pins.get(editBox.URL.value),
     });
     pins.delete(editBox.URL.value);
@@ -154,21 +162,21 @@ function handleDeletePin(e: MouseEvent) {
 
 async function handleReadLaterCurrent(e: MouseEvent) {
     e.preventDefault();
-    const tabs = await browser.tabs.query({currentWindow: true, active: true});
+    const tabs = await browser.tabs.query({ currentWindow: true, active: true });
     const tab = tabs[0];
-    const title = SharedFunctions.executeTitleRegex(tab.title, options.titleRegex);
+    const title = executeTitleRegex(tab.title, options.titleRegex);
     const pin = new Pin(tab.url, title, undefined, undefined, undefined, "yes", "no");
     addPin(pin);
 }
 
 async function handleBookmarkCurrent(e: MouseEvent) {
-    if(e !== undefined) {
+    if (e !== undefined) {
         e.preventDefault();
     }
     document.getElementById("editwrapper").classList.toggle("hidden");
     document.getElementById("greyout").classList.toggle("hidden");
     const tab = (await browser.tabs.query({ currentWindow: true, active: true }))[0];
-    editBox.description.value = SharedFunctions.executeTitleRegex(tab.title, options.titleRegex);
+    editBox.description.value = executeTitleRegex(tab.title, options.titleRegex);
     editBox.URL.value = tab.url;
     editBox.toReadCheckbox.checked = false;
     editBox.tags.value = "";
@@ -217,10 +225,8 @@ function handlePrevNextClick(e: Event) {
 function handleSubmit(e: Event) {
     e.preventDefault();
     let pin = pins.get(editBox.URL.dataset.entryId);
-    let newPin = false;
     if (pin === undefined) {
         pin = new Pin(editBox.URL.value);
-        newPin = true;
     }
     pin.description = editBox.description.value;
     pin.time = new Date().toISOString();
@@ -235,8 +241,8 @@ function handleSubmit(e: Event) {
 
 function addPin(pin: Pin) {
     pins.addPin(pin);
-    browser.runtime.sendMessage({
-        callFunction: "saveBookmark",
+    port.postMessage({
+        callFunction: "savePin",
         pin,
     });
     displayPins();
@@ -248,7 +254,7 @@ function displayPins() {
         bookmarkList.removeChild(bookmarkList.firstChild);
     }
     let c = 0;
-    for (const pin of pins.filterWithOptions(filter, options, {toRead: toReadOnly, offset, count: PINS_PER_PAGE})) {
+    for (const pin of pins.filterWithOptions(filter, options, { toRead: toReadOnly, offset, count: PINS_PER_PAGE })) {
         if (pin instanceof Pin) {
             addListItem(pin, pin.url);
         } else {
@@ -258,7 +264,7 @@ function displayPins() {
     preparePrevNext(c);
 }
 
-function handleFilterChange(e: Event) {
+function handleFilterChange() {
     offset = 0;
     displayPins();
 }
@@ -299,8 +305,8 @@ function handleBookmarkRead(e: MouseEvent) {
     e.preventDefault();
     const pin = pins.get((e.target as HTMLElement).dataset.entryId);
     pin.toread = "no";
-    browser.runtime.sendMessage({
-        callFunction: "saveBookmark",
+    port.postMessage({
+        callFunction: "savePin",
         pin,
     });
     (e.target as HTMLElement).classList.toggle("invisible");
@@ -462,7 +468,7 @@ function fillSuggestionList(currentToken: string) {
             numSuggestions++;
         }
     }
-    if(suggestionList.children.length > 0)  {
+    if (suggestionList.children.length > 0) {
         suggestionList.firstElementChild.classList.toggle("selected");
         suggestionList.classList.remove("hidden");
     }
@@ -483,12 +489,12 @@ function getCurrentToken() {
 function onTagTextKeyDown(e: KeyboardEvent) {
 
     const selectedSuggestion = document.getElementsByClassName("selected").item(0);
-    if(selectedSuggestion === null) { return; }
-    switch(e.code) {
+    if (selectedSuggestion === null) { return; }
+    switch (e.code) {
         case "ArrowDown":
             e.stopPropagation();
             e.preventDefault();
-            if(selectedSuggestion.nextElementSibling) {
+            if (selectedSuggestion.nextElementSibling) {
                 selectedSuggestion.classList.toggle("selected");
                 selectedSuggestion.nextElementSibling.classList.toggle("selected");
             }
@@ -496,7 +502,7 @@ function onTagTextKeyDown(e: KeyboardEvent) {
         case "ArrowUp":
             e.stopPropagation();
             e.preventDefault();
-            if(selectedSuggestion.previousElementSibling) {
+            if (selectedSuggestion.previousElementSibling) {
                 selectedSuggestion.classList.toggle("selected");
                 selectedSuggestion.previousElementSibling.classList.toggle("selected");
             }
@@ -510,7 +516,7 @@ function onTagTextKeyDown(e: KeyboardEvent) {
     }
 }
 
-function onTagTextInput(e: InputEvent) {
+function onTagTextInput() {
     clearSuggestionList();
     const currentToken = getCurrentToken();
     if (currentToken === "") { return; }
@@ -519,14 +525,13 @@ function onTagTextInput(e: InputEvent) {
 }
 
 function onSuggestionMouseover(e: MouseEvent) {
-    if((e.target as HTMLElement).id === "suggestions") { return; }
+    if ((e.target as HTMLElement).id === "suggestions") { return; }
     const selectedSuggestion = document.getElementsByClassName("selected").item(0);
     selectedSuggestion.classList.toggle("selected");
     (e.target as HTMLElement).classList.toggle("selected");
 }
 
 function onSuggestionClick(e: MouseEvent) {
-    if((e.target as HTMLElement).id === "suggestions") { return; }
+    if ((e.target as HTMLElement).id === "suggestions") { return; }
     acceptSuggestion((e.target as HTMLElement).textContent);
-}
 }

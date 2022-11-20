@@ -27,11 +27,6 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 
 ### To build
 * Install npm/node and run npm install
-* Alternatively, manually install these packages:
-  * webextension-polyfill (necessary to be included)
-  * web-ext-types (typescript declarations for web extensions)
-  * tslint (optionally, to use standardised formatting)
-  * typescript (to cross-compile .ts to .js)
 * run the scripts outlined in package.json or:
   * create folder structure below
   * copy html and css in their folders
@@ -56,6 +51,24 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 * To [marcinsmialek](https://github.com/marcinsmialek) for fixing a bug with the search in the omnibar and adding a keyboard shortcut to open the popup (#48)
 
 ### Changelog (incomplete)
+
+#### v1.5.0
+- Added different search modes in the options:
+  - Result must contain the exact search phrase
+  - Result must contain all words of the search phrase, but in any order (this is the new default)
+  - Result must contain at least one of the words in the search phrase (#57)
+  - Result must match the regular expression search
+- Added an export feature as wished in #55. I was not able to reproduce the reporter's problem though, so I don't see a use case for the export
+  - Export a default bookmark HTML format that can be imported into any browser
+  - Export a JSON document similar to the pinboard export over at [pinboard's backup page](https://pinboard.in/settings/backup)
+- Optimised some code causing API calls to sometimes be fired twice
+- Technical changes
+  - Optimised how the different files / modules reference each other 
+  - Updated dependencies
+  - Switched from tslint to eslint
+  - Shrank the 16-pixel icon to actually be 16 pixels wide
+  - 
+
 #### v1.4.1
 - Fixed pagination in popup
 

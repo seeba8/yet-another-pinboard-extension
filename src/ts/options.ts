@@ -1,11 +1,21 @@
-enum StyleType {
+import {Browser, search} from "webextension-polyfill";
+declare let browser: Browser;
+
+export enum StyleType {
     "browser",
     "dark",
     "light",
     "custom",
 }
 
-declare interface IStyle {
+export enum SearchMode {
+    "searchAny",
+    "searchAll",
+    "searchPhrase",
+    "searchRegex"
+}
+
+export declare interface IStyle {
     textColor: string,
     backgroundColor: string,
     disabledColor: string,
@@ -14,7 +24,7 @@ declare interface IStyle {
     type: StyleType
 }
 
-class Options {
+export class Options {
     public static async getObject() {
         const o = await browser.storage.local.get("options") as any;
         if (o.options === undefined) {
@@ -33,7 +43,8 @@ class Options {
                                 options._sharedbyDefault,
                                 options._titleRegex,
                                 options._style,
-                                options._styleType,);
+                                options._styleType,
+                                options._searchMode);
         }
     }
     /* tslint:disable */
@@ -48,6 +59,7 @@ class Options {
     private _titleRegex: string;
     private _style: IStyle;
     private _styleType: StyleType;
+    private _searchMode: SearchMode;
     
     private static lightStyle: Readonly<IStyle> = Object.freeze({
         textColor: "#000000",
@@ -68,17 +80,18 @@ class Options {
 
     /* tslint:enable */
 
-    private constructor(urlPrefix: string = "u",
-                        tagPrefix: string = "t",
-                        titlePrefix: string = "n",
-                        toReadPrefix: string = "r",
-                        showBookmarked: boolean = true,
-                        changeActionbarIcon: boolean = true,
-                        saveBrowserBookmarks: boolean = false,
-                        sharedByDefault: boolean = false,
-                        titleRegex: string = ".*",
+    private constructor(urlPrefix = "u",
+                        tagPrefix = "t",
+                        titlePrefix = "n",
+                        toReadPrefix = "r",
+                        showBookmarked = true,
+                        changeActionbarIcon = true,
+                        saveBrowserBookmarks = false,
+                        sharedByDefault = false,
+                        titleRegex = ".*",
                         style?: IStyle,
-                        styleType: StyleType = StyleType.browser) {
+                        styleType: StyleType = StyleType.browser,
+                        searchMode = SearchMode.searchAll) {
     this._urlPrefix = urlPrefix;
     this._tagPrefix = tagPrefix;
     this._titlePrefix = titlePrefix;
@@ -88,6 +101,7 @@ class Options {
     this._saveBrowserBookmarks = saveBrowserBookmarks;
     this._sharedbyDefault = sharedByDefault;
     this._titleRegex = titleRegex;
+    this._searchMode = searchMode;
     if(style === undefined) {
         this._style = window.matchMedia("(prefers-color-scheme: dark)").matches ? JSON.parse(JSON.stringify(Options.darkStyle)) : JSON.parse(JSON.stringify(Options.lightStyle));
     } else {
@@ -172,7 +186,8 @@ class Options {
             titleRegex = ".*";
         }
         try {
-            const r = new RegExp(titleRegex);
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const _ = new RegExp(titleRegex);
             this._titleRegex = titleRegex;
             this.save();
         } catch (e) {
@@ -189,7 +204,7 @@ class Options {
     get style() {
         // Fix for a bug in a previous version
         // Otherwise redundant
-        if (!this._style.hasOwnProperty("textColor")) {
+        if (!Object.prototype.hasOwnProperty.call(this._style, "textColor")) {
             this._style = JSON.parse(JSON.stringify(Options.lightStyle));
         }
         return this._style;
@@ -197,6 +212,15 @@ class Options {
 
     get styleType() {
         return this._styleType;
+    }
+
+    get searchMode(): SearchMode {
+        return this._searchMode;
+    }
+
+    set searchMode(searchMode: SearchMode) {
+        this._searchMode = searchMode;
+        this.save();
     }
 
     public setColorMode(mode: string) {
