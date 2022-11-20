@@ -14,15 +14,15 @@
   <div class="wrapper">
     <div>
       <label for="apikey">Pinboard API Key</label>
-      <br/>
+      <br />
       <span>The key can be found
         <a target="_blank" href="https://pinboard.in/settings/password">here</a>.
       </span><span>Please enter it in the format seeba8:1234567890ABCDEFG</span>
     </div>
     <div>
       <form>
-        <input type="password" id="apikey" placeholder="seeba8:1234567890ABCDEFG" pattern=".+:.+" required title="Please enter your API key in the format seeba8:1234567890ABCDEFG"
-        />
+        <input type="password" id="apikey" placeholder="seeba8:1234567890ABCDEFG" pattern=".+:.+" required
+          title="Please enter your API key in the format seeba8:1234567890ABCDEFG" />
         <button type="button" id="saveapi">Save API Key</button>
         <div id="errorsymbol" class="hidden">&#x26a0;</div>
       </form>
@@ -78,14 +78,38 @@
       <label for="browser">
         <input type="radio" name="styleselect" id="browser" checked>Follow browser
       </label>
+      <br />
       <label for="dark">
         <input type="radio" name="styleselect" id="dark">Dark
       </label>
+      <br />
       <label for="light">
         <input type="radio" name="styleselect" id="light">Light
       </label>
+      <br />
       <label for="custom">
         <input type="radio" name="styleselect" id="custom">Custom (see advanced options)
+      </label>
+    </div>
+
+    <div>
+      <label>Search mode</label>
+    </div>
+    <div>
+      <label for="searchAll">
+        <input type="radio" name="searchMode" id="searchAll" checked>Results must contain all search terms in any order
+      </label>
+      <br />
+      <label for="searchAny">
+        <input type="radio" name="searchMode" id="searchAny">Result must contain at least one of the search terms
+      </label>
+      <br />
+      <label for="searchPhrase">
+        <input type="radio" name="searchMode" id="searchPhrase" checked>Results must contain the exact search phrase
+      </label>
+      <br />
+      <label for="searchRegex">
+        <input type="radio" name="searchMode" id="searchRegex" checked>Results must match the regex search term
       </label>
     </div>
     <div class="fullwidth">
@@ -95,21 +119,25 @@
       <div>
         <label for="titleRegex">Regex to apply to tab titles</label>
         <span>
-          <br />This is applied when saving a tab as read later. This is useful when using an extension such as TitleURL to modify
-          tab titles. If capturing groups exist, the first capturing group is used. If the match is empty, it uses the full
+          <br />This is applied when saving a tab as read later. This is useful when using an extension such as TitleURL
+          to modify
+          tab titles. If capturing groups exist, the first capturing group is used. If the match is empty, it uses the
+          full
           title as a fallback solution.
           <br /> Example:
         </span>
         <ul>
           <li>
-            <pre>.*</pre> matches the entire title</li>
+            <pre>.*</pre> matches the entire title
+          </li>
           <li>
             <pre>.*(?=\s\|.*$)</pre> matches everything before
             <pre>" |"</pre>
           </li>
         </ul>
         <span>This uses default javascript
-          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">RegExp</a>. For more info, search it in your favourite search engine.</span>
+          <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_Expressions">RegExp</a>. For
+          more info, search it in your favourite search engine.</span>
       </div>
       <div>
         <input type="text" id="titleRegex" name="titleRegex" />
@@ -122,25 +150,27 @@
       <div>
         <label for="textColor">
           <input type="color" id="textColor" class="customstyle"> Text colour</label>
-        <br/>
+        <br />
         <label for="backgroundColor">
           <input type="color" id="backgroundColor" class="customstyle"> Background colour</label>
-        <br/>
+        <br />
         <label for="linkColor">
           <input type="color" id="linkColor" class="customstyle"> Link colour</label>
-        <br/>
+        <br />
         <label for="visitedColor">
           <input type="color" id="visitedColor" class="customstyle"> Visited link colour</label>
-        <br/>
+        <br />
         <label for="disabledColor">
           <input type="color" id="disabledColor" class="customstyle"> Disabled items (and border) colour</label>
-        <br/>
+        <br />
       </div>
       <div>
         <label>Export local pins</label>
         <br />
         <span>
-          This export tries to be similar to <a href="https://pinboard.in/settings/backup">the one at pinboard</a>. However, it exports the local copy. That means, if for some reason there is a discrepancy, this is how you can get your pins out of the browser extension.
+          This export tries to be similar to <a href="https://pinboard.in/settings/backup">the one at pinboard</a>.
+          However, it exports the local copy. That means, if for some reason there is a discrepancy, this is how you can
+          get your pins out of the browser extension.
         </span>
       </div>
       <div>

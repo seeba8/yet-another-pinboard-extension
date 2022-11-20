@@ -1,7 +1,7 @@
 import type { Browser } from "webextension-polyfill";
 declare let browser: Browser;
 
-import { Options } from "./options.js";
+import { Options, SearchMode } from "./options.js";
 import { Pin } from "./pin.js";
 
 export class Pins extends Map<string, Pin> {
@@ -51,7 +51,7 @@ export class Pins extends Map<string, Pin> {
      * @param text
      * @param options
      */
-    public *filter(text?: string, options?: { toRead?: boolean, shared?: boolean, offset?: number, count?: number }, searchFields?: ("tags" | "description" | "url" | "extended")[]) {
+    public *filter(text?: string, options?: { toRead?: boolean, shared?: boolean, offset?: number, count?: number, searchMode?: SearchMode }, searchFields?: ("tags" | "description" | "url" | "extended")[]) {
         if (options === undefined) {
             options = {};
         }
@@ -75,7 +75,11 @@ export class Pins extends Map<string, Pin> {
         let c = -1;
         for (const pin of this.forEachReversed()) {
             if (options.toRead && pin.toread !== "yes") { continue; }
-            if (text === "" || searchFields.some(field => { return pin[field].toLowerCase().includes(text) })) {
+            if (text === "" 
+                || (options.searchMode === SearchMode.searchAny && searchFields.some(field => text.split(/\s+/).some(word => pin[field].toLowerCase().includes(word))))
+                || (options.searchMode === SearchMode.searchAll && searchFields.some(field => text.split(/\s+/).every(word => pin[field].toLowerCase().includes(word))))
+                || (options.searchMode === SearchMode.searchPhrase && searchFields.some(field => pin[field].toLowerCase().includes(text)))
+                || (options.searchMode === SearchMode.searchRegex && searchFields.some(field => new RegExp(text, "i").test(pin[field])))) {
                 c++;
                 if (options.offset > c) {
                     continue;
@@ -115,7 +119,7 @@ export class Pins extends Map<string, Pin> {
         if (hasPrefix) {
             text = text.slice(text.indexOf(" ") + 1);
         }
-        for (const pin of this.filter(text, { toRead: toRead || additional.toRead, count: additional.count, offset: additional.offset }, searchArea)) {
+        for (const pin of this.filter(text, { toRead: toRead || additional.toRead, count: additional.count, offset: additional.offset , searchMode: options.searchMode}, searchArea)) {
             yield pin;
         }
     }

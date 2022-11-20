@@ -1,4 +1,4 @@
-import type {Browser} from "webextension-polyfill";
+import {Browser, search} from "webextension-polyfill";
 declare let browser: Browser;
 
 export enum StyleType {
@@ -6,6 +6,13 @@ export enum StyleType {
     "dark",
     "light",
     "custom",
+}
+
+export enum SearchMode {
+    "searchAny",
+    "searchAll",
+    "searchPhrase",
+    "searchRegex"
 }
 
 export declare interface IStyle {
@@ -36,7 +43,8 @@ export class Options {
                                 options._sharedbyDefault,
                                 options._titleRegex,
                                 options._style,
-                                options._styleType,);
+                                options._styleType,
+                                options._searchMode);
         }
     }
     /* tslint:disable */
@@ -51,6 +59,7 @@ export class Options {
     private _titleRegex: string;
     private _style: IStyle;
     private _styleType: StyleType;
+    private _searchMode: SearchMode;
     
     private static lightStyle: Readonly<IStyle> = Object.freeze({
         textColor: "#000000",
@@ -81,7 +90,8 @@ export class Options {
                         sharedByDefault = false,
                         titleRegex = ".*",
                         style?: IStyle,
-                        styleType: StyleType = StyleType.browser) {
+                        styleType: StyleType = StyleType.browser,
+                        searchMode = SearchMode.searchAll) {
     this._urlPrefix = urlPrefix;
     this._tagPrefix = tagPrefix;
     this._titlePrefix = titlePrefix;
@@ -91,6 +101,7 @@ export class Options {
     this._saveBrowserBookmarks = saveBrowserBookmarks;
     this._sharedbyDefault = sharedByDefault;
     this._titleRegex = titleRegex;
+    this._searchMode = searchMode;
     if(style === undefined) {
         this._style = window.matchMedia("(prefers-color-scheme: dark)").matches ? JSON.parse(JSON.stringify(Options.darkStyle)) : JSON.parse(JSON.stringify(Options.lightStyle));
     } else {
@@ -201,6 +212,15 @@ export class Options {
 
     get styleType() {
         return this._styleType;
+    }
+
+    get searchMode(): SearchMode {
+        return this._searchMode;
+    }
+
+    set searchMode(searchMode: SearchMode) {
+        this._searchMode = searchMode;
+        this.save();
     }
 
     public setColorMode(mode: string) {

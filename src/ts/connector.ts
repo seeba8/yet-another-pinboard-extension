@@ -159,6 +159,9 @@ function proceedGetAllData() {
 
 async function sendRequest(item: QueueElement) {
     const apikey = (await browser.storage.local.get(["apikey"])).apikey as string;
+    if(apikey === undefined || apikey.length === 0) {
+        throw Error("No API key configured.");
+    }
     return fetch(API_URL[item.type] + "?auth_token=" + encodeURIComponent(apikey) + "&format=json" +
         makeParamString(item.params));
 }

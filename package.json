@@ -1,6 +1,6 @@
 {
   "name": "yet-another-pinboard-extension",
-  "version": "1.3.7",
+  "version": "1.5.0",
   "description": "Browser extension for pinboard (including omnibar search and actionbar button popup)",
   "main": "/dist/manifest.json",
   "dependencies": {
@@ -20,7 +20,8 @@
     "tsc": "tsc",
     "copyandbuild": "npm run copytodist && npm run tsc",
     "build": "npm run tsc",
-    "web-ext": "web-ext run --source-dir=dist/ --firefox=nightly --devtools"
+    "web-ext": "web-ext run --source-dir=dist/ --firefox=nightly --devtools",
+    "web-ext-lint": "cd dist && web-ext lint"
   },
   "repository": {
     "type": "git",

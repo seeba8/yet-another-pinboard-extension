@@ -1,6 +1,6 @@
 import type { Browser } from "webextension-polyfill";
 declare let browser: Browser;
-import { Options, StyleType } from "./options.js";
+import { Options, SearchMode, StyleType } from "./options.js";
 import { Pins } from "./pins.js";
 const port = browser.runtime.connect({"name": "backend"});
 let options: Options;
@@ -58,6 +58,10 @@ document.querySelectorAll(".customstyle").forEach((element) => {
     element.addEventListener("change", onCustomStyleChange);
 });
 
+document.getElementsByName("searchMode").forEach((element) => {
+    element.addEventListener("change", handleSearchBehaviourChange);
+});
+
 onLoad();
 
 async function onLoad() {
@@ -85,6 +89,13 @@ async function onLoad() {
     } else {
         (document.getElementById("custom") as HTMLInputElement).checked = true;
     }
+    document.getElementsByName("searchMode").forEach((element: HTMLInputElement) => {
+        if(options.searchMode === SearchMode[element.id]) {
+            element.checked = true;
+        } else {
+            element.checked = false;
+        }
+    });
     updateColorSelectors();
 
     for (const [k, v] of options.getStringOptions()) {
@@ -213,6 +224,11 @@ function updateColorSelectors() {
             (document.getElementById(o) as HTMLInputElement).value = options.style[o];
         }
     }
+}
+
+function handleSearchBehaviourChange(e: Event) {
+    const selected = (e.target as HTMLInputElement).id;
+    options.searchMode = SearchMode[selected];
 }
 
 async function onExportToHtml() {
