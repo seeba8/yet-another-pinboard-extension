@@ -52,6 +52,9 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
 
 ### Changelog (incomplete)
 
+#### v1.5.1
+- Fix regression of not being able to search in the address bar anymore (#62)
+
 #### v1.5.0
 - Added different search modes in the options:
   - Result must contain the exact search phrase
@@ -67,7 +70,6 @@ Does not send any data anywhere, as far as I know (except to pinboard, of course
   - Updated dependencies
   - Switched from tslint to eslint
   - Shrank the 16-pixel icon to actually be 16 pixels wide
-  - 
 
 #### v1.4.1
 - Fixed pagination in popup
